@@ -1,30 +1,50 @@
 import { isAdmin } from "@/lib/auth";
-import { addEvent, db, getIssue } from "@/lib/db";
+import { addEvent, getIssue, nearestOffice, setAssignment } from "@/lib/db";
+import { nowIso } from "@/lib/clock";
 import { STATUSES, Status, TEAMS } from "@/lib/types";
 
 export async function GET(_req: Request, ctx: RouteContext<"/api/issues/[id]">) {
   const { id } = await ctx.params;
-  const data = getIssue(Number(id));
+  const data = await getIssue(Number(id));
   if (!data) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json(data);
 }
 
-/** Admin: assign a team and/or move the issue through the workflow. */
+// Until sign-in and the Authority screens (PLAN steps 3 and 5), the old admin screen still picks a team.
+// A team now means "the nearest Office of that Department".
+const TEAM_DEPARTMENT: Record<(typeof TEAMS)[number], string> = {
+  "Road Maintenance Unit": "Roads",
+  "Sanitation Crew": "Sanitation",
+  "Electrical Works": "Electrical",
+  "Water & Sewerage": "Water & Sewerage",
+  "Accessibility Task Force": "Accessibility",
+  "General Maintenance": "General Maintenance",
+};
+
+/** Admin: assign an Office and/or move the issue through the workflow. */
 export async function PATCH(req: Request, ctx: RouteContext<"/api/issues/[id]">) {
   if (!(await isAdmin())) return Response.json({ error: "Admin login required" }, { status: 401 });
   const { id } = await ctx.params;
-  const current = getIssue(Number(id));
+  const current = await getIssue(Number(id));
   if (!current) return Response.json({ error: "Not found" }, { status: 404 });
 
   const body = (await req.json().catch(() => ({}))) as { status?: string; assigned_team?: string };
-  const now = new Date().toISOString();
+  const now = nowIso();
   const issue = current.issue;
 
-  let team = issue.assigned_team;
+  let officeId = issue.office_id;
+  let officeName = issue.assigned_team;
   if (body.assigned_team !== undefined) {
     if (!(TEAMS as readonly string[]).includes(body.assigned_team))
       return Response.json({ error: "Unknown team" }, { status: 400 });
-    team = body.assigned_team;
+    const office = await nearestOffice(
+      TEAM_DEPARTMENT[body.assigned_team as (typeof TEAMS)[number]],
+      issue.lat,
+      issue.lng,
+    );
+    if (!office) return Response.json({ error: "No Office for that team" }, { status: 400 });
+    officeId = office.id;
+    officeName = office.name;
   }
   let status: Status = issue.status;
   if (body.status !== undefined) {
@@ -32,16 +52,13 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/issues/[id]">)
       return Response.json({ error: "Use the resolve endpoint to resolve an issue" }, { status: 400 });
     status = body.status as Status;
   }
-  if (team && team !== issue.assigned_team && status === "open") status = "assigned";
+  const newOffice = officeId !== issue.office_id;
+  if (newOffice && status === "open") status = "assigned";
 
-  db()
-    .prepare(
-      "UPDATE issues SET assigned_team = ?, status = ?, updated_at = ?, resolved_at = CASE WHEN ? = 'resolved' THEN resolved_at ELSE NULL END WHERE id = ?",
-    )
-    .run(team, status, now, status, issue.id);
+  await setAssignment(issue.id, officeId, status);
 
-  if (team !== issue.assigned_team) addEvent(issue.id, "assigned", `Assigned to ${team}`, now);
-  const autoAssigned = status === "assigned" && team !== issue.assigned_team;
+  if (newOffice) await addEvent(issue.id, "assigned", `Assigned to ${officeName}`, now);
+  const autoAssigned = status === "assigned" && newOffice;
   if (status !== issue.status && !autoAssigned) {
     const label: Record<Status, string> = {
       open: issue.status === "resolved" ? "Re-opened" : "Moved back to open",
@@ -49,7 +66,7 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/issues/[id]">)
       in_progress: "Repair work started",
       resolved: "Resolved",
     };
-    addEvent(issue.id, status, label[status], now);
+    await addEvent(issue.id, status, label[status], now);
   }
-  return Response.json(getIssue(issue.id));
+  return Response.json(await getIssue(issue.id));
 }

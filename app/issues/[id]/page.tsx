@@ -99,7 +99,7 @@ export default function IssuePage() {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3 text-sm">
             <span className="font-medium">{issue.resolution_note}</span>
-            <span className="text-muted">Fixed by {issue.assigned_team}</span>
+            <span className="text-muted">Fixed by {issue.assigned_team ?? "the city"}</span>
           </div>
         </Card>
       ) : (

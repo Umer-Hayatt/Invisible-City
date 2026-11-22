@@ -1,4 +1,5 @@
-import { db, listIssues } from "./db";
+import { nowMs } from "./clock";
+import { sql } from "./sql";
 import { NEIGHBORHOODS } from "./geo";
 import { CATEGORY_META, Category, Issue, SEVERITY_WEIGHT } from "./types";
 
@@ -21,7 +22,7 @@ function days(a: string, b: string) {
   return (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000;
 }
 
-export function neighborhoodStats(issues: Issue[] = listIssues()): NeighborhoodStat[] {
+export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
   const total = issues.length || 1;
   const cityRate = issues.filter((i) => i.status === "resolved").length / total;
 
@@ -73,8 +74,8 @@ export interface PredictiveInsight {
 }
 
 /** Recurring problem clusters in the last 120 days → candidates for preventive work. */
-export function predictiveInsights(issues: Issue[] = listIssues()): PredictiveInsight[] {
-  const cutoff = Date.now() - 120 * 86_400_000;
+export function predictiveInsights(issues: Issue[]): PredictiveInsight[] {
+  const cutoff = nowMs() - 120 * 86_400_000;
   const groups = new Map<string, Issue[]>();
   for (const i of issues) {
     if (new Date(i.created_at).getTime() < cutoff) continue;
@@ -121,15 +122,8 @@ export interface Contributor {
  * Citizen Impact Score: 10 per report, +5 if other citizens corroborated the same
  * issue, +15 for being first to report it, +20 when the issue was actually fixed.
  */
-export function contributors(reporterId?: string): Contributor[] {
-  const rows = db()
-    .prepare(
-      `SELECT r.reporter_id, r.reporter_name, r.issue_id, r.id, i.status, i.report_count,
-              (SELECT MIN(id) FROM reports r2 WHERE r2.issue_id = r.issue_id) AS first_id
-       FROM reports r JOIN issues i ON i.id = r.issue_id
-       ${reporterId ? "WHERE r.reporter_id = ?" : ""}`,
-    )
-    .all(...(reporterId ? [reporterId] : [])) as {
+export async function contributors(authId?: string): Promise<Contributor[]> {
+  const rows = await sql().query<{
     reporter_id: string;
     reporter_name: string | null;
     issue_id: number;
@@ -137,7 +131,13 @@ export function contributors(reporterId?: string): Contributor[] {
     status: string;
     report_count: number;
     first_id: number;
-  }[];
+  }>(
+    `SELECT r.reporter_id, p.display_name AS reporter_name, r.issue_id, r.id, i.status, i.report_count,
+            (SELECT MIN(id) FROM reports r2 WHERE r2.issue_id = r.issue_id AND NOT r2.is_spam) AS first_id
+     FROM reports r JOIN issues i ON i.id = r.issue_id JOIN people p ON p.id = r.reporter_id
+     WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL${authId ? " AND p.auth_id = $1" : ""}`,
+    authId ? [authId] : [],
+  );
   const map = new Map<string, Contributor>();
   for (const r of rows) {
     const c = map.get(r.reporter_id) ?? {
@@ -149,7 +149,6 @@ export function contributors(reporterId?: string): Contributor[] {
       firstReports: 0,
       score: 0,
     };
-    if (r.reporter_name) c.name = r.reporter_name;
     c.reports++;
     if (r.report_count > 1) c.corroborated++;
     if (r.status === "resolved") c.resolved++;
@@ -160,11 +159,13 @@ export function contributors(reporterId?: string): Contributor[] {
   return [...map.values()].sort((a, b) => b.score - a.score);
 }
 
-export function cityOverview(issues: Issue[] = listIssues()) {
+export async function cityOverview(issues: Issue[]) {
   const resolved = issues.filter((i) => i.status === "resolved");
   const open = issues.filter((i) => i.status !== "resolved");
   const hoods = neighborhoodStats(issues).filter((n) => n.total > 0);
-  const reportCount = (db().prepare("SELECT COUNT(*) AS n FROM reports").get() as { n: number }).n;
+  const [{ n: reportCount }] = await sql().query<{ n: number }>(
+    "SELECT COUNT(*)::int AS n FROM reports WHERE NOT is_spam AND deleted_at IS NULL",
+  );
   return {
     totalIssues: issues.length,
     totalReports: reportCount,

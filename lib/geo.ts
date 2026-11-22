@@ -44,3 +44,30 @@ export function nearestNeighborhood(lat: number, lng: number) {
   }
   return bestD < 6000 ? best.name : "Outskirts";
 }
+
+/**
+ * Sector -> Constituency lookup. Approximate and for demo data: the National Assembly
+ * seats of Islamabad (NA-46, NA-47, NA-48) split by sector. Check against the Election
+ * Commission's delimitation before treating it as authoritative.
+ */
+export const SECTOR_CONSTITUENCY: Record<string, string> = {
+  "E-7": "NA-47",
+  "F-6": "NA-47",
+  "F-7": "NA-47",
+  "F-8": "NA-47",
+  "Blue Area": "NA-47",
+  "G-6": "NA-47",
+  "G-7": "NA-47",
+  "F-10": "NA-46",
+  "F-11": "NA-46",
+  "G-10": "NA-46",
+  "G-11": "NA-46",
+  "G-8": "NA-48",
+  "G-9": "NA-48",
+  "H-8": "NA-48",
+  "I-8": "NA-48",
+  "I-9": "NA-48",
+  "I-10": "NA-48",
+};
+
+export const constituencyFor = (neighborhood: string) => SECTOR_CONSTITUENCY[neighborhood] ?? null;

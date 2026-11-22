@@ -257,7 +257,7 @@ function Pill({ value, onChange, children }: { value: string; onChange: (v: stri
 }
 
 function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void }) {
-  const [team, setTeam] = useState(issue.assigned_team ?? CATEGORY_META[issue.category].team);
+  const [team, setTeam] = useState<string>(CATEGORY_META[issue.category].team);
   const [after, setAfter] = useState<{ file: File; preview: string } | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -380,7 +380,7 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
               <img src={imageUrl(issue.after_image)!} alt="After" className="h-40 w-full rounded-xl object-cover" />
             )}
             <p className="flex items-center gap-2 text-sm font-medium text-brand">
-              <CircleCheck size={16} /> Resolved {issue.resolved_at && timeAgo(issue.resolved_at)} by {issue.assigned_team}
+              <CircleCheck size={16} /> Resolved {issue.resolved_at && timeAgo(issue.resolved_at)} by {issue.assigned_team ?? "the city"}
             </p>
             <button disabled={busy} onClick={() => patch({ status: "open" })} className={btn.ghost}>
               <RotateCcw size={15} /> Re-open issue

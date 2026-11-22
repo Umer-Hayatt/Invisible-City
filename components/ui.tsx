@@ -3,6 +3,8 @@ import {
   CircleDot,
   Construction,
   Droplets,
+  Building2,
+  Zap,
   Lightbulb,
   type LucideIcon,
   Trash2,
@@ -27,6 +29,8 @@ export const CATEGORY_ICON: Record<Category, LucideIcon> = {
   drainage: Waves,
   blocked_footpath: Construction,
   accessibility: Accessibility,
+  electrical_hazard: Zap,
+  building_damage: Building2,
   other: CircleDot,
 };
 
@@ -38,6 +42,8 @@ const CATEGORY_TINT: Record<Category, string> = {
   drainage: "bg-cyan-50 text-cyan-800",
   blocked_footpath: "bg-stone-100 text-stone-700",
   accessibility: "bg-violet-50 text-violet-700",
+  electrical_hazard: "bg-yellow-50 text-yellow-800",
+  building_damage: "bg-rose-50 text-rose-700",
   other: "bg-slate-100 text-slate-600",
 };
 

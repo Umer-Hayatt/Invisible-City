@@ -4,6 +4,8 @@ export const CATEGORIES = [
   "streetlight",
   "water_leak",
   "drainage",
+  "electrical_hazard",
+  "building_damage",
   "blocked_footpath",
   "accessibility",
   "other",
@@ -36,6 +38,8 @@ export const CATEGORY_META: Record<
   drainage: { label: "Blocked drain / flooding", team: "Water & Sewerage" },
   blocked_footpath: { label: "Blocked footpath", team: "General Maintenance" },
   accessibility: { label: "Accessibility barrier", team: "Accessibility Task Force" },
+  electrical_hazard: { label: "Electrical hazard", team: "Electrical Works" },
+  building_damage: { label: "Building damage", team: "General Maintenance" },
   other: { label: "Other", team: "General Maintenance" },
 };
 
@@ -68,7 +72,10 @@ export interface Issue {
   neighborhood: string;
   status: Status;
   priority: number;
-  assigned_team: string | null;
+  assigned_team: string | null; // the assigned Office's name
+  office_id: number | null;
+  department: string;
+  constituency: string | null;
   report_count: number;
   cover_image: string | null;
   after_image: string | null;
@@ -82,7 +89,7 @@ export interface Issue {
 export interface Report {
   id: number;
   issue_id: number;
-  reporter_id: string;
+
   reporter_name: string | null;
   description: string;
   image: string | null;

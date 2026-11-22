@@ -1,25 +1,23 @@
 import { analyzeReport } from "@/lib/ai";
 import {
-  addEvent,
-
   duplicateCandidates,
   getIssue,
   recentlyResolvedNearby,
+  recordReport,
   reportsByReporter,
-  tx,
 } from "@/lib/db";
-import { haversineMeters, nearestNeighborhood } from "@/lib/geo";
+import { constituencyFor, haversineMeters, nearestNeighborhood } from "@/lib/geo";
 import { contributors } from "@/lib/insights";
-import { computePriority, findDuplicate, maxSeverity } from "@/lib/scoring";
-import { CATEGORIES, CATEGORY_META, Category, Issue } from "@/lib/types";
-import { saveImage } from "@/lib/uploads";
+import { checkImage, photoStore } from "@/lib/photo-store";
+import { findDuplicate } from "@/lib/scoring";
+import { CATEGORIES, CATEGORY_META, Category } from "@/lib/types";
 
 export async function GET(req: Request) {
   const reporterId = new URL(req.url).searchParams.get("reporterId");
   if (!reporterId) return Response.json({ error: "reporterId required" }, { status: 400 });
   return Response.json({
-    reports: reportsByReporter(reporterId),
-    impact: contributors(reporterId)[0] ?? null,
+    reports: await reportsByReporter(reporterId),
+    impact: (await contributors(reporterId))[0] ?? null,
   });
 }
 
@@ -46,10 +44,15 @@ export async function POST(req: Request) {
   if (!(image instanceof File && image.size > 0) && !description.trim())
     return Response.json({ error: "Add a photo or a description" }, { status: 400 });
 
-  let saved: Awaited<ReturnType<typeof saveImage>> | null = null;
+  let bytes: Buffer | null = null;
+  let mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif" = "image/jpeg";
+  let photoUrl: string | null = null;
   if (image instanceof File && image.size > 0) {
     try {
-      saved = await saveImage(image);
+      checkImage(image);
+      bytes = Buffer.from(await image.arrayBuffer());
+      mediaType = image.type as typeof mediaType;
+      photoUrl = await photoStore().upload(bytes, { mediaType });
     } catch (e) {
       return Response.json({ error: (e as Error).message }, { status: 400 });
     }
@@ -57,116 +60,35 @@ export async function POST(req: Request) {
 
   // 1. AI: classify + estimate severity
   const ai = await analyzeReport({
-    imageBase64: saved ? saved.buf.toString("base64") : null,
-    mediaType: saved?.mediaType ?? "image/jpeg",
+    imageBase64: bytes ? bytes.toString("base64") : null,
+    mediaType,
     description,
     categoryHint,
   });
 
   // 2. AI: duplicate detection against open issues
-  const match = findDuplicate(duplicateCandidates(), {
-    lat,
-    lng,
-    category: ai.category,
-    hash: imageHash,
-  });
+  const match = findDuplicate(await duplicateCandidates(), { lat, lng, category: ai.category, hash: imageHash });
 
   // 3. Recurrence: same problem re-appearing where a repair was made recently
   const recurrence = match
     ? null
-    : recentlyResolvedNearby(ai.category).find((i) => haversineMeters(lat, lng, i.lat, i.lng) < 60) ?? null;
+    : (await recentlyResolvedNearby(ai.category)).find((i) => haversineMeters(lat, lng, i.lat, i.lng) < 60) ?? null;
 
-  const now = new Date().toISOString();
   const neighborhood = nearestNeighborhood(lat, lng);
-
-  const issueId = tx((d) => {
-    let id: number;
-    if (match) {
-      const issue = match.issue;
-      const severity = maxSeverity(issue.severity, ai.severity);
-      const reportCount = issue.report_count + 1;
-      d.prepare(
-        `UPDATE issues SET severity = ?, report_count = ?, cover_image = COALESCE(cover_image, ?),
-         priority = ?, updated_at = ? WHERE id = ?`,
-      ).run(
-        severity,
-        reportCount,
-        saved?.name ?? null,
-        computePriority({ ...issue, severity, report_count: reportCount }),
-        now,
-        issue.id,
-      );
-      id = issue.id;
-      addEvent(
-        id,
-        "merged",
-        `New report grouped as duplicate (match ${Math.round(match.score * 100)}%, ${match.distance} m away). ${reportCount} citizens have now reported this.`,
-        now,
-      );
-      if (severity !== issue.severity) addEvent(id, "escalated", `Severity raised to ${severity}`, now);
-    } else {
-      const base: Pick<Issue, "severity" | "category" | "report_count" | "created_at" | "status" | "recurrence_of"> = {
-        severity: ai.severity,
-        category: ai.category,
-        report_count: 1,
-        created_at: now,
-        status: "open",
-        recurrence_of: recurrence?.id ?? null,
-      };
-      const r = d
-        .prepare(
-          `INSERT INTO issues (category, severity, title, summary, lat, lng, neighborhood, status, priority,
-           report_count, cover_image, recurrence_of, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?, 1, ?, ?, ?, ?)`,
-        )
-        .run(
-          ai.category,
-          ai.severity,
-          ai.title,
-          ai.summary,
-          lat,
-          lng,
-          neighborhood,
-          computePriority(base),
-          saved?.name ?? null,
-          recurrence?.id ?? null,
-          now,
-          now,
-        );
-      id = Number(r.lastInsertRowid);
-      addEvent(
-        id,
-        "created",
-        `Reported in ${neighborhood}. AI classified as ${CATEGORY_META[ai.category].label} (${ai.severity}, ${Math.round(
-          ai.confidence * 100,
-        )}% confidence).`,
-        now,
-      );
-      if (recurrence) addEvent(id, "recurring", `Recurring problem: issue #${recurrence.id} here was repaired before`, now);
-    }
-
-    d.prepare(
-      `INSERT INTO reports (issue_id, reporter_id, reporter_name, description, image, image_hash, lat, lng,
-       ai_category, ai_severity, ai_confidence, ai_summary, ai_source, duplicate_score, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      id,
-      reporterId,
-      reporterName,
-      description,
-      saved?.name ?? null,
-      imageHash,
-      lat,
-      lng,
-      ai.category,
-      ai.severity,
-      ai.confidence,
-      ai.summary,
-      ai.source,
-      match?.score ?? null,
-      now,
-    );
-    return id;
+  const issueId = await recordReport({
+    reporterAuthId: reporterId,
+    reporterName,
+    description,
+    image: photoUrl,
+    imageHash,
+    lat,
+    lng,
+    neighborhood,
+    constituency: constituencyFor(neighborhood),
+    ai,
+    categoryLabel: CATEGORY_META[ai.category].label,
+    match,
+    recurrenceOf: recurrence?.id ?? null,
   });
 
   return Response.json({
@@ -182,6 +104,6 @@ export async function POST(req: Request) {
         }
       : null,
     recurrenceOf: recurrence?.id ?? null,
-    issue: getIssue(issueId)?.issue,
+    issue: (await getIssue(issueId))?.issue,
   });
 }

@@ -1,3 +1,4 @@
+import { nowMs } from "./clock";
 import { haversineMeters } from "./geo";
 import { Category, Issue, SEVERITY_WEIGHT, Severity } from "./types";
 
@@ -21,7 +22,7 @@ export function computePriority(issue: {
   if (issue.status === "resolved") return 0;
   const sev = SEVERITY_WEIGHT[issue.severity] * 15; // 15..60
   const crowd = Math.min(20, 8 * Math.log2(Math.max(1, issue.report_count))); // 0..20
-  const ageDays = (Date.now() - new Date(issue.created_at).getTime()) / 86_400_000;
+  const ageDays = (nowMs() - new Date(issue.created_at).getTime()) / 86_400_000;
   const age = Math.min(10, Math.max(0, ageDays) * 0.4); // 0..10
   const hazard = HAZARD_BONUS[issue.category] ?? 0;
   const recurring = issue.recurrence_of ? 4 : 0;

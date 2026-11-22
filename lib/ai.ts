@@ -28,6 +28,8 @@ Categories:
 - drainage: blocked drains, sewage overflow, standing flood water
 - blocked_footpath: footpaths obstructed by encroachment, debris, parked vehicles, construction
 - accessibility: missing ramps, broken tactile paving, barriers that block wheelchair or visually impaired users
+- electrical_hazard: exposed or sparking wires, damaged transformers, live cables on the ground
+- building_damage: cracked, crumbling or collapsing walls, roofs and public building structures
 - other: a genuine civic problem that fits none of the above
 
 Severity rubric (judge from visible size and risk to people):
@@ -198,6 +200,8 @@ async function analyzeWithClaude(input: {
 // Offline fallback so the demo works without an API key.
 // ---------------------------------------------------------------------------
 const KEYWORDS: Record<Exclude<Category, "other">, string[]> = {
+  electrical_hazard: ["sparking", "transformer", "exposed wire", "electric shock", "live wire", "short circuit"],
+  building_damage: ["building", "wall", "collapse", "crumbling", "roof", "facade", "structure"],
   road_damage: ["pothole", "crack", "road", "asphalt", "manhole", "sinkhole", "bump", "gaddha"],
   garbage: ["garbage", "trash", "waste", "rubbish", "litter", "bin", "dump", "kachra", "smell"],
   streetlight: ["light", "lamp", "dark", "streetlight", "pole", "bulb", "wire"],
