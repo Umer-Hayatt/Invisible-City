@@ -4,7 +4,8 @@ import { Camera, ChevronRight, CircleCheck, HardHat, Inbox, Trophy } from "lucid
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card, Empty, IssueThumb, PageHeader, StatusBadge, btn } from "@/components/ui";
-import { api, getReporterId, timeAgo } from "@/lib/client";
+import Gate from "@/components/Gate";
+import { api, timeAgo } from "@/lib/client";
 import type { Contributor } from "@/lib/insights";
 import { Category, Report, Status } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
@@ -22,11 +23,19 @@ const STEPS: Status[] = ["open", "assigned", "in_progress", "resolved"];
 const STEP_LABEL = ["Reported", "Assigned", "Being fixed", "Resolved"];
 
 export default function TrackPage() {
+  return (
+    <Gate roles={["citizen"]} next="/track">
+      <TrackList />
+    </Gate>
+  );
+}
+
+function TrackList() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [impact, setImpact] = useState<Contributor | null>(null);
 
   useEffect(() => {
-    api<{ reports: Row[]; impact: Contributor | null }>(`/api/reports?reporterId=${encodeURIComponent(getReporterId())}`)
+    api<{ reports: Row[]; impact: Contributor | null }>("/api/reports")
       .then((d) => {
         setRows(d.reports);
         setImpact(d.impact);
@@ -36,7 +45,7 @@ export default function TrackPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader eyebrow="Your contributions" title="My reports" sub="Follow every problem you've reported from this device, all the way to the fix." />
+      <PageHeader eyebrow="Your contributions" title="My reports" sub="Follow every problem you've reported all the way to the fix." />
 
       {impact && (
         <div className="relative mb-8 overflow-hidden rounded-3xl bg-ink p-6 text-white sm:p-7">

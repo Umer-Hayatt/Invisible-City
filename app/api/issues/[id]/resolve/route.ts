@@ -1,12 +1,13 @@
-import { isAdmin } from "@/lib/auth";
 import { addEvent, getIssue, markResolved } from "@/lib/db";
+import { requireRole } from "@/lib/roles";
 import { checkImage, photoStore } from "@/lib/photo-store";
 
-/** Admin: mark resolved with an after-repair photo (Before vs After proof). */
+/** Authority (temporary, until the Office workflow in PLAN step 6): mark resolved with an after-repair photo (Before vs After proof). */
 export async function POST(req: Request, ctx: RouteContext<"/api/issues/[id]/resolve">) {
-  if (!(await isAdmin())) return Response.json({ error: "Admin login required" }, { status: 401 });
+  const actor = await requireRole("authority");
+  if (actor instanceof Response) return actor;
   const { id } = await ctx.params;
-  const current = await getIssue(Number(id));
+  const current = await getIssue(Number(id), actor.isDemo);
   if (!current) return Response.json({ error: "Not found" }, { status: 404 });
 
   const form = await req.formData().catch(() => null);
@@ -25,5 +26,5 @@ export async function POST(req: Request, ctx: RouteContext<"/api/issues/[id]/res
   }
   const now = await markResolved(current.issue.id, afterUrl, note);
   await addEvent(current.issue.id, "resolved", `Resolved: ${note}${afterUrl ? " (after-repair photo uploaded)" : ""}`, now);
-  return Response.json(await getIssue(current.issue.id));
+  return Response.json(await getIssue(current.issue.id, actor.isDemo));
 }

@@ -8,7 +8,6 @@ import {
   Hourglass,
   ImagePlus,
   Inbox,
-  Landmark,
   LogOut,
   MousePointerClick,
   Repeat,
@@ -19,6 +18,9 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CityMap from "@/components/CityMap";
+import Gate from "@/components/Gate";
+import { t } from "@/lib/i18n";
+import { sessionChanged } from "@/lib/me";
 import { Card, CategoryChip, CategoryIcon, Empty, IssueThumb, PriorityMeter, SeverityBadge, Stat, StatusBadge, btn, field } from "@/components/ui";
 import { api, prepareImage, timeAgo } from "@/lib/client";
 import { NEIGHBORHOODS } from "@/lib/geo";
@@ -27,49 +29,14 @@ import { CATEGORIES, CATEGORY_META, Issue, STATUSES, TEAMS } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
 
 export default function AdminPage() {
-  const [authed, setAuthed] = useState<boolean | null>(null);
-  useEffect(() => {
-    api<{ isAdmin: boolean }>("/api/config")
-      .then((c) => setAuthed(c.isAdmin))
-      .catch(() => setAuthed(false));
-  }, []);
-  if (authed === null) return <div className="text-muted">Loading…</div>;
-  return authed ? <Dashboard onLogout={() => setAuthed(false)} /> : <Login onOk={() => setAuthed(true)} />;
-}
-
-function Login({ onOk }: { onOk: () => void }) {
-  const [code, setCode] = useState("");
-  const [err, setErr] = useState("");
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        try {
-          await api("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ passcode: code }) });
-          onOk();
-        } catch (e) {
-          setErr((e as Error).message);
-        }
-      }}
-      className="mx-auto mt-10 max-w-md"
-    >
-      <Card className="p-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ink text-white">
-          <Landmark size={22} />
-        </div>
-        <h1 className="mt-5 text-2xl font-extrabold tracking-tight">Authority dashboard</h1>
-        <p className="mt-1 text-sm text-muted">
-          For city officials. Demo passcode <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-ink">admin123</code>
-        </p>
-        <input type="password" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Passcode" autoFocus className={`${field} mt-6`} />
-        {err && <div className="mt-2 text-sm font-medium text-red-600">{err}</div>}
-        <button className={`${btn.primary} mt-4 w-full py-3`}>Sign in</button>
-      </Card>
-    </form>
+    <Gate roles={["authority"]} next="/admin">
+      <Dashboard />
+    </Gate>
   );
 }
 
-function Dashboard({ onLogout }: { onLogout: () => void }) {
+function Dashboard() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [hoods, setHoods] = useState<NeighborhoodStat[]>([]);
   const [status, setStatus] = useState("unresolved");
@@ -101,14 +68,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">City authority · demo access</div>
+          <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">{t("admin.eyebrow")}</div>
           <h1 className="text-3xl font-extrabold tracking-tight">Repair work queue</h1>
           <p className="mt-1 text-sm text-muted">Ranked by AI priority, which combines severity, number of citizen reports, age and hazard.</p>
         </div>
         <button
           onClick={async () => {
-            await api("/api/admin/logout", { method: "POST" });
-            onLogout();
+            await api("/api/auth/signout", { method: "POST" });
+            sessionChanged("/");
           }}
           className={btn.ghost}
         >

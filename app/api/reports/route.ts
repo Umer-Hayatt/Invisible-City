@@ -8,20 +8,26 @@ import {
 } from "@/lib/db";
 import { constituencyFor, haversineMeters, nearestNeighborhood } from "@/lib/geo";
 import { contributors } from "@/lib/insights";
+import { requireRole } from "@/lib/roles";
 import { checkImage, photoStore } from "@/lib/photo-store";
 import { findDuplicate } from "@/lib/scoring";
 import { CATEGORIES, CATEGORY_META, Category } from "@/lib/types";
 
-export async function GET(req: Request) {
-  const reporterId = new URL(req.url).searchParams.get("reporterId");
-  if (!reporterId) return Response.json({ error: "reporterId required" }, { status: 400 });
+/** A Citizen's own Reports. Who is asking always comes from the session, never from a parameter. */
+export async function GET() {
+  const actor = await requireRole("citizen");
+  if (actor instanceof Response) return actor;
   return Response.json({
-    reports: await reportsByReporter(reporterId),
-    impact: (await contributors(reporterId))[0] ?? null,
+    reports: await reportsByReporter(actor.authId),
+    impact: (await contributors(actor.isDemo, actor.authId))[0] ?? null,
   });
 }
 
 export async function POST(req: Request) {
+  const actor = await requireRole("citizen");
+  if (actor instanceof Response) return actor;
+  if (actor.suspended) return Response.json({ error: "suspended" }, { status: 403 });
+  if (!actor.profileComplete) return Response.json({ error: "profile_incomplete" }, { status: 403 });
   let form: FormData;
   try {
     form = await req.formData();
@@ -31,8 +37,6 @@ export async function POST(req: Request) {
   const description = String(form.get("description") ?? "").slice(0, 2000);
   const lat = Number(form.get("lat"));
   const lng = Number(form.get("lng"));
-  const reporterId = String(form.get("reporterId") ?? "").slice(0, 64) || "anonymous";
-  const reporterName = String(form.get("reporterName") ?? "").slice(0, 80) || null;
   const hashRaw = String(form.get("imageHash") ?? "");
   const imageHash = /^[0-9a-f]{16}$/.test(hashRaw) ? hashRaw : null;
   const hintRaw = String(form.get("categoryHint") ?? "");
@@ -67,17 +71,17 @@ export async function POST(req: Request) {
   });
 
   // 2. AI: duplicate detection against open issues
-  const match = findDuplicate(await duplicateCandidates(), { lat, lng, category: ai.category, hash: imageHash });
+  const match = findDuplicate(await duplicateCandidates(actor.isDemo), { lat, lng, category: ai.category, hash: imageHash });
 
   // 3. Recurrence: same problem re-appearing where a repair was made recently
   const recurrence = match
     ? null
-    : (await recentlyResolvedNearby(ai.category)).find((i) => haversineMeters(lat, lng, i.lat, i.lng) < 60) ?? null;
+    : (await recentlyResolvedNearby(ai.category, actor.isDemo)).find((i) => haversineMeters(lat, lng, i.lat, i.lng) < 60) ?? null;
 
   const neighborhood = nearestNeighborhood(lat, lng);
   const issueId = await recordReport({
-    reporterAuthId: reporterId,
-    reporterName,
+    reporterId: actor.personId,
+    isDemo: actor.isDemo,
     description,
     image: photoUrl,
     imageHash,
@@ -104,6 +108,6 @@ export async function POST(req: Request) {
         }
       : null,
     recurrenceOf: recurrence?.id ?? null,
-    issue: (await getIssue(issueId))?.issue,
+    issue: (await getIssue(issueId, actor.isDemo))?.issue,
   });
 }

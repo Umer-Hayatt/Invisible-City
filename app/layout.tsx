@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import DemoBanner from "@/components/DemoBanner";
 import Nav from "@/components/Nav";
 import "./globals.css";
 
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-canvas text-ink">
+        <DemoBanner />
         <Nav />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6">{children}</main>
         <footer className="border-t border-line">

@@ -1,16 +1,25 @@
 "use client";
 
-import { Menu, Plus, Sparkles, X } from "lucide-react";
+import { LogIn, LogOut, Menu, Plus, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const LINKS = [
-  { href: "/", label: "City map" },
-  { href: "/track", label: "My reports" },
-  { href: "/insights", label: "Insights" },
-  { href: "/admin", label: "Authorities" },
-];
+import { sessionChanged, useMe } from "@/lib/me";
+import { api } from "@/lib/client";
+import { t } from "@/lib/i18n";
+import type { Role } from "@/lib/roles-list";
+
+/** Links each role sees. The pages and the API check the role again; this only hides what would be refused. */
+function linksFor(role: Role | null) {
+  const links = [{ href: "/", label: t("nav.map") }];
+  if (role === "citizen") links.push({ href: "/track", label: t("nav.myReports") });
+  links.push({ href: "/insights", label: t("nav.insights") });
+  if (role === "authority") links.push({ href: "/admin", label: t("nav.authority") });
+  if (role === "office") links.push({ href: "/office", label: t("nav.office") });
+  if (role === "super_admin") links.push({ href: "/super-admin", label: t("nav.superAdmin") });
+  return links;
+}
 
 export function Logo() {
   return (
@@ -33,6 +42,13 @@ export default function Nav() {
   const path = usePathname();
   const [aiMode, setAiMode] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const { me } = useMe();
+  const LINKS = linksFor(me?.role ?? null);
+  const canReport = !me || me.role === "citizen";
+  async function signOut() {
+    await api("/api/auth/signout", { method: "POST" });
+    sessionChanged("/");
+  }
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
@@ -71,9 +87,26 @@ export default function Nav() {
               {aiMode !== "heuristic" ? "AI live" : "AI offline"}
             </span>
           )}
-          <Link href="/report" className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
-            <Plus size={16} strokeWidth={2.5} /> Report
-          </Link>
+          {canReport && (
+            <Link href="/report" className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
+              <Plus size={16} strokeWidth={2.5} /> {t("nav.report")}
+            </Link>
+          )}
+          {me ? (
+            <div className="flex items-center gap-2 text-xs">
+              <Link href="/profile" className="text-right leading-tight hover:underline">
+                <div className="font-semibold">{me.displayName || me.email}</div>
+                <div className="text-muted">{t(`role.${me.role}`)}</div>
+              </Link>
+              <button onClick={signOut} aria-label={t("nav.signOut")} title={t("nav.signOut")} className="rounded-full border border-line p-2 hover:border-ink/30">
+                <LogOut size={14} />
+              </button>
+            </div>
+          ) : (
+            <Link href="/signin" className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:border-ink/30">
+              <LogIn size={15} /> {t("nav.signIn")}
+            </Link>
+          )}
         </div>
 
         <button className="rounded-full p-2 md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
@@ -83,7 +116,7 @@ export default function Nav() {
 
       {open && (
         <nav className="border-t border-line bg-canvas px-4 py-3 md:hidden">
-          {[{ href: "/report", label: "Report a problem" }, ...LINKS].map((l) => (
+          {[...(canReport ? [{ href: "/report", label: t("nav.reportLong") }] : []), ...LINKS, ...(me ? [{ href: "/profile", label: t("nav.profile") }] : [{ href: "/signin", label: t("nav.signIn") }])].map((l) => (
             <Link
               key={l.href}
               href={l.href}
@@ -93,6 +126,11 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
+          {me && (
+            <button onClick={signOut} className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ink-2">
+              {t("nav.signOut")}
+            </button>
+          )}
           {aiMode && (
             <div className="mt-2 flex items-center gap-1.5 px-3 text-xs text-muted">
               <Sparkles size={12} /> {aiMode === "claude" ? "AI live (Claude vision)" : aiMode === "groq" ? "AI live (Groq vision)" : "AI offline mode"}

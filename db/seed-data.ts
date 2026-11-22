@@ -1,3 +1,4 @@
+import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
 import { constituencyFor, haversineMeters, NEIGHBORHOODS } from "../lib/geo";
 import { computePriority } from "../lib/scoring";
 import { Sql } from "../lib/sql";
@@ -9,12 +10,7 @@ import { Category, CATEGORY_META, Severity } from "../lib/types";
  * Everything seeded is flagged is_demo so `clearDemoData` can remove it without touching real rows.
  */
 
-export const DEMO_ACCOUNTS = {
-  citizen: { email: "demo.citizen@invisible.city", name: "Demo Citizen", phone: "+92 300 0000001" },
-  authority: { email: "demo.authority@invisible.city", name: "Demo Authority", phone: "+92 300 0000002" },
-  office: { email: "demo.office@invisible.city", name: "Demo Office Staff", phone: "+92 300 0000003" },
-  superAdmin: { email: "demo.superadmin@invisible.city", name: "Demo Super Admin", phone: "+92 300 0000004" },
-} as const;
+export { DEMO_ACCOUNTS };
 
 /** [name, department, sector]: positions come from the sector centre. */
 const OFFICES: [string, string, string][] = [
@@ -116,7 +112,7 @@ export async function clearDemoData(q: Sql) {
   await q.query("DELETE FROM reports WHERE issue_id IN (SELECT id FROM issues WHERE is_demo)");
   await q.query("DELETE FROM issues WHERE is_demo");
   await q.query("DELETE FROM offices WHERE is_demo"); // office_staff goes with them
-  await q.query("DELETE FROM access_requests WHERE official_email LIKE '%@invisible.city'");
+  await q.query("DELETE FROM access_requests WHERE is_demo");
   await q.query("DELETE FROM people WHERE is_demo");
 }
 
@@ -161,8 +157,8 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
   // The Demo Office staff account works for the first Roads Office; the Demo Authority is approved.
   await q.query("INSERT INTO office_staff (office_id, email) VALUES ($1, $2)", [offices[0].id, DEMO_ACCOUNTS.office.email]);
   await q.query(
-    `INSERT INTO access_requests (name, department_id, official_email, phone, decision, decided_by, decided_at)
-     VALUES ($1, (SELECT id FROM departments WHERE name = 'General Maintenance'), $2, $3, 'approved', $4, $5)`,
+    `INSERT INTO access_requests (name, department_id, official_email, phone, decision, decided_by, decided_at, is_demo)
+     VALUES ($1, (SELECT id FROM departments WHERE name = 'General Maintenance'), $2, $3, 'approved', $4, $5, true)`,
     [DEMO_ACCOUNTS.authority.name, DEMO_ACCOUNTS.authority.email, DEMO_ACCOUNTS.authority.phone, DEMO_ACCOUNTS.superAdmin.email, now.toISOString()],
   );
 

@@ -2,10 +2,11 @@
 
 import { ArrowRight, Camera, CircleCheck, Copy, ImagePlus, LoaderCircle, LocateFixed, MapPin, Repeat, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { Card, CategoryChip, PageHeader, PriorityMeter, SeverityBadge, btn, field } from "@/components/ui";
-import { api, getReporterId, getReporterName, prepareImage, setReporterName } from "@/lib/client";
+import Gate from "@/components/Gate";
+import { api, prepareImage } from "@/lib/client";
 import { AIAnalysis, CATEGORIES, CATEGORY_META, Issue } from "@/lib/types";
 
 interface SubmitResult {
@@ -39,10 +40,17 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint?: s
 }
 
 export default function ReportPage() {
+  return (
+    <Gate roles={["citizen"]} needProfile next="/report">
+      <ReportForm />
+    </Gate>
+  );
+}
+
+function ReportForm() {
   const [photo, setPhoto] = useState<{ file: File; hash: string; preview: string } | null>(null);
   const [description, setDescription] = useState("");
   const [hint, setHint] = useState("");
-  const [name, setName] = useState("");
   const [loc, setLoc] = useState<[number, number] | null>(null);
   const [locSource, setLocSource] = useState("");
   const [focus, setFocus] = useState<[number, number] | null>(null);
@@ -50,15 +58,6 @@ export default function ReportPage() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<SubmitResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // restore the remembered name after hydration (localStorage is client-only)
-    let alive = true;
-    Promise.resolve().then(() => alive && setName(getReporterName()));
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   function locateWithGps() {
     if (!navigator.geolocation) return setError("Geolocation is not available in this browser");
@@ -91,7 +90,6 @@ export default function ReportPage() {
     if (!photo && !description.trim()) return setError("Add a photo or describe the problem.");
     setBusy(true);
     setError("");
-    setReporterName(name);
     const fd = new FormData();
     if (photo) {
       fd.append("image", photo.file);
@@ -100,8 +98,6 @@ export default function ReportPage() {
     fd.append("description", description);
     fd.append("lat", String(loc[0]));
     fd.append("lng", String(loc[1]));
-    fd.append("reporterId", getReporterId());
-    fd.append("reporterName", name);
     if (hint) fd.append("categoryHint", hint);
     try {
       setResult(await api<SubmitResult>("/api/reports", { method: "POST", body: fd }));
@@ -186,10 +182,6 @@ export default function ReportPage() {
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="text-xs font-semibold text-ink-2">
-                Your name <span className="font-normal text-muted">(optional)</span>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="For the impact leaderboard" className={`${field} mt-1.5`} />
               </label>
             </div>
           </Step>

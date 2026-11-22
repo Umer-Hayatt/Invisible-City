@@ -1,31 +1,5 @@
 "use client";
 
-export function getReporterId() {
-  try {
-    let id = localStorage.getItem("ic_reporter_id");
-    if (!id) {
-      id = "c-" + crypto.randomUUID().slice(0, 12);
-      localStorage.setItem("ic_reporter_id", id);
-    }
-    return id;
-  } catch {
-    return "anonymous";
-  }
-}
-
-export function getReporterName() {
-  try {
-    return localStorage.getItem("ic_reporter_name") ?? "";
-  } catch {
-    return "";
-  }
-}
-export function setReporterName(name: string) {
-  try {
-    localStorage.setItem("ic_reporter_name", name);
-  } catch {}
-}
-
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);

@@ -1,16 +1,16 @@
-import { isAdmin } from "@/lib/auth";
 import { addEvent, getIssue, nearestOffice, setAssignment } from "@/lib/db";
 import { nowIso } from "@/lib/clock";
+import { dataWorld, requireRole } from "@/lib/roles";
 import { STATUSES, Status, TEAMS } from "@/lib/types";
 
 export async function GET(_req: Request, ctx: RouteContext<"/api/issues/[id]">) {
   const { id } = await ctx.params;
-  const data = await getIssue(Number(id));
+  const data = await getIssue(Number(id), (await dataWorld()).demo);
   if (!data) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json(data);
 }
 
-// Until sign-in and the Authority screens (PLAN steps 3 and 5), the old admin screen still picks a team.
+// Until the Authority screens (PLAN step 5), the old Authority screen still picks a team.
 // A team now means "the nearest Office of that Department".
 const TEAM_DEPARTMENT: Record<(typeof TEAMS)[number], string> = {
   "Road Maintenance Unit": "Roads",
@@ -23,9 +23,10 @@ const TEAM_DEPARTMENT: Record<(typeof TEAMS)[number], string> = {
 
 /** Admin: assign an Office and/or move the issue through the workflow. */
 export async function PATCH(req: Request, ctx: RouteContext<"/api/issues/[id]">) {
-  if (!(await isAdmin())) return Response.json({ error: "Admin login required" }, { status: 401 });
+  const actor = await requireRole("authority");
+  if (actor instanceof Response) return actor;
   const { id } = await ctx.params;
-  const current = await getIssue(Number(id));
+  const current = await getIssue(Number(id), actor.isDemo);
   if (!current) return Response.json({ error: "Not found" }, { status: 404 });
 
   const body = (await req.json().catch(() => ({}))) as { status?: string; assigned_team?: string };
@@ -41,6 +42,7 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/issues/[id]">)
       TEAM_DEPARTMENT[body.assigned_team as (typeof TEAMS)[number]],
       issue.lat,
       issue.lng,
+      actor.isDemo,
     );
     if (!office) return Response.json({ error: "No Office for that team" }, { status: 400 });
     officeId = office.id;
@@ -68,5 +70,5 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/issues/[id]">)
     };
     await addEvent(issue.id, status, label[status], now);
   }
-  return Response.json(await getIssue(issue.id));
+  return Response.json(await getIssue(issue.id, actor.isDemo));
 }

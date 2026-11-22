@@ -18,18 +18,20 @@ const ISSUE_SELECT = `
   JOIN categories c ON c.key = i.category
   JOIN departments d ON d.id = c.department_id
   LEFT JOIN offices o ON o.id = i.office_id
-  WHERE i.deleted_at IS NULL`;
+  WHERE i.deleted_at IS NULL AND i.is_demo = $1`;
 
 function withLivePriority(i: Issue): Issue {
   return { ...i, priority: computePriority(i) };
 }
 
+/** Every read takes `demo`: a Demo account sees Demo data only, a real account sees real data only. */
 export async function listIssues(
+  demo: boolean,
   filter: { status?: string; category?: string; neighborhood?: string } = {},
   q: Sql = sql(),
 ) {
   const where: string[] = [];
-  const params: string[] = [];
+  const params: unknown[] = [demo];
   if (filter.status === "unresolved") where.push("i.status NOT IN ('resolved', 'closed_unconfirmed')");
   else if (filter.status) where.push(`i.status = $${params.push(filter.status)}`);
   if (filter.category) where.push(`i.category = $${params.push(filter.category)}`);
@@ -38,9 +40,9 @@ export async function listIssues(
   return rows.map(withLivePriority).sort((a, b) => b.priority - a.priority || b.id - a.id);
 }
 
-export async function getIssue(id: number, q: Sql = sql()) {
+export async function getIssue(id: number, demo: boolean, q: Sql = sql()) {
   if (!Number.isInteger(id)) return null;
-  const [issue] = await q.query<Issue>(`${ISSUE_SELECT} AND i.id = $1`, [id]);
+  const [issue] = await q.query<Issue>(`${ISSUE_SELECT} AND i.id = $2`, [demo, id]);
   if (!issue) return null;
   const reports = await q.query<Report>(
     `SELECT id, issue_id, NULL::text AS reporter_name, description, image, image_hash, lat, lng, ai_category,
@@ -56,8 +58,8 @@ export async function getIssue(id: number, q: Sql = sql()) {
 }
 
 /** Open Issues with the image hashes of their Reports, for duplicate detection. */
-export async function duplicateCandidates(q: Sql = sql()) {
-  const issues = await q.query<Issue>(`${ISSUE_SELECT} AND i.status NOT IN ('resolved', 'closed_unconfirmed')`);
+export async function duplicateCandidates(demo: boolean, q: Sql = sql()) {
+  const issues = await q.query<Issue>(`${ISSUE_SELECT} AND i.status NOT IN ('resolved', 'closed_unconfirmed')`, [demo]);
   const hashRows = await q.query<{ issue_id: number; image_hash: string }>(
     "SELECT issue_id, image_hash FROM reports WHERE image_hash IS NOT NULL AND NOT is_spam AND deleted_at IS NULL",
   );
@@ -66,8 +68,9 @@ export async function duplicateCandidates(q: Sql = sql()) {
   return issues.map((i) => ({ ...i, hashes: byIssue.get(i.id) ?? [] }));
 }
 
-export function recentlyResolvedNearby(category: Category, q: Sql = sql()) {
-  return q.query<Issue>(`${ISSUE_SELECT} AND i.status = 'resolved' AND i.category = $1 AND i.resolved_at > $2`, [
+export function recentlyResolvedNearby(category: Category, demo: boolean, q: Sql = sql()) {
+  return q.query<Issue>(`${ISSUE_SELECT} AND i.status = 'resolved' AND i.category = $2 AND i.resolved_at > $3`, [
+    demo,
     category,
     new Date(nowMs() - 180 * 86_400_000).toISOString(),
   ]);
@@ -102,20 +105,9 @@ export function addEvent(issueId: number, kind: string, message: string, at = no
 // Writes
 // ---------------------------------------------------------------------------
 
-/** Until sign-in exists (PLAN step 3), the browser's id stands in for the signed-in person. */
-export async function ensurePerson(authId: string, displayName: string | null, q: Sql = sql()) {
-  const [row] = await q.query<{ id: string }>(
-    `INSERT INTO people (auth_id, display_name) VALUES ($1, $2)
-     ON CONFLICT (auth_id) DO UPDATE SET display_name = COALESCE(EXCLUDED.display_name, people.display_name)
-     RETURNING id`,
-    [authId, displayName],
-  );
-  return row.id;
-}
-
 export interface NewReport {
-  reporterAuthId: string;
-  reporterName: string | null;
+  reporterId: string; // people.id of the signed-in Citizen
+  isDemo: boolean;
   description: string;
   image: string | null;
   imageHash: string | null;
@@ -140,7 +132,6 @@ export interface NewReport {
 export function recordReport(r: NewReport) {
   return sql().tx(async (q) => {
     const now = nowIso();
-    const personId = await ensurePerson(r.reporterAuthId, r.reporterName, q);
     let id: number;
     if (r.match) {
       const issue = r.match.issue;
@@ -178,8 +169,8 @@ export function recordReport(r: NewReport) {
       });
       const [row] = await q.query<{ id: number }>(
         `INSERT INTO issues (category, severity, title, summary, lat, lng, neighborhood, constituency, status, priority,
-           report_count, cover_image, recurrence_of, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open', $9, 1, $10, $11, $12, $12) RETURNING id`,
+           report_count, cover_image, recurrence_of, is_demo, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open', $9, 1, $10, $11, $12, $13, $13) RETURNING id`,
         [
           r.ai.category,
           r.ai.severity,
@@ -192,6 +183,7 @@ export function recordReport(r: NewReport) {
           priority,
           r.image,
           r.recurrenceOf,
+          r.isDemo,
           now,
         ],
       );
@@ -214,7 +206,7 @@ export function recordReport(r: NewReport) {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         id,
-        personId,
+        r.reporterId,
         r.description,
         r.image,
         r.imageHash,
@@ -234,10 +226,10 @@ export function recordReport(r: NewReport) {
 }
 
 /** Nearest Office of a Department to a point, or null if the Department has none. */
-export async function nearestOffice(department: string, lat: number, lng: number, q: Sql = sql()) {
+export async function nearestOffice(department: string, lat: number, lng: number, demo: boolean, q: Sql = sql()) {
   const offices = await q.query<{ id: number; name: string; lat: number; lng: number }>(
-    `SELECT o.id, o.name, o.lat, o.lng FROM offices o JOIN departments d ON d.id = o.department_id WHERE d.name = $1`,
-    [department],
+    `SELECT o.id, o.name, o.lat, o.lng FROM offices o JOIN departments d ON d.id = o.department_id WHERE d.name = $1 AND o.is_demo = $2`,
+    [department, demo],
   );
   offices.sort((a, b) => haversineMeters(lat, lng, a.lat, a.lng) - haversineMeters(lat, lng, b.lat, b.lng));
   return offices[0] ?? null;

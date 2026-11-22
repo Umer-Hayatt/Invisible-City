@@ -122,7 +122,7 @@ export interface Contributor {
  * Citizen Impact Score: 10 per report, +5 if other citizens corroborated the same
  * issue, +15 for being first to report it, +20 when the issue was actually fixed.
  */
-export async function contributors(authId?: string): Promise<Contributor[]> {
+export async function contributors(demo: boolean, authId?: string): Promise<Contributor[]> {
   const rows = await sql().query<{
     reporter_id: string;
     reporter_name: string | null;
@@ -135,8 +135,8 @@ export async function contributors(authId?: string): Promise<Contributor[]> {
     `SELECT r.reporter_id, p.display_name AS reporter_name, r.issue_id, r.id, i.status, i.report_count,
             (SELECT MIN(id) FROM reports r2 WHERE r2.issue_id = r.issue_id AND NOT r2.is_spam) AS first_id
      FROM reports r JOIN issues i ON i.id = r.issue_id JOIN people p ON p.id = r.reporter_id
-     WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL${authId ? " AND p.auth_id = $1" : ""}`,
-    authId ? [authId] : [],
+     WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL AND i.is_demo = $1${authId ? " AND p.auth_id = $2" : ""}`,
+    authId ? [demo, authId] : [demo],
   );
   const map = new Map<string, Contributor>();
   for (const r of rows) {
@@ -159,12 +159,13 @@ export async function contributors(authId?: string): Promise<Contributor[]> {
   return [...map.values()].sort((a, b) => b.score - a.score);
 }
 
-export async function cityOverview(issues: Issue[]) {
+export async function cityOverview(issues: Issue[], demo: boolean) {
   const resolved = issues.filter((i) => i.status === "resolved");
   const open = issues.filter((i) => i.status !== "resolved");
   const hoods = neighborhoodStats(issues).filter((n) => n.total > 0);
   const [{ n: reportCount }] = await sql().query<{ n: number }>(
-    "SELECT COUNT(*)::int AS n FROM reports WHERE NOT is_spam AND deleted_at IS NULL",
+    "SELECT COUNT(*)::int AS n FROM reports r JOIN issues i ON i.id = r.issue_id WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL AND i.is_demo = $1",
+    [demo],
   );
   return {
     totalIssues: issues.length,

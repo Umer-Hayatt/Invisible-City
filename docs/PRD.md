@@ -115,6 +115,12 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 
 ## 8. Demo mode
 The public site has **Demo accounts** (a Citizen, an Authority, an Office, a Super Admin) that anyone can switch between, all with made-up seeded people and data, under a visible "Demo" banner. Real Google sign-ins work on the same site at the same time, and real data never mixes with demo data, so the team can test the real flow live.
+**Which data a visitor sees** (the Demo world and the real world never mix):
+- Signed in as a Demo account: Demo data only. Signed in with a real Google account: real data only, and no Demo banner.
+- Not signed in: Demo data while Demo mode is on (so judges land on a full map), real data when it is off.
+- A Report, Issue or Access request takes the world of whoever creates it, except that an Access request from a visitor who is not signed in as a Demo account is always real. A real Report never merges into a Demo Issue.
+- Super Admins only see and decide Access requests of their own world, so the Demo Super Admin can never grant a real Authority role. A real sign-in never receives a role from Demo rows, even with a matching email.
+- The Demo account is chosen with the role switcher in the banner; the choice is a server-checked cookie that only works while Demo mode is on.
 
 ## 9. Language
 English first. Every on-screen text goes through a translation file from day one; Urdu with right-to-left layout is added before the deadline.

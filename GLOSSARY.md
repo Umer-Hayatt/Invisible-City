@@ -84,7 +84,7 @@ _Avoid_: Auto-resolve
 A person asking to be made an Authority, which a Super Admin approves or declines after checking they are a real official.
 
 **Demo account**:
-A made-up Citizen, Authority or Office login with seeded data, used to show the app without real accounts. Never mixed with real people's data.
+A made-up Citizen, Authority or Office login with seeded data, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.
 
 **Spam flag**:
 An Authority marking a Report as abusive or not a real civic problem. Repeated Spam flags lead to Suspension.
