@@ -13,10 +13,10 @@ Ordered work list for the 28 November 2026 deadline. The rules are in [`PRD.md`]
 - **Done when:** the current app deploys to Vercel and loads.
 
 ## 2. Storage: Supabase and Cloudinary
-- [ ] Postgres schema for Citizens/profiles, roles, Departments, Offices, office staff, Issues, Reports, events, Access requests, Spam flags.
-- [ ] Photos uploaded to Cloudinary instead of `data/uploads`.
-- [ ] Seed script: the ~70 demo Issues (keeping the I-10, G-11, I-9 neglect and G-9 recurrence story), 15–25 Islamabad Offices, Demo accounts, Constituency per sector.
-- [ ] Remove the SQLite code.
+- [x] Postgres schema for Citizens/profiles, roles, Departments, Offices, office staff, Issues, Reports, events, Access requests, Spam flags.
+- [x] Photos uploaded to Cloudinary instead of `data/uploads`.
+- [x] Seed script: the ~70 demo Issues (keeping the I-10, G-11, I-9 neglect and G-9 recurrence story), 15–25 Islamabad Offices, Demo accounts, Constituency per sector.
+- [x] Remove the SQLite code.
 - **Done when:** the map, Issue pages and Insights read from Supabase on the deployed site.
 
 ## 3. Sign-in and roles

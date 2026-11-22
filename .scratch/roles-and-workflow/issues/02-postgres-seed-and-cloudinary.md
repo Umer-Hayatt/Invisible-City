@@ -4,13 +4,13 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 Work in three parts, each its own acceptance group. Read the Next.js docs in `node_modules/next/dist/docs/` first.
 
-- [ ] Postgres schema (people, departments, categories, offices, office staff, Access requests, Issues, Reports, events) applied to Supabase as migrations, using the Category → Department table from the spec
-- [ ] Plain-SQL data module using the pooler string on Vercel; Vitest with PGlite and the fake adapters in place; an API test lists and reads Issues
-- [ ] Seed script: about 70 demo Issues (I-10, G-11, I-9 neglect story, G-9 Recurrence), 15–25 Islamabad Offices, Departments, Demo accounts, sector → Constituency lookup
-- [ ] Photo store adapter (Cloudinary real, fixed-URL fake); seed photos uploaded; `data/uploads` and its route removed
-- [ ] All SQLite code removed; the deployed map, Issue pages and Insights show the seeded data
-- [ ] `docs/PLAN.md` step 2 is ticked and deployed
+- [x] Postgres schema (people, departments, categories, offices, office staff, Access requests, Issues, Reports, events) applied to Supabase as migrations, using the Category → Department table from the spec
+- [x] Plain-SQL data module using the pooler string on Vercel; Vitest with PGlite and the fake adapters in place; an API test lists and reads Issues
+- [x] Seed script: about 70 demo Issues (I-10, G-11, I-9 neglect story, G-9 Recurrence), 15–25 Islamabad Offices, Departments, Demo accounts, sector → Constituency lookup
+- [x] Photo store adapter (Cloudinary real, fixed-URL fake); seed photos uploaded; `data/uploads` and its route removed
+- [x] All SQLite code removed; the deployed map, Issue pages and Insights show the seeded data
+- [x] `docs/PLAN.md` step 2 is ticked and deployed
