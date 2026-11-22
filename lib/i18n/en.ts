@@ -100,6 +100,17 @@ export const en = {
   "error.already_requested": "A request for this email is already waiting for a decision.",
   "error.conflict": "That was already decided.",
   "error.demo_profile": "Demo accounts cannot change their profile.",
+  "error.daily_limit": "You have sent 10 Reports in the last 24 hours. Please try again tomorrow.",
+  "error.photo_required": "Add a photo of the problem.",
+  "error.invalid_location": "Set the location: use GPS, tap the map, or choose a demo location.",
+  "error.not_civic": "This photo does not show a public problem such as a road, drain, light or rubbish. Try a clearer photo.",
+  "error.already_reported": "You have already reported this problem. Your Report counts once.",
+  "error.unsupported_image": "Only JPEG, PNG, WebP or GIF photos are supported.",
+  "error.image_too_large": "That photo is larger than 8 MB.",
+  "error.upload_failed": "The photo could not be saved. Please try again.",
+  "error.bad_request": "That request was not understood.",
+  "error.not_found": "That Report was not found.",
+  "error.not_open": "A Report can only be deleted while its Issue is still Open.",
   "error.generic": "Something went wrong. Please try again.",
 } as const;
 

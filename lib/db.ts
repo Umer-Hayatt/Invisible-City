@@ -1,6 +1,6 @@
 import { nowIso, nowMs } from "./clock";
 import { haversineMeters } from "./geo";
-import { computePriority, maxSeverity } from "./scoring";
+import { computePriority, DuplicateMatch, maxSeverity } from "./scoring";
 import { Sql, sql } from "./sql";
 import { Category, Issue, IssueEvent, Report, Severity } from "./types";
 
@@ -124,13 +124,13 @@ export interface NewReport {
     source: string;
   };
   categoryLabel: string;
-  match: { issue: Issue; score: number; distance: number } | null;
+  match: DuplicateMatch | null;
   recurrenceOf: number | null;
 }
 
 /** Merges into the matched Issue or creates a new one, then stores the Report, in one transaction. */
-export function recordReport(r: NewReport) {
-  return sql().tx(async (q) => {
+export function recordReport(r: NewReport, outer?: Sql) {
+  const run = <T>(f: (q: Sql) => Promise<T>) => (outer ? f(outer) : sql().tx(f)); return run(async (q) => {
     const now = nowIso();
     let id: number;
     if (r.match) {

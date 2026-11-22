@@ -7,6 +7,7 @@ import CityMap from "@/components/CityMap";
 import { Card, CategoryChip, PageHeader, PriorityMeter, SeverityBadge, btn, field } from "@/components/ui";
 import Gate from "@/components/Gate";
 import { api, prepareImage } from "@/lib/client";
+import { errorText } from "@/lib/i18n";
 import { AIAnalysis, CATEGORIES, CATEGORY_META, Issue } from "@/lib/types";
 
 interface SubmitResult {
@@ -87,7 +88,7 @@ function ReportForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!loc) return setError("Set the location: use GPS, tap the map, or choose a demo location.");
-    if (!photo && !description.trim()) return setError("Add a photo or describe the problem.");
+    if (!photo) return setError(errorText("photo_required"));
     setBusy(true);
     setError("");
     const fd = new FormData();
@@ -103,7 +104,7 @@ function ReportForm() {
       setResult(await api<SubmitResult>("/api/reports", { method: "POST", body: fd }));
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      setError((err as Error).message);
+      setError(errorText((err as Error).message));
     } finally {
       setBusy(false);
     }
@@ -313,7 +314,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           )}
           <div className="space-y-3 p-6">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-brand">
-              <Sparkles size={12} /> AI analysis · {a.source === "claude" ? "Claude vision" : a.source === "groq" ? "Groq vision" : "offline heuristic"}
+              <Sparkles size={12} /> AI analysis · {a.source === "gemini" ? "Gemini vision" : a.source === "groq" ? "Groq vision" : "offline heuristic"}
             </div>
             <div className="text-xl font-bold leading-snug">{a.title}</div>
             <div className="flex flex-wrap items-center gap-2">

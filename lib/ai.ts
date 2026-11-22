@@ -1,7 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { AIAnalysis, CATEGORIES, Category, SEVERITIES, Severity } from "./types";
+
+/**
+ * Vision AI adapter. Real: Gemini first, then Groq, then an offline keyword guess, so a Report is
+ * never blocked by a provider being down. Tests swap the whole thing with `setAnalyzer`.
+ */
+export interface AnalyzeInput {
+  imageBase64: string | null;
+  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+  description: string;
+  categoryHint?: Category | null;
+}
 
 const AnalysisSchema = z.object({
   is_civic_issue: z
@@ -41,40 +50,27 @@ Severity rubric (judge from visible size and risk to people):
 If the image is unrelated to civic infrastructure (selfie, meme, indoor object), set is_civic_issue=false, category=other, severity=low.
 Write the title and summary in plain English.`;
 
-let client: Anthropic | null = null;
-function claudeEnabled() {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
-}
-function groqEnabled() {
-  return Boolean(process.env.GROQ_API_KEY);
-}
-export function aiProvider(): "claude" | "groq" | "heuristic" {
-  return claudeEnabled() ? "claude" : groqEnabled() ? "groq" : "heuristic";
-}
-export function aiEnabled() {
-  return claudeEnabled() || groqEnabled();
-}
-function getClient() {
-  if (!client) client = new Anthropic();
-  return client;
+const geminiEnabled = () => Boolean(process.env.GEMINI_API_KEY);
+const groqEnabled = () => Boolean(process.env.GROQ_API_KEY);
+
+export function aiProvider(): "gemini" | "groq" | "heuristic" {
+  return geminiEnabled() ? "gemini" : groqEnabled() ? "groq" : "heuristic";
 }
 
-export async function analyzeReport(input: {
-  imageBase64: string | null;
-  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
-  description: string;
-  categoryHint?: Category | null;
-}): Promise<AIAnalysis> {
+let override: ((input: AnalyzeInput) => Promise<AIAnalysis>) | null = null;
+/** Tests only: replace the Vision AI with a scripted reading. Pass null to restore the real chain. */
+export function setAnalyzer(fn: ((input: AnalyzeInput) => Promise<AIAnalysis>) | null) {
+  override = fn;
+}
+
+export async function analyzeReport(input: AnalyzeInput): Promise<AIAnalysis> {
+  if (override) return override(input);
   const hasInput = Boolean(input.imageBase64 || input.description.trim());
-  if (hasInput && claudeEnabled()) {
+  if (hasInput && geminiEnabled()) {
     try {
-      return await analyzeWithClaude(input);
+      return await analyzeWithGemini(input);
     } catch (err) {
-      if (err instanceof Anthropic.APIError) {
-        console.error(`[ai] Claude API error ${err.status}: ${err.message}`);
-      } else {
-        console.error("[ai] Claude analysis failed", err);
-      }
+      console.error("[ai] Gemini analysis failed - trying Groq", err);
     }
   }
   if (hasInput && groqEnabled()) {
@@ -87,117 +83,82 @@ export async function analyzeReport(input: {
   return heuristicAnalysis(input.description, input.categoryHint ?? null);
 }
 
-async function analyzeWithGroq(input: {
-  imageBase64: string | null;
-  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
-  description: string;
-  categoryHint?: Category | null;
-}): Promise<AIAnalysis> {
-  const content: Array<
-    { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }
-  > = [
-    {
-      type: "text",
-      text: [
-        `Citizen description: ${input.description.trim() || "(none provided)"}`,
-        input.categoryHint ? `Citizen's suggested category: ${input.categoryHint}` : "",
-        "Classify this report.",
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    },
+const userText = (input: AnalyzeInput) =>
+  [
+    `Citizen description: ${input.description.trim() || "(none provided)"}`,
+    input.categoryHint ? `Citizen's suggested category: ${input.categoryHint}` : "",
+    "Classify this report.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+const jsonInstruction = () =>
+  `${SYSTEM_PROMPT}\n\nRespond ONLY with a JSON object matching this JSON Schema:\n${JSON.stringify(z.toJSONSchema(AnalysisSchema))}`;
+
+function finish(raw: unknown, source: "gemini" | "groq"): AIAnalysis {
+  const out = AnalysisSchema.parse(raw);
+  return {
+    ...out,
+    confidence: Math.max(0, Math.min(1, out.confidence)),
+    hazards: out.hazards.slice(0, 3),
+    source,
+  };
+}
+
+async function analyzeWithGemini(input: AnalyzeInput): Promise<AIAnalysis> {
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const parts: Array<{ text: string } | { inline_data: { mime_type: string; data: string } }> = [
+    { text: userText(input) },
+  ];
+  if (input.imageBase64) parts.push({ inline_data: { mime_type: input.mediaType, data: input.imageBase64 } });
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: jsonInstruction() }] },
+      contents: [{ role: "user", parts }],
+      generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
+    }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`Gemini API error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Gemini returned no content");
+  return finish(JSON.parse(text), "gemini");
+}
+
+async function analyzeWithGroq(input: AnalyzeInput): Promise<AIAnalysis> {
+  const content: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
+    { type: "text", text: userText(input) },
   ];
   if (input.imageBase64) {
-    content.push({
-      type: "image_url",
-      image_url: { url: `data:${input.mediaType};base64,${input.imageBase64}` },
-    });
+    content.push({ type: "image_url", image_url: { url: `data:${input.mediaType};base64,${input.imageBase64}` } });
   }
-
-  const schemaHint = JSON.stringify(z.toJSONSchema(AnalysisSchema));
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
     body: JSON.stringify({
       model: process.env.GROQ_MODEL || "qwen/qwen3.8-27b",
       temperature: 0.2,
       max_completion_tokens: 1024,
       response_format: { type: "json_object" },
       messages: [
-        {
-          role: "system",
-          content: `${SYSTEM_PROMPT}\n\nRespond ONLY with a JSON object matching this JSON Schema:\n${schemaHint}`,
-        },
+        { role: "system", content: jsonInstruction() },
         { role: "user", content },
       ],
     }),
+    signal: AbortSignal.timeout(10_000),
   });
-  if (!res.ok) {
-    throw new Error(`Groq API error ${res.status}: ${await res.text()}`);
-  }
+  if (!res.ok) throw new Error(`Groq API error ${res.status}: ${await res.text()}`);
   const data = await res.json();
   const text: string | undefined = data?.choices?.[0]?.message?.content;
   if (!text) throw new Error("Groq returned no content");
-  const out = AnalysisSchema.parse(JSON.parse(text));
-  return {
-    ...out,
-    confidence: Math.max(0, Math.min(1, out.confidence)),
-    hazards: out.hazards.slice(0, 3),
-    source: "groq",
-  };
-}
-
-async function analyzeWithClaude(input: {
-  imageBase64: string | null;
-  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
-  description: string;
-  categoryHint?: Category | null;
-}): Promise<AIAnalysis> {
-  const content: Anthropic.Beta.BetaContentBlockParam[] = [];
-  if (input.imageBase64) {
-    content.push({
-      type: "image",
-      source: { type: "base64", media_type: input.mediaType, data: input.imageBase64 },
-    });
-  }
-  content.push({
-    type: "text",
-    text: [
-      `Citizen description: ${input.description.trim() || "(none provided)"}`,
-      input.categoryHint ? `Citizen's suggested category: ${input.categoryHint}` : "",
-      "Classify this report.",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-  });
-
-  const response = await getClient().beta.messages.parse({
-    model: process.env.CLAUDE_MODEL || "claude-opus-5-5",
-    max_tokens: 4000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low", format: betaZodOutputFormat(AnalysisSchema) },
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content }],
-  });
-
-  if (response.stop_reason === "refusal" || !response.parsed_output) {
-    throw new Error(`No structured output (stop_reason=${response.stop_reason})`);
-  }
-  const out = response.parsed_output;
-  return {
-    ...out,
-    confidence: Math.max(0, Math.min(1, out.confidence)),
-    hazards: out.hazards.slice(0, 3),
-    source: "claude",
-  };
+  return finish(JSON.parse(text), "groq");
 }
 
 // ---------------------------------------------------------------------------
-// Offline fallback so the demo works without an API key.
+// Offline fallback so the app works without an API key.
 // ---------------------------------------------------------------------------
 const KEYWORDS: Record<Exclude<Category, "other">, string[]> = {
   electrical_hazard: ["sparking", "transformer", "exposed wire", "electric shock", "live wire", "short circuit"],
@@ -237,9 +198,7 @@ export function heuristicAnalysis(description: string, hint: Category | null): A
     category,
     severity,
     confidence: hint ? 0.7 : bestHits ? Math.min(0.85, 0.45 + bestHits * 0.15) : 0.3,
-    title: description.trim()
-      ? description.trim().split(/[.!?\n]/)[0].slice(0, 60)
-      : `Reported ${label}`,
+    title: description.trim() ? description.trim().split(/[.!?\n]/)[0].slice(0, 60) : `Reported ${label}`,
     summary: description.trim() || `Citizen reported a ${label} issue.`,
     hazards: [],
     source: "heuristic",

@@ -80,7 +80,7 @@ export default function Nav() {
         <div className="hidden items-center gap-3 md:flex">
           {aiMode && (
             <span
-              title={aiMode === "claude" ? "Photos are analysed by Claude vision" : aiMode === "groq" ? "Photos are analysed by Groq (Qwen vision)" : "No AI API key set - using the offline keyword heuristic"}
+              title={aiMode === "gemini" ? "Photos are analysed by Gemini vision" : aiMode === "groq" ? "Photos are analysed by Groq (Qwen vision)" : "No AI API key set - using the offline keyword heuristic"}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted"
             >
               <span className={`h-2 w-2 rounded-full ${aiMode !== "heuristic" ? "bg-brand" : "bg-accent"}`} />
@@ -133,7 +133,7 @@ export default function Nav() {
           )}
           {aiMode && (
             <div className="mt-2 flex items-center gap-1.5 px-3 text-xs text-muted">
-              <Sparkles size={12} /> {aiMode === "claude" ? "AI live (Claude vision)" : aiMode === "groq" ? "AI live (Groq vision)" : "AI offline mode"}
+              <Sparkles size={12} /> {aiMode === "gemini" ? "AI live (Gemini vision)" : aiMode === "groq" ? "AI live (Groq vision)" : "AI offline mode"}
             </div>
           )}
         </nav>

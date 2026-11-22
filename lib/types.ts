@@ -58,7 +58,7 @@ export interface AIAnalysis {
   title: string;
   summary: string;
   hazards: string[];
-  source: "claude" | "groq" | "heuristic";
+  source: "gemini" | "groq" | "heuristic";
 }
 
 export interface Issue {
