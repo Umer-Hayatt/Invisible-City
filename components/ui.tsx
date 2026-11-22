@@ -11,6 +11,7 @@ import {
   TriangleAlert,
   Waves,
 } from "lucide-react";
+import { t } from "@/lib/i18n";
 import { CATEGORY_META, Category, Severity, Status } from "@/lib/types";
 
 /* ---------- colour scales ---------- */
@@ -106,14 +107,11 @@ const STATUS_CLASS: Record<Status, string> = {
   open: "bg-sunken text-ink-2 ring-line",
   assigned: "bg-violet-50 text-violet-800 ring-violet-200",
   in_progress: "bg-blue-50 text-blue-800 ring-blue-200",
+  fixed: "bg-amber-50 text-amber-800 ring-amber-200",
   resolved: "bg-brand-50 text-brand-700 ring-brand-100",
+  closed_unconfirmed: "bg-sunken text-muted ring-line",
 };
-export const STATUS_LABEL: Record<Status, string> = {
-  open: "Open",
-  assigned: "Assigned",
-  in_progress: "In progress",
-  resolved: "Resolved",
-};
+export const statusLabel = (s: Status) => t(`status.${s}`);
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
   return (
@@ -127,7 +125,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 export function StatusBadge({ status }: { status: Status }) {
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${STATUS_CLASS[status]}`}>
-      {STATUS_LABEL[status]}
+      {statusLabel(status)}
     </span>
   );
 }

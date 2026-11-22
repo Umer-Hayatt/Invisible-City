@@ -5,7 +5,6 @@ import {
   CircleCheck,
   Flame,
   HardHat,
-  ImagePlus,
   Inbox,
   LogOut,
   MousePointerClick,
@@ -19,8 +18,8 @@ import CityMap from "@/components/CityMap";
 import Gate from "@/components/Gate";
 import { errorText, t } from "@/lib/i18n";
 import { sessionChanged } from "@/lib/me";
-import { Card, CategoryChip, CategoryIcon, Empty, IssueThumb, PriorityMeter, SeverityBadge, Stat, StatusBadge, btn, field } from "@/components/ui";
-import { api, prepareImage, timeAgo } from "@/lib/client";
+import { Card, CategoryChip, CategoryIcon, Empty, IssueThumb, PriorityMeter, SeverityBadge, Stat, StatusBadge, btn, field, statusLabel } from "@/components/ui";
+import { api, timeAgo } from "@/lib/client";
 import { NEIGHBORHOODS } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
 import { CATEGORIES, CATEGORY_META, Issue, STATUSES } from "@/lib/types";
@@ -114,7 +113,7 @@ function Dashboard() {
                 <option value="">All statuses</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {s.replace("_", " ")}
+                    {statusLabel(s)}
                   </option>
                 ))}
               </Pill>
@@ -230,8 +229,6 @@ function Pill({ value, onChange, children }: { value: string; onChange: (v: stri
 function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void }) {
   const [offices, setOffices] = useState<SuggestedOffice[] | null>(null);
   const [officeId, setOfficeId] = useState<number | null>(null);
-  const [after, setAfter] = useState<{ file: File; preview: string } | null>(null);
-  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -268,22 +265,6 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
     }
   }
 
-  async function resolve() {
-    setBusy(true);
-    setErr("");
-    const fd = new FormData();
-    if (after) fd.append("afterImage", after.file);
-    fd.append("note", note);
-    try {
-      await api(`/api/issues/${issue.id}/resolve`, { method: "POST", body: fd });
-      onChanged();
-    } catch (e) {
-      setErr((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <Card className="overflow-hidden">
       <div className="relative">
@@ -312,7 +293,7 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
           </Link>
         </div>
 
-        {issue.status !== "resolved" ? (
+        {issue.status !== "resolved" && issue.status !== "closed_unconfirmed" ? (
           <>
             <div className="space-y-2.5 border-t border-line pt-5">
               <div className="flex items-center gap-2 text-sm font-bold">
@@ -347,45 +328,30 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
               )}
             </div>
 
-            <div className="space-y-2.5 border-t border-line pt-5">
-              <div className="flex items-center gap-2 text-sm font-bold">
-                <CircleCheck size={16} className="text-brand" /> Resolve with proof
-              </div>
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line p-2.5 transition hover:border-brand">
-                {after ? (
+            {issue.status === "fixed" && (
+              <div className="space-y-3 border-t border-line pt-5">
+                {issue.after_image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={after.preview} alt="" className="h-14 w-20 rounded-lg object-cover" />
-                ) : (
-                  <span className="flex h-14 w-20 items-center justify-center rounded-lg bg-brand-50 text-brand">
-                    <ImagePlus size={20} />
-                  </span>
+                  <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-40 w-full rounded-xl object-cover" />
                 )}
-                <span className="text-sm font-medium text-ink-2">{after ? "Change after-repair photo" : "Upload after-repair photo"}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const f = e.target.files?.[0];
-                    if (f) setAfter(await prepareImage(f));
-                  }}
-                />
-              </label>
-              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Resolution note, e.g. Pothole filled and re-asphalted" className={field} />
-              <button disabled={busy} onClick={resolve} className={`${btn.primary} w-full py-3`}>
-                <CircleCheck size={16} /> Mark as resolved
-              </button>
-            </div>
+                <p className="text-sm text-ink-2">{t("office.waiting")}</p>
+              </div>
+            )}
           </>
         ) : (
           <div className="space-y-3 border-t border-line pt-5">
             {issue.after_image && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageUrl(issue.after_image)!} alt="After" className="h-40 w-full rounded-xl object-cover" />
+              <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-40 w-full rounded-xl object-cover" />
             )}
-            <p className="flex items-center gap-2 text-sm font-medium text-brand">
-              <CircleCheck size={16} /> Resolved {issue.resolved_at && timeAgo(issue.resolved_at)} by {issue.assigned_team ?? "the city"}
-            </p>
+            {issue.status === "resolved" ? (
+              <p className="flex items-center gap-2 text-sm font-medium text-brand">
+                <CircleCheck size={16} />{" "}
+                {t("admin.resolvedBy", { when: issue.resolved_at ? timeAgo(issue.resolved_at) : "", office: issue.assigned_team ?? "" })}
+              </p>
+            ) : (
+              <p className="text-sm text-muted">{t("office.closedUnconfirmed")}</p>
+            )}
           </div>
         )}
         {err && <div className="text-sm font-medium text-red-600">{err}</div>}

@@ -1,56 +1,196 @@
 "use client";
 
-import { Inbox } from "lucide-react";
+import { ArrowUpRight, CircleCheck, Clock, ImagePlus, Inbox, MessageSquareWarning, Undo2, Wrench } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
-import { Card, Empty, PageHeader, SeverityBadge, StatusBadge } from "@/components/ui";
-import { api } from "@/lib/client";
-import { t } from "@/lib/i18n";
-import type { Severity, Status } from "@/lib/types";
+import { Card, Empty, IssueThumb, PageHeader, SeverityBadge, StatusBadge, btn, field } from "@/components/ui";
+import { api, prepareImage } from "@/lib/client";
+import { errorText, t } from "@/lib/i18n";
+import type { Category, Severity, Status } from "@/lib/types";
+import { imageUrl } from "@/lib/uploads-url";
 
 interface Job {
   id: number;
   title: string;
   status: Status;
   severity: Severity;
+  category: Category;
   neighborhood: string;
   report_count: number;
+  cover_image: string | null;
+  after_image: string | null;
+  fix_note: string | null;
+  rejection: string | null;
 }
 
 function Jobs() {
   const [jobs, setJobs] = useState<Job[] | null>(null);
-  useEffect(() => {
+  const load = useCallback(() => {
     api<{ jobs: Job[] }>("/api/office/jobs")
       .then((d) => setJobs(d.jobs))
       .catch(() => setJobs([]));
   }, []);
+  useEffect(load, [load]);
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-4xl">
       <PageHeader title={t("office.title")} sub={t("office.sub")} />
       {jobs === null ? (
         <div className="text-muted">{t("gate.loading")}</div>
       ) : jobs.length === 0 ? (
         <Empty icon={Inbox} title={t("office.empty")} />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {jobs.map((j) => (
-            <Link key={j.id} href={`/issues/${j.id}`}>
-              <Card className="flex items-center justify-between gap-4 p-4 hover:border-ink/30">
-                <div className="min-w-0">
-                  <div className="truncate font-bold">{j.title}</div>
-                  <div className="text-sm text-muted">{j.neighborhood}</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <SeverityBadge severity={j.severity} />
-                  <StatusBadge status={j.status} />
-                </div>
-              </Card>
-            </Link>
+            <JobCard key={j.id} job={j} onChanged={load} />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
+  const [mode, setMode] = useState<"idle" | "sendBack" | "fix">("idle");
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+  const [after, setAfter] = useState<{ file: File; preview: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function send(path: string, init: RequestInit) {
+    setBusy(true);
+    setErr("");
+    try {
+      await api(`/api/issues/${job.id}/${path}`, { method: "POST", ...init });
+      setMode("idle");
+      onChanged();
+    } catch (e) {
+      setErr(errorText((e as Error).message));
+    } finally {
+      setBusy(false);
+    }
+  }
+  const jsonBody = (data: unknown) => ({ headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  function recordFix() {
+    const fd = new FormData();
+    if (after) fd.append("afterImage", after.file);
+    fd.append("note", note);
+    send("fix", { body: fd });
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex gap-4 p-4">
+        <IssueThumb src={imageUrl(job.cover_image)} category={job.category} className="h-24 w-32 shrink-0 rounded-xl" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="truncate font-bold">{job.title}</div>
+              <div className="text-sm text-muted">
+                #{job.id} · {job.neighborhood} · {t("office.reports", { n: job.report_count })}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <SeverityBadge severity={job.severity} />
+              <StatusBadge status={job.status} />
+            </div>
+          </div>
+          <Link href={`/issues/${job.id}`} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
+            {t("office.details")} <ArrowUpRight size={14} />
+          </Link>
+        </div>
+      </div>
+
+      {job.rejection && (
+        <div className="mx-4 mb-3 flex gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">
+          <MessageSquareWarning size={16} className="mt-0.5 shrink-0" />
+          <div>
+            <div className="font-semibold">{t("office.rejected")}</div>
+            <div>{job.rejection}</div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3 border-t border-line bg-sunken/40 px-4 py-3">
+        {job.status === "assigned" && mode === "idle" && (
+          <div className="flex flex-wrap gap-2">
+            <button disabled={busy} onClick={() => send("start", jsonBody({}))} className={btn.primary}>
+              <Wrench size={16} /> {t("office.start")}
+            </button>
+            <button disabled={busy} onClick={() => setMode("sendBack")} className={btn.ghost}>
+              <Undo2 size={16} /> {t("office.sendBack")}
+            </button>
+          </div>
+        )}
+        {mode === "sendBack" && (
+          <div className="space-y-2">
+            <textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("office.sendBackReason")} rows={2} className={field} />
+            <div className="flex gap-2">
+              <button disabled={busy} onClick={() => send("send-back", jsonBody({ reason }))} className={btn.dark}>
+                {t("office.sendBackSend")}
+              </button>
+              <button disabled={busy} onClick={() => setMode("idle")} className={btn.ghost}>
+                {t("office.cancel")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {job.status === "in_progress" && mode === "idle" && (
+          <button disabled={busy} onClick={() => setMode("fix")} className={btn.primary}>
+            <CircleCheck size={16} /> {t("office.markFixed")}
+          </button>
+        )}
+        {mode === "fix" && (
+          <div className="space-y-2">
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line bg-surface p-2.5 transition hover:border-brand">
+              {after ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={after.preview} alt="" className="h-14 w-20 rounded-lg object-cover" />
+              ) : (
+                <span className="flex h-14 w-20 items-center justify-center rounded-lg bg-brand-50 text-brand">
+                  <ImagePlus size={20} />
+                </span>
+              )}
+              <span className="text-sm font-medium text-ink-2">{after ? t("office.changePhoto") : t("office.afterPhoto")}</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setAfter(await prepareImage(f));
+                }}
+              />
+            </label>
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("office.fixNote")} className={field} />
+            <div className="flex gap-2">
+              <button disabled={busy || !after} onClick={recordFix} className={btn.primary}>
+                <CircleCheck size={16} /> {t("office.saveFix")}
+              </button>
+              <button disabled={busy} onClick={() => setMode("idle")} className={btn.ghost}>
+                {t("office.cancel")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {job.status === "fixed" && (
+          <p className="flex items-center gap-2 text-sm text-ink-2">
+            <Clock size={15} /> {t("office.waiting")}
+          </p>
+        )}
+        {job.status === "resolved" && (
+          <p className="flex items-center gap-2 text-sm font-medium text-brand">
+            <CircleCheck size={15} /> {t("office.resolved")}
+          </p>
+        )}
+        {job.status === "closed_unconfirmed" && <p className="text-sm text-muted">{t("office.closedUnconfirmed")}</p>}
+        {err && <p className="text-sm font-medium text-red-600">{err}</p>}
+      </div>
+    </Card>
   );
 }
 

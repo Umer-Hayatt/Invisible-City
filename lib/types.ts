@@ -15,7 +15,7 @@ export type Category = (typeof CATEGORIES)[number];
 export const SEVERITIES = ["low", "medium", "high", "critical"] as const;
 export type Severity = (typeof SEVERITIES)[number];
 
-export const STATUSES = ["open", "assigned", "in_progress", "resolved"] as const;
+export const STATUSES = ["open", "assigned", "in_progress", "fixed", "resolved", "closed_unconfirmed"] as const;
 export type Status = (typeof STATUSES)[number];
 
 export const TEAMS = [
@@ -80,10 +80,15 @@ export interface Issue {
   cover_image: string | null;
   after_image: string | null;
   resolution_note: string | null;
+  /** The Office's note with its Fix. */
+  fix_note: string | null;
   recurrence_of: number | null;
   created_at: string;
   updated_at: string;
+  fixed_at: string | null;
   resolved_at: string | null;
+  /** When an unanswered Fix closed as unconfirmed. */
+  closed_at: string | null;
 }
 
 export interface Report {
