@@ -4,6 +4,7 @@ import { PGlite, types } from "@electric-sql/pglite";
 import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
 import { seedDemoData } from "../db/seed-data";
 import { setClock } from "../lib/clock";
+import { fakeMailer, setMailer } from "../lib/mailer";
 import { fakePhotoStore, setPhotoStore } from "../lib/photo-store";
 import { Identity, setSession } from "../lib/session";
 import { Sql, setSql } from "../lib/sql";
@@ -39,8 +40,10 @@ export async function startTestApp(opts: { seed?: boolean } = {}) {
   setSession(null);
   const photos = fakePhotoStore();
   setPhotoStore(photos);
+  const mail = fakeMailer();
+  setMailer(mail);
   if (opts.seed) await seedDemoData(sql, { now: NOW });
-  return { pg, sql, photos, stop: () => pg.close() };
+  return { pg, sql, photos, mail, stop: () => pg.close() };
 }
 
 export const ctx = (params: Record<string, string>) => ({ params: Promise.resolve(params) }) as never;

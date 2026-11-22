@@ -5,13 +5,11 @@ import {
   CircleCheck,
   Flame,
   HardHat,
-  Hourglass,
   ImagePlus,
   Inbox,
   LogOut,
   MousePointerClick,
   Repeat,
-  RotateCcw,
   TriangleAlert,
   Wrench,
 } from "lucide-react";
@@ -19,14 +17,20 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CityMap from "@/components/CityMap";
 import Gate from "@/components/Gate";
-import { t } from "@/lib/i18n";
+import { errorText, t } from "@/lib/i18n";
 import { sessionChanged } from "@/lib/me";
 import { Card, CategoryChip, CategoryIcon, Empty, IssueThumb, PriorityMeter, SeverityBadge, Stat, StatusBadge, btn, field } from "@/components/ui";
 import { api, prepareImage, timeAgo } from "@/lib/client";
 import { NEIGHBORHOODS } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
-import { CATEGORIES, CATEGORY_META, Issue, STATUSES, TEAMS } from "@/lib/types";
+import { CATEGORIES, CATEGORY_META, Issue, STATUSES } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
+
+interface SuggestedOffice {
+  id: number;
+  name: string;
+  distance: number;
+}
 
 export default function AdminPage() {
   return (
@@ -224,20 +228,41 @@ function Pill({ value, onChange, children }: { value: string; onChange: (v: stri
 }
 
 function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void }) {
-  const [team, setTeam] = useState<string>(CATEGORY_META[issue.category].team);
+  const [offices, setOffices] = useState<SuggestedOffice[] | null>(null);
+  const [officeId, setOfficeId] = useState<number | null>(null);
   const [after, setAfter] = useState<{ file: File; preview: string } | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  async function patch(body: object) {
+  useEffect(() => {
+    if (issue.status !== "open") return;
+    let live = true;
+    api<{ offices: SuggestedOffice[] }>(`/api/issues/${issue.id}/offices`)
+      .then((d) => {
+        if (!live) return;
+        setOffices(d.offices);
+        setOfficeId(d.offices[0]?.id ?? null);
+      })
+      .catch(() => live && setOffices([]));
+    return () => {
+      live = false;
+    };
+  }, [issue.id, issue.status]);
+
+  async function assign() {
+    if (officeId === null) return;
     setBusy(true);
     setErr("");
     try {
-      await api(`/api/issues/${issue.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      await api(`/api/issues/${issue.id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ officeId }),
+      });
       onChanged();
     } catch (e) {
-      setErr((e as Error).message);
+      setErr(errorText((e as Error).message));
     } finally {
       setBusy(false);
     }
@@ -291,22 +316,34 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
           <>
             <div className="space-y-2.5 border-t border-line pt-5">
               <div className="flex items-center gap-2 text-sm font-bold">
-                <HardHat size={16} className="text-violet-600" /> Assign repair crew
+                <HardHat size={16} className="text-violet-600" /> {t("admin.assignTitle")}
               </div>
-              <div className="flex gap-2">
-                <select value={team} onChange={(e) => setTeam(e.target.value)} className={`${field} py-2`}>
-                  {TEAMS.map((t) => (
-                    <option key={t}>{t}</option>
-                  ))}
-                </select>
-                <button disabled={busy || team === issue.assigned_team} onClick={() => patch({ assigned_team: team })} className={btn.dark}>
-                  Assign
-                </button>
-              </div>
-              {issue.status === "assigned" && (
-                <button disabled={busy} onClick={() => patch({ status: "in_progress" })} className={`${btn.ghost} w-full`}>
-                  <Hourglass size={15} /> Mark repair work started
-                </button>
+              {issue.status !== "open" ? (
+                <p className="text-sm text-muted">
+                  {issue.assigned_team ? t("admin.assignedTo", { office: issue.assigned_team }) : t("admin.notOpen")}
+                </p>
+              ) : offices === null ? (
+                <p className="text-sm text-muted">{t("gate.loading")}</p>
+              ) : offices.length === 0 ? (
+                <p className="text-sm text-muted">
+                  {t("admin.noOffices")}{" "}
+                  <Link href="/admin/offices" className="font-semibold text-brand hover:underline">
+                    {t("admin.manageOffices")}
+                  </Link>
+                </p>
+              ) : (
+                <div className="flex gap-2">
+                  <select value={officeId ?? ""} onChange={(e) => setOfficeId(Number(e.target.value))} className={`${field} py-2`}>
+                    {offices.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.name} · {t("admin.distance", { km: (o.distance / 1000).toFixed(1) })}
+                      </option>
+                    ))}
+                  </select>
+                  <button disabled={busy || officeId === null} onClick={assign} className={btn.dark}>
+                    {t("admin.assign")}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -349,9 +386,6 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
             <p className="flex items-center gap-2 text-sm font-medium text-brand">
               <CircleCheck size={16} /> Resolved {issue.resolved_at && timeAgo(issue.resolved_at)} by {issue.assigned_team ?? "the city"}
             </p>
-            <button disabled={busy} onClick={() => patch({ status: "open" })} className={btn.ghost}>
-              <RotateCcw size={15} /> Re-open issue
-            </button>
           </div>
         )}
         {err && <div className="text-sm font-medium text-red-600">{err}</div>}

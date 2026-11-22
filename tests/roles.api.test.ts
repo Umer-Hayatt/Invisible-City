@@ -5,7 +5,8 @@ import { GET as getMe } from "../app/api/me/route";
 import { PUT as saveProfile } from "../app/api/me/profile/route";
 import { GET as officeJobs } from "../app/api/office/jobs/route";
 import { GET as listIssues } from "../app/api/issues/route";
-import { GET as getIssue, PATCH as patchIssue } from "../app/api/issues/[id]/route";
+import { GET as getIssue } from "../app/api/issues/[id]/route";
+import { POST as assignIssue } from "../app/api/issues/[id]/assign/route";
 import { POST as resolveIssue } from "../app/api/issues/[id]/resolve/route";
 import { GET as getStats } from "../app/api/stats/route";
 import { GET as myReports, POST as submitReport } from "../app/api/reports/route";
@@ -129,7 +130,7 @@ describe("no session: every protected command answers unauthenticated", () => {
     ["submit a Report", () => submitReport(reportForm())],
     ["list my Reports", () => myReports()],
     ["save the profile", () => saveProfile(post("/api/me/profile", { displayName: "A B", phone: "0300 1234567" }, "PUT"))],
-    ["assign an Issue", () => patchIssue(post("/x", { status: "in_progress" }, "PATCH"), ctx({ id: "1" }))],
+    ["assign an Issue", () => assignIssue(post("/x", { officeId: 1 }), ctx({ id: "1" }))],
     ["record a Fix", () => resolveIssue(new Request("http://test/x", { method: "POST", body: new FormData() }), ctx({ id: "1" }))],
     ["list my Office's jobs", () => officeJobs()],
     ["list Access requests", () => listRequests()],
@@ -148,7 +149,7 @@ describe("another role's commands answer forbidden", () => {
   const commands: Record<string, { allowed: Who; call: () => Promise<Response> }> = {
     "submit a Report": { allowed: "citizen", call: () => submitReport(reportForm()) },
     "list my Reports": { allowed: "citizen", call: () => myReports() },
-    "change an Issue's assignment": { allowed: "authority", call: () => patchIssue(post("/x", { status: "in_progress" }, "PATCH"), ctx({ id: "1" })) },
+    "change an Issue's assignment": { allowed: "authority", call: () => assignIssue(post("/x", { officeId: 1 }), ctx({ id: "1" })) },
     "record a Fix": { allowed: "authority", call: () => resolveIssue(new Request("http://test/x", { method: "POST", body: new FormData() }), ctx({ id: "1" })) },
     "list my Office's jobs": { allowed: "office", call: () => officeJobs() },
     "list Access requests": { allowed: "superAdmin", call: () => listRequests() },

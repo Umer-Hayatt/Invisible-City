@@ -3,11 +3,13 @@
 import { ArrowLeft, ArrowUp, Camera, CircleCheck, Copy, HardHat, Repeat, RotateCcw, Sparkles, Wrench } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { Card, CategoryChip, IssueThumb, PriorityMeter, SeverityBadge, StatusBadge } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
+import { errorText, t } from "@/lib/i18n";
+import { useMe } from "@/lib/me";
 import { Issue, IssueEvent, Report } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
 
@@ -32,10 +34,27 @@ export default function IssuePage() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<IssueData | null>(null);
   const [error, setError] = useState("");
+  const router = useRouter();
+  const { me } = useMe();
+  const isAuthority = me?.role === "authority";
 
-  useEffect(() => {
+  const load = useCallback(() => {
     api<IssueData>(`/api/issues/${id}`).then(setData).catch((e) => setError(e.message));
   }, [id]);
+  useEffect(load, [load]);
+
+  async function flagSpam(reportId: number) {
+    if (!window.confirm(t("review.flagConfirm"))) return;
+    try {
+      const out = await api<{ issueRemoved: boolean; suspended: boolean }>(`/api/issues/${id}/reports/${reportId}/spam`, { method: "POST" });
+      const extra = [out.issueRemoved ? t("review.issueRemoved") : "", out.suspended ? t("review.suspended") : ""].filter(Boolean).join(" ");
+      window.alert(t("review.flagged", { extra }));
+      if (out.issueRemoved) router.push("/admin");
+      else load();
+    } catch (e) {
+      window.alert(errorText((e as Error).message));
+    }
+  }
 
   if (error) return <div className="text-red-600">{error}</div>;
   if (!data) return <div className="text-muted">Loading…</div>;
@@ -165,6 +184,16 @@ export default function IssuePage() {
                       </span>
                     </div>
                     <div className="mt-1 text-ink-2">{r.description || <i className="text-muted">Photo only</i>}</div>
+                    {r.reporter_email !== undefined && (
+                      <div className="mt-1 text-xs text-muted">
+                        {t("review.contact")}: {r.reporter_email ?? "-"} · {r.reporter_phone ?? "-"}
+                      </div>
+                    )}
+                    {isAuthority && (
+                      <button onClick={() => flagSpam(r.id)} className="mt-2 text-xs font-semibold text-red-600 hover:underline">
+                        {t("review.flagSpam")}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

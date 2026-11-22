@@ -15,7 +15,7 @@ function linksFor(role: Role | null) {
   const links = [{ href: "/", label: t("nav.map") }];
   if (role === "citizen") links.push({ href: "/track", label: t("nav.myReports") });
   links.push({ href: "/insights", label: t("nav.insights") });
-  if (role === "authority") links.push({ href: "/admin", label: t("nav.authority") });
+  if (role === "authority") links.push({ href: "/admin", label: t("nav.authority") }, { href: "/admin/offices", label: t("nav.offices") });
   if (role === "office") links.push({ href: "/office", label: t("nav.office") });
   if (role === "super_admin") links.push({ href: "/super-admin", label: t("nav.superAdmin") });
   return links;

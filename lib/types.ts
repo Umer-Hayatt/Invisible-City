@@ -91,6 +91,9 @@ export interface Report {
   issue_id: number;
 
   reporter_name: string | null;
+  /** Present only in responses to an Authority or the assigned Office's staff. */
+  reporter_email?: string | null;
+  reporter_phone?: string | null;
   description: string;
   image: string | null;
   image_hash: string | null;

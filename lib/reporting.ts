@@ -1,9 +1,9 @@
 import { nowIso, nowMs } from "./clock";
 import { addEvent, duplicateCandidates, NewReport, recentlyResolvedNearby, recordReport } from "./db";
 import { haversineMeters } from "./geo";
-import { computePriority, findDuplicate } from "./scoring";
+import { computePriority, findDuplicate, maxSeverity } from "./scoring";
 import { Sql, sql } from "./sql";
-import { Issue } from "./types";
+import { Issue, Severity } from "./types";
 
 /** Reports one Citizen may send in any 24 hours (also applies to Demo accounts). */
 export const DAILY_REPORT_LIMIT = 10;
@@ -77,23 +77,37 @@ export function deleteOwnReport(reportId: number, personId: string): Promise<Del
     if (row.status !== "open") return "not_open";
     const now = nowIso();
     await q.query("UPDATE reports SET deleted_at = $1 WHERE id = $2", [now, reportId]);
-    const [{ n }] = await q.query<{ n: number }>(
-      "SELECT count(*)::int AS n FROM reports WHERE issue_id = $1 AND NOT is_spam AND deleted_at IS NULL",
-      [row.issue_id],
-    );
-    if (n === 0) {
-      // No Reports left: the Issue goes with it.
-      await q.query("UPDATE issues SET deleted_at = $1, updated_at = $1 WHERE id = $2", [now, row.issue_id]);
-      return "deleted";
-    }
-    const [issue] = await q.query<Pick<Issue, "severity" | "category" | "created_at" | "status" | "recurrence_of">>("SELECT severity, category, created_at, status, recurrence_of FROM issues WHERE id = $1", [row.issue_id]);
-    await q.query("UPDATE issues SET report_count = $1, priority = $2, updated_at = $3 WHERE id = $4", [
-      n,
-      computePriority({ ...issue, report_count: n }),
-      now,
-      row.issue_id,
-    ]);
-    await addEvent(row.issue_id, "report_removed", `A citizen withdrew their report. ${n} citizens have now reported this.`, now, q);
+    await recountIssue(q, row.issue_id, now, "A citizen withdrew their report.");
     return "deleted";
   });
+}
+
+/**
+ * After a Report is withdrawn or flagged as spam: recount the remaining Reports, recompute severity and
+ * priority, and note it on the timeline. With none left the Issue is removed. Returns true when removed.
+ */
+export async function recountIssue(q: Sql, issueId: number, now: string, message: string): Promise<boolean> {
+  const left = await q.query<{ ai_severity: Severity }>(
+    "SELECT ai_severity FROM reports WHERE issue_id = $1 AND NOT is_spam AND deleted_at IS NULL",
+    [issueId],
+  );
+  if (left.length === 0) {
+    await q.query("UPDATE issues SET deleted_at = $1, updated_at = $1 WHERE id = $2", [now, issueId]);
+    return true;
+  }
+  const n = left.length;
+  const severity = left.map((r) => r.ai_severity).reduce((a, b) => maxSeverity(a, b));
+  const [issue] = await q.query<Pick<Issue, "category" | "created_at" | "status" | "recurrence_of">>(
+    "SELECT category, created_at, status, recurrence_of FROM issues WHERE id = $1",
+    [issueId],
+  );
+  await q.query("UPDATE issues SET report_count = $1, severity = $2, priority = $3, updated_at = $4 WHERE id = $5", [
+    n,
+    severity,
+    computePriority({ ...issue, severity, report_count: n }),
+    now,
+    issueId,
+  ]);
+  await addEvent(issueId, "report_removed", `${message} ${n} citizens have now reported this.`, now, q);
+  return false;
 }

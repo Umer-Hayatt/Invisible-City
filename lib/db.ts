@@ -40,14 +40,22 @@ export async function listIssues(
   return rows.map(withLivePriority).sort((a, b) => b.priority - a.priority || b.id - a.id);
 }
 
-export async function getIssue(id: number, demo: boolean, q: Sql = sql()) {
+/**
+ * `contacts` adds each reporter's name, email and phone to the Reports. Only the caller decides who may
+ * ask for that (an Authority, or staff of the assigned Office); every other response stays anonymous.
+ */
+export async function getIssue(id: number, demo: boolean, q: Sql = sql(), opts: { contacts?: boolean } = {}) {
   if (!Number.isInteger(id)) return null;
   const [issue] = await q.query<Issue>(`${ISSUE_SELECT} AND i.id = $2`, [demo, id]);
   if (!issue) return null;
+  const who = opts.contacts
+    ? "p.display_name AS reporter_name, p.email AS reporter_email, p.phone AS reporter_phone"
+    : "NULL::text AS reporter_name";
   const reports = await q.query<Report>(
-    `SELECT id, issue_id, NULL::text AS reporter_name, description, image, image_hash, lat, lng, ai_category,
-            ai_severity, ai_confidence, ai_summary, ai_source, duplicate_score, created_at
-     FROM reports WHERE issue_id = $1 AND NOT is_spam AND deleted_at IS NULL ORDER BY created_at ASC, id ASC`,
+    `SELECT r.id, r.issue_id, ${who}, r.description, r.image, r.image_hash, r.lat, r.lng, r.ai_category,
+            r.ai_severity, r.ai_confidence, r.ai_summary, r.ai_source, r.duplicate_score, r.created_at
+     FROM reports r JOIN people p ON p.id = r.reporter_id
+     WHERE r.issue_id = $1 AND NOT r.is_spam AND r.deleted_at IS NULL ORDER BY r.created_at ASC, r.id ASC`,
     [id],
   );
   const events = await q.query<IssueEvent>(
