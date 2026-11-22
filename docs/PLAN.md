@@ -4,7 +4,7 @@ Ordered work list for the 28 November 2026 deadline. The rules are in [`PRD.md`]
 
 ## 0. Prototype (separate session)
 - [ ] Clickable `/prototype` page with fake data for the Citizen, Authority, Office and Super Admin screens.
-- **Done when:** the team approves the layouts. The prototype is then deleted.
+- **Done when:** the team approves the layouts. The prototype is kept in `app/_prototype` (not routed) as a reference for the real screens.
 
 ## 1. Accounts and setup
 - [ ] Team creates: Google OAuth client, Cloudinary account, project Gmail with app password, Gemini key (and optionally Groq).
