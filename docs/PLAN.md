@@ -20,11 +20,11 @@ Ordered work list for the 28 November 2026 deadline. The rules are in [`PRD.md`]
 - **Done when:** the map, Issue pages and Insights read from Supabase on the deployed site.
 
 ## 3. Sign-in and roles
-- [ ] Supabase "Sign in with Google"; first-sign-in profile form (display name, `+92` phone).
-- [ ] Role checks on every page and API route; remove the `admin123` passcode.
-- [ ] Super Admin from `SUPER_ADMIN_EMAILS`; Request Authority access form and Super Admin approval page.
-- [ ] Demo mode: role switcher between Demo accounts, "Demo" banner.
-- [ ] Translation file in place; all new text goes through it.
+- [x] Supabase "Sign in with Google"; first-sign-in profile form (display name, `+92` phone).
+- [x] Role checks on every page and API route; remove the `admin123` passcode.
+- [x] Super Admin from `SUPER_ADMIN_EMAILS`; Request Authority access form and Super Admin approval page.
+- [x] Demo mode: role switcher between Demo accounts, "Demo" banner.
+- [x] Translation file in place; all new text goes through it.
 - **Done when:** each role sees only its own screens, on the deployed site.
 
 ## 4. Reporting with spam rules
