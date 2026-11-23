@@ -20,6 +20,8 @@ export const en = {
   "nav.aiGroq": "Photos are analysed by Groq (Qwen vision)",
   "nav.aiHeuristic": "No AI key set: using the offline keyword guess",
   "lang.switchTitle": "Change language",
+  "theme.toDark": "Switch to dark mode",
+  "theme.toLight": "Switch to light mode",
   "footer.tagline": "See the unseen. Fix the forgotten.",
 
   "time.justNow": "just now",

@@ -132,13 +132,13 @@ export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: string; t
 
 export const btn = {
   primary:
-    "press shine inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-brand-600 hover:shadow-md hover:shadow-brand/25 disabled:opacity-50",
+    "press shine inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand shadow-sm shadow-brand/20 transition hover:bg-brand-600 hover:shadow-md hover:shadow-brand/25 disabled:opacity-50",
   accent:
     "press shine inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink shadow-sm transition hover:brightness-95 disabled:opacity-50",
   ghost:
     "press inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white disabled:opacity-50",
   dark:
-    "press inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/85 disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-canvas transition hover:bg-ink/85 disabled:opacity-50",
 };
 
 export const field =

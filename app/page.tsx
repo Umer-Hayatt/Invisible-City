@@ -6,8 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import CityMap, { MapLayer } from "@/components/CityMap";
 import HeroCity from "@/components/home/HeroCity";
 import RotatingWord from "@/components/home/RotatingWord";
-import StoryScroll from "@/components/home/StoryScroll";
-import { CountUp, Magnetic, Parallax, Tilt } from "@/components/Motion";
+import HowItWorks from "@/components/home/HowItWorks";
+import { CountUp, Magnetic, Parallax } from "@/components/Motion";
 import { m } from "motion/react";
 import {
   Card,
@@ -157,7 +157,7 @@ export default function Home() {
             transition={{ delay: 0.6, type: "spring", stiffness: 120, damping: 16 }}
             className="relative mx-auto w-full max-w-md"
           >
-            <Tilt className="rounded-[28px] border border-white/15 bg-white/[0.07] p-7 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.6)] backdrop-blur-xl">
+            <div className="rounded-[28px] border border-white/15 bg-white/[0.07] p-7 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.6)] backdrop-blur-xl">
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">{t("home.cityHealth")}</div>
               <div className="mt-5 flex items-center gap-6">
                 <HealthRing value={o?.cityHealth ?? 0} />
@@ -171,7 +171,7 @@ export default function Home() {
                   />
                 </div>
               </div>
-            </Tilt>
+            </div>
             {o && (
               <>
                 <div className="float absolute -start-6 -top-6 hidden items-center gap-2 rounded-2xl border border-white/15 bg-[#0b1612]/80 px-3.5 py-2.5 text-xs font-semibold shadow-xl backdrop-blur sm:flex">
@@ -217,17 +217,16 @@ export default function Home() {
         </section>
       ) : (
         <section className="reveal grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <Stat glow label={t("home.statOpen")} value={o.open} hint={t("home.statOpenHint", { n: o.critical })} icon={Flame} tone={o.critical ? "warn" : undefined} />
+          <Stat label={t("home.statOpen")} value={o.open} hint={t("home.statOpenHint", { n: o.critical })} icon={Flame} tone={o.critical ? "warn" : undefined} />
           <Stat
-            glow
             label={t("home.statFixed")}
             value={o.resolved}
             hint={o.unconfirmed ? t("home.unconfirmedHint", { n: o.unconfirmed }) : t("home.statFixedHint")}
             icon={CircleCheck}
             tone="good"
           />
-          <Stat glow label={t("home.statReports")} value={o.totalReports} hint={t("home.statReportsHint")} icon={Camera} />
-          <Stat glow label={t("home.statMerged")} value={o.duplicatesMerged} hint={t("home.statMergedHint")} icon={Copy} />
+          <Stat label={t("home.statReports")} value={o.totalReports} hint={t("home.statReportsHint")} icon={Camera} />
+          <Stat label={t("home.statMerged")} value={o.duplicatesMerged} hint={t("home.statMergedHint")} icon={Copy} />
         </section>
       )}
 
@@ -339,8 +338,8 @@ export default function Home() {
         </aside>
       </section>
 
-      {/* How it works, told by scrolling */}
-      <StoryScroll />
+      {/* How it works */}
+      <HowItWorks />
 
       {/* Closing call to action */}
       <CallToAction />

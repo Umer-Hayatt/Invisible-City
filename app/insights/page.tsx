@@ -142,7 +142,7 @@ export default function InsightsPage() {
               <li key={i} className="flex items-center gap-3 py-2.5">
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                    i === 0 ? "bg-accent text-ink" : i < 3 ? "bg-ink text-white" : "bg-sunken text-ink-2"
+                    i === 0 ? "bg-accent text-ink" : i < 3 ? "bg-ink text-canvas" : "bg-sunken text-ink-2"
                   }`}
                 >
                   {i + 1}

@@ -26,7 +26,7 @@ export function Segmented<T extends string>({
           aria-pressed={value === o.value}
           onClick={() => startTransition(() => onChange(o.value))}
           className={`press relative isolate inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-            value === o.value ? "text-white" : "text-ink-2 hover:text-ink"
+            value === o.value ? "text-canvas" : "text-ink-2 hover:text-ink"
           }`}
         >
           {value === o.value && (

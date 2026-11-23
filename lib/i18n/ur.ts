@@ -25,6 +25,8 @@ export const ur: Record<MessageKey, string> = {
   "nav.aiGroq": "تصاویر کا تجزیہ Groq (Qwen) کرتا ہے",
   "nav.aiHeuristic": "AI کلید موجود نہیں: آف لائن اندازہ استعمال ہو رہا ہے",
   "lang.switchTitle": "زبان تبدیل کریں",
+  "theme.toDark": "ڈارک موڈ پر جائیں",
+  "theme.toLight": "لائٹ موڈ پر جائیں",
   "footer.tagline": "اَن دیکھا دیکھیں۔ بھولا ہوا ٹھیک کریں۔",
 
   "time.justNow": "ابھی ابھی",

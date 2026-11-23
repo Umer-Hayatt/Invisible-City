@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, ViewTransition } from "react";
 
 import LanguageSwitch from "@/components/LanguageSwitch";
+import ThemeToggle from "@/components/ThemeToggle";
 import { sessionChanged, useMe } from "@/lib/me";
 import { api } from "@/lib/client";
 import { t } from "@/lib/i18n";
@@ -28,7 +29,7 @@ const aiTitle = (mode: string) =>
 export function Logo() {
   return (
     <Link href="/" className="group flex items-center gap-2.5">
-      <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white">
+      <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-on-brand">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="transition-transform duration-500 ease-out group-hover:rotate-90">
           <circle cx="12" cy="12" r="3" />
           <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
@@ -90,7 +91,7 @@ export default function Nav() {
               key={l.href}
               href={l.href}
               className={`relative isolate rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-                isActive(l.href) ? "text-white" : "text-ink-2 hover:bg-sunken hover:text-ink"
+                isActive(l.href) ? "text-canvas" : "text-ink-2 hover:bg-sunken hover:text-ink"
               }`}
             >
               {isActive(l.href) && (
@@ -114,9 +115,10 @@ export default function Nav() {
               {aiMode !== "heuristic" ? t("nav.aiLive") : t("nav.aiOffline")}
             </span>
           )}
+          <ThemeToggle />
           <LanguageSwitch />
           {canReport && (
-            <Link href="/report" className="press shine inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
+            <Link href="/report" className="press shine inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600">
               <Plus size={16} strokeWidth={2.5} /> {t("nav.report")}
             </Link>
           )}
@@ -149,7 +151,7 @@ export default function Nav() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className={`block rounded-xl px-3 py-2.5 text-sm font-semibold ${isActive(l.href) ? "bg-ink text-white" : "text-ink-2"}`}
+              className={`block rounded-xl px-3 py-2.5 text-sm font-semibold ${isActive(l.href) ? "bg-ink text-canvas" : "text-ink-2"}`}
             >
               {l.label}
             </Link>
@@ -159,7 +161,10 @@ export default function Nav() {
               {t("nav.signOut")}
             </button>
           )}
-          <LanguageSwitch className="ms-3 mt-2" />
+          <div className="ms-3 mt-2 flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitch />
+          </div>
           {aiMode && (
             <div className="mt-2 flex items-center gap-1.5 px-3 text-xs text-muted">
               <Sparkles size={12} /> {aiTitle(aiMode)}

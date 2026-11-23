@@ -3,6 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import { CITY_CENTER } from "@/lib/geo";
@@ -10,6 +11,10 @@ import type { NeighborhoodStat } from "@/lib/insights";
 import { dirOf, getLocale, t } from "@/lib/i18n";
 import { Issue, SEVERITY_WEIGHT, isActive, isFinished } from "@/lib/types";
 import { CategoryIcon, SEVERITY_COLOR, SeverityBadge, StatusBadge, categoryLabel, healthColor } from "./ui";
+
+const LIGHT_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+// Esri dark grey canvas, so the map does not glare in dark mode.
+const DARK_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
 
 /** Popups sit inside the left-to-right map, so they take the page's direction back explicitly. */
 const dir = () => dirOf(getLocale());
@@ -85,11 +90,12 @@ export default function MapInner({
   zoom = 12,
   className = "h-[480px]",
 }: MapProps) {
+  const dark = useTheme().resolvedTheme === "dark";
   return (
     <MapContainer center={focus ?? CITY_CENTER} zoom={zoom} scrollWheelZoom className={`z-0 w-full ${className}`}>
       <TileLayer
         attribution="&copy; Esri &middot; &copy; OpenStreetMap"
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+        url={dark ? DARK_TILES : LIGHT_TILES}
         maxZoom={19}
       />
       {focus && <Recenter focus={focus} />}
