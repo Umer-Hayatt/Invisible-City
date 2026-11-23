@@ -5,6 +5,7 @@ import DemoBanner from "@/components/DemoBanner";
 import LocaleSync from "@/components/LocaleSync";
 import { MotionEffects } from "@/components/Motion";
 import MotionProvider from "@/components/MotionProvider";
+import ScrollProgress from "@/components/ScrollProgress";
 import Nav from "@/components/Nav";
 import { dirOf, isLocale, LANG_COOKIE, setLocale, t } from "@/lib/i18n";
 import "./globals.css";
@@ -29,6 +30,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <LocaleSync lang={lang} />
         <MotionEffects />
         <MotionProvider>
+          <ScrollProgress />
           <DemoBanner />
           <Nav />
           <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6">{children}</main>

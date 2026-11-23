@@ -1,9 +1,12 @@
 "use client";
 
-import { Activity, ArrowRight, Camera, CircleCheck, Copy, Flame, Layers, MapPin, ScanSearch, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Activity, ArrowRight, Camera, CircleCheck, Copy, Flame, MapPin, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CityMap, { MapLayer } from "@/components/CityMap";
+import HeroCity from "@/components/home/HeroCity";
+import RotatingWord from "@/components/home/RotatingWord";
+import StoryScroll from "@/components/home/StoryScroll";
 import { CountUp, Magnetic, Parallax, Tilt } from "@/components/Motion";
 import { m } from "motion/react";
 import {
@@ -16,7 +19,6 @@ import {
   Skeleton,
   Stat,
   StatusBadge,
-  btn,
   categoryLabel,
   healthColor,
   severityLabel,
@@ -69,71 +71,138 @@ export default function Home() {
 
   return (
     <div className="space-y-10">
-      {/* Hero */}
-      <section className="relative isolate grid items-center gap-8 py-4 lg:grid-cols-[1.4fr_1fr]">
-        {/* The background drifts down slower than the page scrolls, for depth. */}
-        <Parallax className="pointer-events-none absolute inset-0 -z-10" distance={120}>
-          <div aria-hidden className="aurora">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div aria-hidden className="street-grid" />
+      {/* Hero: full width, dark, with the living city map behind it */}
+      <section className="relative isolate -mt-8 ml-[calc(50%-50vw)] w-screen overflow-hidden bg-[#0b1612] text-white">
+        <Parallax className="absolute inset-0 -z-10" distance={140}>
+          <HeroCity className="absolute inset-0 h-full w-full" />
         </Parallax>
-        <div>
-          <div className="rise mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 px-3 py-1 text-xs font-semibold text-ink-2 backdrop-blur">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
-            </span>
-            {t("home.live")}
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_20%_50%,rgb(11_22_18/0.95)_25%,transparent_70%)]" />
+        <div aria-hidden className="absolute -start-32 top-1/3 -z-10 h-96 w-96 rounded-full bg-brand/40 blur-[120px]" />
+
+        <div className="mx-auto grid min-h-[calc(100vh-7rem)] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.25fr_1fr]">
+          <div>
+            <m.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80 backdrop-blur"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              {t("home.live")}
+            </m.div>
+
+            <h1 className="text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-7xl">
+              <WordsUp text={t("home.heroLine1")} />
+              <WordsUp
+                text={t("home.heroLine2")}
+                delay={0.35}
+                className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-accent bg-clip-text pb-2 text-transparent"
+              />
+            </h1>
+
+            <m.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="mt-6 text-xl font-semibold text-white/90 sm:text-2xl"
+            >
+              {t("home.rotatePrefix")}{" "}
+              <RotatingWord
+                words={[t("home.rotate1"), t("home.rotate2"), t("home.rotate3"), t("home.rotate4")]}
+                className="rounded-lg bg-white/10 px-2 text-accent"
+              />{" "}
+              {t("home.rotateSuffix")}
+            </m.p>
+            <m.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="mt-4 max-w-xl text-base leading-relaxed text-white/60"
+            >
+              {t("home.heroSub")}
+            </m.p>
+
+            <m.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.15 }}
+              className="mt-9 flex flex-wrap gap-3"
+            >
+              <Magnetic>
+                <Link
+                  href="/report"
+                  className="press shine inline-flex items-center gap-2 rounded-full bg-emerald-400 px-7 py-3.5 text-[15px] font-bold text-[#0b1612] shadow-[0_10px_40px_-8px_rgb(52_211_153/0.6)] transition hover:bg-emerald-300"
+                >
+                  <Camera size={18} /> {t("nav.reportLong")}
+                </Link>
+              </Magnetic>
+              <Magnetic strength={0.18}>
+                <Link
+                  href="/insights"
+                  className="press group inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3.5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/10"
+                >
+                  {t("home.exploreInsights")}
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
+                </Link>
+              </Magnetic>
+            </m.div>
           </div>
-          <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
-            <span className="rise block" style={{ "--i": 1 } as React.CSSProperties}>
-              {t("home.heroLine1")}
-            </span>
-            <span className="rise block bg-gradient-to-r from-brand via-emerald-600 to-brand-700 bg-clip-text pb-1 text-transparent" style={{ "--i": 2 } as React.CSSProperties}>
-              {t("home.heroLine2")}
-            </span>
-          </h1>
-          <p className="rise mt-5 max-w-xl text-base leading-relaxed text-ink-2 sm:text-lg" style={{ "--i": 3 } as React.CSSProperties}>
-            {t("home.heroSub")}
-          </p>
-          <div className="rise mt-7 flex flex-wrap gap-3" style={{ "--i": 4 } as React.CSSProperties}>
-            <Magnetic>
-              <Link href="/report" className={`${btn.primary} px-6 py-3 text-[15px]`}>
-                <Camera size={18} /> {t("nav.reportLong")}
-              </Link>
-            </Magnetic>
-            <Magnetic strength={0.18}>
-              <Link href="/insights" className={`${btn.ghost} group px-6 py-3 text-[15px]`}>
-                {t("home.exploreInsights")}{" "}
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
-              </Link>
-            </Magnetic>
-          </div>
+
+          {/* Glass health card, with two live chips floating around it */}
+          <m.div
+            initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ delay: 0.6, type: "spring", stiffness: 120, damping: 16 }}
+            className="relative mx-auto w-full max-w-md"
+          >
+            <Tilt className="rounded-[28px] border border-white/15 bg-white/[0.07] p-7 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.6)] backdrop-blur-xl">
+              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">{t("home.cityHealth")}</div>
+              <div className="mt-5 flex items-center gap-6">
+                <HealthRing value={o?.cityHealth ?? 0} />
+                <div className="space-y-3 text-sm">
+                  <Mini label={t("home.resolutionRate")} value={o ? `${o.resolutionRate}%` : "-"} />
+                  <Mini label={t("home.avgFix")} value={o?.avgResolutionDays != null ? t("home.daysValue", { n: o.avgResolutionDays }) : "-"} />
+                  <Mini
+                    label={t("home.neglectedAreas")}
+                    value={neglected.length ? neglected.map((n) => n.name).join(", ") : t("home.none")}
+                    warn={neglected.length > 0}
+                  />
+                </div>
+              </div>
+            </Tilt>
+            {o && (
+              <>
+                <div className="float absolute -start-6 -top-6 hidden items-center gap-2 rounded-2xl border border-white/15 bg-[#0b1612]/80 px-3.5 py-2.5 text-xs font-semibold shadow-xl backdrop-blur sm:flex">
+                  <Flame size={15} className="text-orange-400" />
+                  <span>
+                    <CountUp value={o.open} /> {t("home.statOpen")}
+                  </span>
+                </div>
+                <div
+                  className="float absolute -bottom-6 -end-4 hidden items-center gap-2 rounded-2xl border border-white/15 bg-[#0b1612]/80 px-3.5 py-2.5 text-xs font-semibold shadow-xl backdrop-blur sm:flex"
+                  style={{ animationDelay: "-3s" }}
+                >
+                  <CircleCheck size={15} className="text-emerald-400" />
+                  <span>
+                    <CountUp value={o.resolved} /> {t("home.statFixed")}
+                  </span>
+                </div>
+              </>
+            )}
+          </m.div>
         </div>
 
-        <div className="rise" style={{ "--i": 3 } as React.CSSProperties}>
-        <Tilt className="overflow-hidden rounded-3xl bg-ink p-7 text-white shadow-float">
-          <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 animate-pulse rounded-full bg-brand/40 blur-3xl [animation-duration:5s]" />
-          <div className="relative">
-            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">{t("home.cityHealth")}</div>
-            <div className="mt-4 flex items-center gap-6">
-              <HealthRing value={o?.cityHealth ?? 0} />
-              <div className="space-y-3 text-sm">
-                <Mini label={t("home.resolutionRate")} value={o ? `${o.resolutionRate}%` : "-"} />
-                <Mini label={t("home.avgFix")} value={o?.avgResolutionDays != null ? t("home.daysValue", { n: o.avgResolutionDays }) : "-"} />
-                <Mini
-                  label={t("home.neglectedAreas")}
-                  value={neglected.length ? neglected.map((n) => n.name).join(", ") : t("home.none")}
-                  warn={neglected.length > 0}
-                />
-              </div>
-            </div>
-          </div>
-        </Tilt>
-        </div>
+        <m.div
+          aria-hidden
+          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:flex"
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          {t("home.scrollHint")}
+          <span className="h-8 w-[2px] rounded-full bg-gradient-to-b from-white/50 to-transparent" />
+        </m.div>
       </section>
 
       {/* Live strip */}
@@ -148,16 +217,17 @@ export default function Home() {
         </section>
       ) : (
         <section className="reveal grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <Stat label={t("home.statOpen")} value={o.open} hint={t("home.statOpenHint", { n: o.critical })} icon={Flame} tone={o.critical ? "warn" : undefined} />
+          <Stat glow label={t("home.statOpen")} value={o.open} hint={t("home.statOpenHint", { n: o.critical })} icon={Flame} tone={o.critical ? "warn" : undefined} />
           <Stat
+            glow
             label={t("home.statFixed")}
             value={o.resolved}
             hint={o.unconfirmed ? t("home.unconfirmedHint", { n: o.unconfirmed }) : t("home.statFixedHint")}
             icon={CircleCheck}
             tone="good"
           />
-          <Stat label={t("home.statReports")} value={o.totalReports} hint={t("home.statReportsHint")} icon={Camera} />
-          <Stat label={t("home.statMerged")} value={o.duplicatesMerged} hint={t("home.statMergedHint")} icon={Copy} />
+          <Stat glow label={t("home.statReports")} value={o.totalReports} hint={t("home.statReportsHint")} icon={Camera} />
+          <Stat glow label={t("home.statMerged")} value={o.duplicatesMerged} hint={t("home.statMergedHint")} icon={Copy} />
         </section>
       )}
 
@@ -269,48 +339,11 @@ export default function Home() {
         </aside>
       </section>
 
-      {/* How it works */}
-      <section className="reveal">
-        <div className="mb-5">
-          <div className="text-xs font-bold uppercase tracking-[0.14em] text-brand">{t("home.howEyebrow")}</div>
-          <h2 className="mt-1 text-2xl font-extrabold tracking-tight">{t("home.howTitle")}</h2>
-        </div>
-        <m.div
-          className="grid gap-4 md:grid-cols-4"
-          initial="hidden"
-          whileInView="shown"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={{ shown: { transition: { staggerChildren: 0.09 } } }}
-        >
-          {(
-            [
-              { icon: Camera, n: 1 },
-              { icon: ScanSearch, n: 2 },
-              { icon: Layers, n: 3 },
-              { icon: ShieldCheck, n: 4 },
-            ] as const
-          ).map((s) => (
-            <m.div
-              key={s.n}
-              variants={{
-                hidden: { opacity: 0, y: 28, scale: 0.96 },
-                shown: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 220, damping: 24 } },
-              }}
-            >
-            <Card interactive className="h-full p-5">
-              <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
-                  <s.icon size={20} />
-                </div>
-                <span className="text-xs font-bold text-muted/60">0{s.n}</span>
-              </div>
-              <div className="mt-4 font-bold">{t(`home.step${s.n}`)}</div>
-              <div className="mt-1 text-sm leading-relaxed text-ink-2">{t(`home.step${s.n}Body`)}</div>
-            </Card>
-            </m.div>
-          ))}
-        </m.div>
-      </section>
+      {/* How it works, told by scrolling */}
+      <StoryScroll />
+
+      {/* Closing call to action */}
+      <CallToAction />
     </div>
   );
 }
@@ -372,6 +405,55 @@ function LiveStrip({ issues }: { issues: Issue[] }) {
         ))}
       </div>
     </section>
+  );
+}
+
+/** A line of the headline whose words rise one after another out of a mask. */
+function WordsUp({ text, delay = 0, className = "" }: { text: string; delay?: number; className?: string }) {
+  return (
+    <span className={`block ${className}`}>
+      {text.split(" ").map((w, i) => (
+        <span key={`${w}-${i}`} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+          <m.span
+            className="inline-block"
+            initial={{ y: "110%", rotate: 4 }}
+            animate={{ y: "0%", rotate: 0 }}
+            transition={{ delay: delay + i * 0.08, type: "spring", stiffness: 200, damping: 22 }}
+          >
+            {w}
+            {" "}
+          </m.span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** The big closing band: a slow sweep of green, and the one thing to do next. */
+function CallToAction() {
+  return (
+    <m.section
+      initial={{ opacity: 0, y: 40, scale: 0.97 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0.4 }}
+      transition={{ type: "spring", stiffness: 120, damping: 20 }}
+      className="cta-gradient relative isolate overflow-hidden rounded-[32px] px-6 py-16 text-center text-white sm:px-12"
+    >
+      <div aria-hidden className="street-grid opacity-40 [mask-image:radial-gradient(ellipse_at_center,#000_20%,transparent_70%)]" />
+      <div aria-hidden className="absolute -top-24 left-1/2 -z-10 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-emerald-300/30 blur-3xl" />
+      <h2 className="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">{t("home.ctaTitle")}</h2>
+      <p className="mx-auto mt-4 max-w-xl text-white/75">{t("home.ctaBody")}</p>
+      <div className="mt-8 flex justify-center">
+        <Magnetic>
+          <Link
+            href="/report"
+            className="press shine inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-brand-700 shadow-[0_12px_40px_-10px_rgb(0_0_0/0.5)] transition hover:bg-emerald-50"
+          >
+            <Camera size={19} /> {t("nav.reportLong")}
+          </Link>
+        </Magnetic>
+      </div>
+    </m.section>
   );
 }
 

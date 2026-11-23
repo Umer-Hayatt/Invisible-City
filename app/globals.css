@@ -390,3 +390,75 @@ html,
 body {
   overflow-x: clip;
 }
+
+/* ======================================================================
+   Redesign: scrollbar, glowing borders, floating chips
+   ====================================================================== */
+
+/* A slim scrollbar in the city's colours (Firefox, then Chrome/Edge/Safari). */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #0e6b48 #ebe8df;
+}
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: #ebe8df;
+}
+::-webkit-scrollbar-thumb {
+  border: 3px solid #ebe8df;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #34d399, #0e6b48 55%, #084530);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f2b300, #0e6b48);
+}
+::selection {
+  background: #cfe7da;
+  color: #084530;
+}
+
+/* A border whose light slowly travels around the card. */
+@property --spin {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.glow-border {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    conic-gradient(from var(--spin), #e5e2d9 0deg, #34d399 60deg, #f2b300 110deg, #e5e2d9 170deg, #e5e2d9 360deg) border-box;
+  animation: spin 7s linear infinite;
+}
+@keyframes spin {
+  to {
+    --spin: 360deg;
+  }
+}
+
+/* Glass chips that bob gently in the hero. */
+.float {
+  animation: float 6s var(--ease-in-out) infinite;
+}
+@keyframes float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* The closing call to action: a slow sweep of colour. */
+.cta-gradient {
+  background: linear-gradient(120deg, #084530, #0e6b48, #10805a, #0b5a3c, #084530);
+  background-size: 300% 300%;
+  animation: cta-sweep 14s ease-in-out infinite;
+}
+@keyframes cta-sweep {
+  50% {
+    background-position: 100% 50%;
+  }
+}
