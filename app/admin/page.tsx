@@ -25,6 +25,7 @@ import {
   CategoryIcon,
   Empty,
   IssueThumb,
+  PageHeader,
   PriorityMeter,
   SeverityBadge,
   Stat,
@@ -84,22 +85,22 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">{t("admin.eyebrow")}</div>
-          <h1 className="text-3xl font-extrabold tracking-tight">{t("admin.title")}</h1>
-          <p className="mt-1 text-sm text-muted">{t("admin.sub")}</p>
-        </div>
-        <button
-          onClick={async () => {
-            await api("/api/auth/signout", { method: "POST" });
-            sessionChanged("/");
-          }}
-          className={btn.ghost}
-        >
-          <LogOut size={15} /> {t("nav.signOut")}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow={t("admin.eyebrow")}
+        title={t("admin.title")}
+        sub={t("admin.sub")}
+        right={
+          <button
+            onClick={async () => {
+              await api("/api/auth/signout", { method: "POST" });
+              sessionChanged("/");
+            }}
+            className={btn.ghost}
+          >
+            <LogOut size={15} /> {t("nav.signOut")}
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Stat label={t("admin.statAwaiting")} value={open.filter((i) => i.status === "open").length} icon={Inbox} />

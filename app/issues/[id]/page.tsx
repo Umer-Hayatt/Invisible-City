@@ -92,27 +92,39 @@ export default function IssuePage() {
         <ArrowLeft size={16} className="rtl:rotate-180" /> {t("nav.map")}
       </Link>
 
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div className="max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-bold text-muted">#{issue.id}</span>
-            <CategoryChip category={issue.category} />
-            <SeverityBadge severity={issue.severity} />
-            <StatusBadge status={issue.status} />
-          </div>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{issue.title}</h1>
-          <p className="mt-2 text-sm text-muted">
-            {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
-          </p>
-        </div>
-        {!finished && (
-          <Card className="px-5 py-3">
-            <div className="text-xs font-semibold text-muted">{t("issue.priority")}</div>
-            <div className="mt-1">
-              <PriorityMeter value={issue.priority} wide />
-            </div>
-          </Card>
+      {/* Header: over the photo while the Issue is still being worked on; plain once a Fix shows before and after. */}
+      <div
+        className={`rise relative isolate overflow-hidden rounded-3xl border border-line shadow-card ${showFix ? "bg-surface" : "min-h-[340px] bg-ink"}`}
+      >
+        {!showFix && before && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl(before)!} alt="" className="absolute inset-0 -z-20 h-full w-full scale-105 object-cover" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
+          </>
         )}
+        <div className={`flex h-full flex-col justify-end gap-5 p-6 sm:p-8 md:flex-row md:items-end md:justify-between ${showFix ? "" : "min-h-[340px] text-white"}`}>
+          <div className="max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`text-sm font-bold ${showFix ? "text-muted" : "text-white/70"}`}>#{issue.id}</span>
+              <CategoryChip category={issue.category} />
+              <SeverityBadge severity={issue.severity} />
+              <StatusBadge status={issue.status} />
+            </div>
+            <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">{issue.title}</h1>
+            <p className={`mt-2 text-sm ${showFix ? "text-muted" : "text-white/75"}`}>
+              {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
+            </p>
+          </div>
+          {!finished && (
+            <div className={`shrink-0 rounded-2xl px-5 py-3 ${showFix ? "border border-line bg-sunken" : "border border-white/15 bg-white/10 backdrop-blur-md"}`}>
+              <div className={`text-xs font-semibold ${showFix ? "text-muted" : "text-white/70"}`}>{t("issue.priority")}</div>
+              <div className="mt-1">
+                <PriorityMeter value={issue.priority} wide />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {showFix ? (
@@ -146,7 +158,7 @@ export default function IssuePage() {
           {issue.status === "closed_unconfirmed" && <div className="border-t border-line bg-sunken px-5 py-2.5 text-sm text-muted">{t("issue.closedUnconfirmed")}</div>}
         </Card>
       ) : (
-        before && <IssueThumb src={imageUrl(before)} category={issue.category} className="max-h-[420px] w-full rounded-2xl" />
+        null
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">

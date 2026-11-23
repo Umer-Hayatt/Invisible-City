@@ -119,13 +119,34 @@ export function SectionTitle({ title, sub, right }: { title: string; sub?: strin
 
 export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: string; title: string; sub?: string; right?: React.ReactNode }) {
   return (
-    <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-      <div className="max-w-2xl">
-        {eyebrow && <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">{eyebrow}</div>}
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h1>
-        {sub && <p className="mt-2 text-[15px] leading-relaxed text-ink-2">{sub}</p>}
+    // A banner in the home page's style: soft brand glow, a faint street grid, and a staggered entrance.
+    <div className="relative isolate mb-8 overflow-hidden rounded-3xl border border-line bg-surface px-6 py-9 shadow-card sm:px-10 sm:py-11">
+      <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_0%_0%,var(--color-brand-50),transparent_55%),radial-gradient(ellipse_at_100%_100%,var(--color-accent-50),transparent_50%)]" />
+      <div aria-hidden className="street-grid opacity-70" />
+      <div aria-hidden className="absolute -end-16 -top-20 -z-10 h-56 w-56 rounded-full bg-brand/15 blur-3xl" />
+      <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <div className="max-w-2xl">
+          {eyebrow && (
+            <div className="rise mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-brand backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+              {eyebrow}
+            </div>
+          )}
+          <h1 className="rise text-3xl font-extrabold tracking-tight sm:text-5xl" style={{ "--i": 1 } as React.CSSProperties}>
+            {title}
+          </h1>
+          {sub && (
+            <p className="rise mt-3 text-[15px] leading-relaxed text-ink-2 sm:text-base" style={{ "--i": 2 } as React.CSSProperties}>
+              {sub}
+            </p>
+          )}
+        </div>
+        {right && (
+          <div className="rise shrink-0" style={{ "--i": 3 } as React.CSSProperties}>
+            {right}
+          </div>
+        )}
       </div>
-      {right}
     </div>
   );
 }
