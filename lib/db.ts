@@ -1,3 +1,4 @@
+import { closeOverdueFixes } from "./closure";
 import { nowIso, nowMs } from "./clock";
 import { haversineMeters } from "./geo";
 import { computePriority, DuplicateMatch, maxSeverity } from "./scoring";
@@ -12,8 +13,8 @@ import { Category, Issue, IssueEvent, Report, Severity } from "./types";
 const ISSUE_SELECT = `
   SELECT i.id, i.category, i.severity, i.title, i.summary, i.lat, i.lng, i.neighborhood, i.constituency,
          i.status, i.priority, i.office_id, o.name AS assigned_team, d.name AS department,
-         i.report_count, i.cover_image, i.after_image, i.resolution_note, i.recurrence_of,
-         i.created_at, i.updated_at, i.resolved_at
+         i.report_count, i.cover_image, i.after_image, i.resolution_note, i.fix_note, i.recurrence_of,
+         i.created_at, i.updated_at, i.fixed_at, i.resolved_at, i.closed_at
   FROM issues i
   JOIN categories c ON c.key = i.category
   JOIN departments d ON d.id = c.department_id
@@ -24,12 +25,16 @@ function withLivePriority(i: Issue): Issue {
   return { ...i, priority: computePriority(i) };
 }
 
-/** Every read takes `demo`: a Demo account sees Demo data only, a real account sees real data only. */
+/**
+ * Every read takes `demo`: a Demo account sees Demo data only, a real account sees real data only.
+ * Reads first close any Fix nobody answered within 7 days, so the 7-day rule needs no background worker.
+ */
 export async function listIssues(
   demo: boolean,
   filter: { status?: string; category?: string; neighborhood?: string } = {},
   q: Sql = sql(),
 ) {
+  await closeOverdueFixes();
   const where: string[] = [];
   const params: unknown[] = [demo];
   if (filter.status === "unresolved") where.push("i.status NOT IN ('resolved', 'closed_unconfirmed')");
@@ -46,6 +51,7 @@ export async function listIssues(
  */
 export async function getIssue(id: number, demo: boolean, q: Sql = sql(), opts: { contacts?: boolean } = {}) {
   if (!Number.isInteger(id)) return null;
+  await closeOverdueFixes();
   const [issue] = await q.query<Issue>(`${ISSUE_SELECT} AND i.id = $2`, [demo, id]);
   if (!issue) return null;
   const who = opts.contacts
@@ -84,12 +90,15 @@ export function recentlyResolvedNearby(category: Category, demo: boolean, q: Sql
   ]);
 }
 
-export function reportsByReporter(authId: string, q: Sql = sql()) {
-  return q.query(
+/** A Citizen's own Reports, each with its Issue's status, Fix (after-photo and note) and public timeline. */
+export async function reportsByReporter(authId: string, q: Sql = sql()) {
+  await closeOverdueFixes();
+  const rows = await q.query<{ issue_id: number }>(
     `SELECT r.id, r.issue_id, NULL::text AS reporter_name, r.description, r.image, r.lat, r.lng, r.ai_category,
             r.ai_severity, r.ai_confidence, r.ai_summary, r.ai_source, r.duplicate_score, r.created_at,
             i.status AS issue_status, i.title AS issue_title, i.report_count AS issue_report_count,
-            i.after_image AS issue_after_image, o.name AS issue_team, i.neighborhood AS issue_neighborhood
+            i.after_image AS issue_after_image, i.fix_note AS issue_fix_note, i.fixed_at AS issue_fixed_at,
+            o.name AS issue_team, i.neighborhood AS issue_neighborhood
      FROM reports r
      JOIN people p ON p.id = r.reporter_id
      JOIN issues i ON i.id = r.issue_id
@@ -98,6 +107,13 @@ export function reportsByReporter(authId: string, q: Sql = sql()) {
      ORDER BY r.created_at DESC`,
     [authId],
   );
+  if (rows.length === 0) return [];
+  const events = await q.query<IssueEvent>(
+    `SELECT id, issue_id, kind, message, created_at FROM events WHERE issue_id = ANY($1::int[])
+     ORDER BY created_at ASC, id ASC`,
+    [rows.map((r) => r.issue_id)],
+  );
+  return rows.map((r) => ({ ...r, issue_events: events.filter((e) => e.issue_id === r.issue_id) }));
 }
 
 export function addEvent(issueId: number, kind: string, message: string, at = nowIso(), q: Sql = sql()) {
@@ -249,14 +265,4 @@ export async function setAssignment(issueId: number, officeId: number | null, st
        resolved_at = CASE WHEN $2 = 'resolved' THEN resolved_at ELSE NULL END WHERE id = $4`,
     [officeId, status, nowIso(), issueId],
   );
-}
-
-export async function markResolved(issueId: number, afterImage: string | null, note: string, q: Sql = sql()) {
-  const now = nowIso();
-  await q.query(
-    `UPDATE issues SET status = 'resolved', after_image = $1, resolution_note = $2, resolved_at = $3, updated_at = $3
-     WHERE id = $4`,
-    [afterImage, note, now, issueId],
-  );
-  return now;
 }

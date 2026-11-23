@@ -1,6 +1,21 @@
 "use client";
 
-import { ArrowLeft, ArrowUp, Camera, CircleCheck, Copy, HardHat, Repeat, RotateCcw, Sparkles, Wrench } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  Camera,
+  CircleCheck,
+  Clock,
+  Copy,
+  Hammer,
+  HardHat,
+  Repeat,
+  RotateCcw,
+  Sparkles,
+  ThumbsDown,
+  Undo2,
+  Wrench,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -25,6 +40,10 @@ const EVENT_STYLE: Record<string, { icon: LucideIcon; cls: string }> = {
   escalated: { icon: ArrowUp, cls: "bg-orange-500 text-white" },
   assigned: { icon: HardHat, cls: "bg-violet-600 text-white" },
   in_progress: { icon: Wrench, cls: "bg-blue-600 text-white" },
+  fixed: { icon: Hammer, cls: "bg-amber-500 text-white" },
+  rejected: { icon: ThumbsDown, cls: "bg-red-600 text-white" },
+  sent_back: { icon: Undo2, cls: "bg-sunken text-ink" },
+  closed_unconfirmed: { icon: Clock, cls: "bg-sunken text-ink" },
   resolved: { icon: CircleCheck, cls: "bg-brand text-white" },
   recurring: { icon: Repeat, cls: "bg-violet-600 text-white" },
   open: { icon: RotateCcw, cls: "bg-sunken text-ink" },
@@ -62,6 +81,10 @@ export default function IssuePage() {
   const before = issue.cover_image ?? reports.find((r) => r.image)?.image ?? null;
   const photos = reports.filter((r) => r.image);
   const resolved = issue.status === "resolved";
+  // Before/after appears from the moment an Office records a Fix.
+  const showFix = issue.status === "fixed" || resolved || issue.status === "closed_unconfirmed";
+  const afterDate = issue.resolved_at ?? issue.fixed_at ?? issue.closed_at;
+  const finished = resolved || issue.status === "closed_unconfirmed";
 
   return (
     <div className="space-y-6">
@@ -83,7 +106,7 @@ export default function IssuePage() {
             {timeAgo(issue.created_at)}
           </p>
         </div>
-        {!resolved && (
+        {!finished && (
           <Card className="px-5 py-3">
             <div className="text-xs font-semibold text-muted">Priority score</div>
             <div className="mt-1">
@@ -93,33 +116,35 @@ export default function IssuePage() {
         )}
       </div>
 
-      {resolved ? (
+      {showFix ? (
         <Card className="overflow-hidden">
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
               <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
               <figcaption className="absolute left-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                Before · {new Date(issue.created_at).toLocaleDateString()}
+                {t("issue.before")} · {new Date(issue.created_at).toLocaleDateString()}
               </figcaption>
             </figure>
             <figure className="relative">
               {issue.after_image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl(issue.after_image)!} alt="After repair" className="h-72 w-full object-cover" />
+                <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-72 w-full object-cover" />
               ) : (
                 <div className="flex h-72 flex-col items-center justify-center gap-2 bg-brand-50 text-sm font-semibold text-brand">
-                  <CircleCheck size={28} /> Resolved (no after-photo uploaded)
+                  <CircleCheck size={28} /> {t("issue.noAfter")}
                 </div>
               )}
               <figcaption className="absolute left-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">
-                After · {issue.resolved_at ? new Date(issue.resolved_at).toLocaleDateString() : ""}
+                {t("issue.after")} · {afterDate ? new Date(afterDate).toLocaleDateString() : ""}
               </figcaption>
             </figure>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3 text-sm">
-            <span className="font-medium">{issue.resolution_note}</span>
-            <span className="text-muted">Fixed by {issue.assigned_team ?? "the city"}</span>
+            <span className="font-medium">{issue.fix_note ?? issue.resolution_note}</span>
+            {issue.assigned_team && <span className="text-muted">{t("issue.fixedBy", { office: issue.assigned_team })}</span>}
           </div>
+          {issue.status === "fixed" && <div className="border-t border-line bg-amber-50 px-5 py-2.5 text-sm text-amber-900">{t("issue.awaitingConfirmation")}</div>}
+          {issue.status === "closed_unconfirmed" && <div className="border-t border-line bg-sunken px-5 py-2.5 text-sm text-muted">{t("issue.closedUnconfirmed")}</div>}
         </Card>
       ) : (
         before && <IssueThumb src={imageUrl(before)} category={issue.category} className="max-h-[420px] w-full rounded-2xl" />
@@ -141,7 +166,7 @@ export default function IssuePage() {
                 , was already fixed once.
               </p>
             )}
-            {issue.assigned_team && !resolved && (
+            {issue.assigned_team && !showFix && (
               <p className="mt-3 flex items-center gap-2 text-sm">
                 <HardHat size={15} className="text-violet-700" /> Assigned to <b>{issue.assigned_team}</b>
               </p>
