@@ -2,8 +2,10 @@
 
 import { ArrowRight, Camera, CircleCheck, Copy, ImagePlus, LoaderCircle, LocateFixed, MapPin, Repeat, Sparkles, X } from "lucide-react";
 import Link from "next/link";
+import { m } from "motion/react";
 import { useRef, useState } from "react";
 import CityMap from "@/components/CityMap";
+import { celebrate } from "@/components/Motion";
 import Gate from "@/components/Gate";
 import { Card, CategoryChip, PageHeader, PriorityMeter, SeverityBadge, btn, categoryLabel, field } from "@/components/ui";
 import VoiceInput from "@/components/VoiceInput";
@@ -103,6 +105,7 @@ function ReportForm() {
     if (hint) fd.append("categoryHint", hint);
     try {
       setResult(await api<SubmitResult>("/api/reports", { method: "POST", body: fd }));
+      celebrate();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(errorText((err as Error).message));
@@ -290,10 +293,22 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div className="text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white">
+        <m.div
+          initial={{ scale: 0, rotate: -40 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 16 }}
+          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30"
+        >
           <CircleCheck size={30} />
-        </div>
-        <h1 className="mt-4 text-3xl font-extrabold tracking-tight">{t("report.received")}</h1>
+        </m.div>
+        <m.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mt-4 text-3xl font-extrabold tracking-tight"
+        >
+          {t("report.received")}
+        </m.h1>
         <p className="mt-1 text-ink-2">
           {r.duplicate ? t("report.addedTo", { id: r.issueId }) : t("report.created", { id: r.issueId })} {t("report.followUnder")}{" "}
           <Link href="/track" className="font-semibold text-brand underline-offset-2 hover:underline">

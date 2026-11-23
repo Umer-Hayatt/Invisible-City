@@ -13,6 +13,7 @@ import {
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
+import { m } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CityMap from "@/components/CityMap";
 import Gate from "@/components/Gate";
@@ -165,10 +166,14 @@ function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-line">
                   {filtered.map((i) => (
-                    <tr
+                    // Rows glide into place when a filter changes the queue.
+                    <m.tr
                       key={i.id}
+                      layout="position"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       onClick={() => setSelected(i.id)}
-                      className={`cursor-pointer transition ${selected === i.id ? "bg-brand-50" : "hover:bg-canvas"}`}
+                      className={`cursor-pointer transition-colors ${selected === i.id ? "bg-brand-50" : "hover:bg-canvas"}`}
                     >
                       <td className="px-4 py-3">
                         <PriorityMeter value={i.priority} />
@@ -204,7 +209,7 @@ function Dashboard() {
                         <StatusBadge status={i.status} />
                       </td>
                       <td className="py-3 pe-4 text-end text-xs text-muted">{timeAgo(i.created_at)}</td>
-                    </tr>
+                    </m.tr>
                   ))}
                 </tbody>
               </table>

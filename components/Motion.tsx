@@ -1,5 +1,7 @@
 "use client";
 
+import NumberFlow from "@number-flow/react";
+import { m, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -32,50 +34,115 @@ export function MotionEffects() {
 }
 
 /**
- * A number that counts up to its value when it first appears on screen (and glides when the value changes).
- * Shows the final value straight away for reduced motion.
+ * A number whose digits roll into place like an odometer (NumberFlow) when it first scrolls into view, and roll
+ * again whenever the value changes. NumberFlow itself holds still for reduced motion.
  */
-export function CountUp({ value, duration = 1100, suffix = "" }: { value: number; duration?: number; suffix?: string }) {
-  // Figures here arrive after the page loads, so starting at 0 never flashes the final number first.
-  const [shown, setShown] = useState(() => (reducedMotion() ? value : 0));
-  const from = useRef(0);
+export function CountUp({ value, suffix = "" }: { value: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
+  const [seen, setSeen] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || reducedMotion()) return;
-    let frame = 0;
-    const run = () => {
-      const start = performance.now();
-      const begin = from.current;
-      const tick = (now: number) => {
-        const p = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - p, 4);
-        setShown(Math.round(begin + (value - begin) * eased));
-        if (p < 1) frame = requestAnimationFrame(tick);
-        else from.current = value;
-      };
-      frame = requestAnimationFrame(tick);
-    };
-    const seen = new IntersectionObserver(
+    if (!el) return;
+    const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        seen.disconnect();
-        run();
+        io.disconnect();
+        setSeen(true);
       },
-      { threshold: 0.4 },
+      { threshold: 0.3 },
     );
-    seen.observe(el);
-    return () => {
-      seen.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, [value, duration]);
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <span ref={ref} className="tabular-nums">
-      {shown.toLocaleString("en")}
-      {suffix}
+    <span ref={ref} className="tabular-nums" dir="ltr">
+      <NumberFlow value={seen ? value : 0} locales="en" suffix={suffix} willChange />
     </span>
   );
+}
+
+/** Tilts its content in 3D towards the pointer, with a spring so it settles softly. Flat for reduced motion and on touch. */
+export function Tilt({ children, className = "", max = 8 }: { children: React.ReactNode; className?: string; max?: number }) {
+  const reduce = useReducedMotion();
+  const px = useMotionValue(0.5);
+  const py = useMotionValue(0.5);
+  const spring = { stiffness: 200, damping: 20, mass: 0.6 };
+  const rotateX = useSpring(useTransform(py, [0, 1], [max, -max]), spring);
+  const rotateY = useSpring(useTransform(px, [0, 1], [-max, max]), spring);
+  const glareX = useTransform(px, [0, 1], ["0%", "100%"]);
+  const glareY = useTransform(py, [0, 1], ["0%", "100%"]);
+  const glare = useTransform([glareX, glareY], ([x, y]) => `radial-gradient(420px circle at ${x} ${y}, rgb(255 255 255 / 0.12), transparent 60%)`);
+
+  if (reduce) return <div className={className}>{children}</div>;
+  return (
+    <m.div
+      className={`relative [transform-style:preserve-3d] ${className}`}
+      style={{ rotateX, rotateY, transformPerspective: 900 }}
+      onPointerMove={(e) => {
+        if (e.pointerType !== "mouse") return;
+        const r = e.currentTarget.getBoundingClientRect();
+        px.set((e.clientX - r.left) / r.width);
+        py.set((e.clientY - r.top) / r.height);
+      }}
+      onPointerLeave={() => {
+        px.set(0.5);
+        py.set(0.5);
+      }}
+    >
+      {children}
+      <m.div aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ background: glare }} />
+    </m.div>
+  );
+}
+
+/** Drifts slightly towards the pointer while it hovers nearby, then springs back. Used on the hero's two main buttons. */
+export function Magnetic({ children, strength = 0.25 }: { children: React.ReactNode; strength?: number }) {
+  const reduce = useReducedMotion();
+  const x = useSpring(0, { stiffness: 260, damping: 18 });
+  const y = useSpring(0, { stiffness: 260, damping: 18 });
+  if (reduce) return <>{children}</>;
+  return (
+    <m.div
+      className="inline-block"
+      style={{ x, y }}
+      onPointerMove={(e) => {
+        if (e.pointerType !== "mouse") return;
+        const r = e.currentTarget.getBoundingClientRect();
+        x.set((e.clientX - (r.left + r.width / 2)) * strength);
+        y.set((e.clientY - (r.top + r.height / 2)) * strength);
+      }}
+      onPointerLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
+    >
+      {children}
+    </m.div>
+  );
+}
+
+/** Moves its content at a different speed from the page while it scrolls past, for depth. Still for reduced motion. */
+export function Parallax({ children, className = "", distance = 80 }: { children: React.ReactNode; className?: string; distance?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : distance]);
+  return (
+    <m.div ref={ref} className={className} style={{ y }}>
+      {children}
+    </m.div>
+  );
+}
+
+/** A short burst of confetti in the city's colours, for a Report sent or a Fix confirmed. Nothing for reduced motion. */
+export async function celebrate() {
+  if (reducedMotion()) return;
+  const confetti = (await import("canvas-confetti")).default;
+  const colors = ["#0e6b48", "#34d399", "#f2b300", "#ffffff"];
+  const shot = (angle: number, x: number) =>
+    confetti({ particleCount: 70, angle, spread: 62, startVelocity: 48, origin: { x, y: 0.75 }, colors, disableForReducedMotion: true, zIndex: 2000 });
+  shot(60, 0);
+  shot(120, 1);
 }
