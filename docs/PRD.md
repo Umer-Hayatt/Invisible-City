@@ -103,7 +103,7 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 ## 6. AI
 
 - **Photo analysis**: Gemini first, then Groq, then the offline keyword guess as fallbacks. It produces Category, severity, a confidence, a summary, and whether the photo shows a civic problem at all.
-- **Urdu voice**: the Citizen holds a mic button and speaks; Gemini returns Urdu text plus an English translation. The Citizen sees the text before submitting; Authorities see both.
+- **Urdu voice**: the Citizen taps the mic button, speaks (up to a minute) and taps again to stop; Gemini returns Urdu text plus an English translation. The Citizen sees the text before submitting and can correct the English. The English becomes the Report's description (public, and what the photo analysis reads); the Urdu original is shown only to Authorities and the assigned Office, alongside the contact details. Without a Gemini key the mic says voice is off; there is no fallback provider.
 
 ## 7. Insights (existing, kept)
 - Invisible-problems heatmap.

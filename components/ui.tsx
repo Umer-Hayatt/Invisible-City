@@ -12,7 +12,7 @@ import {
   Waves,
 } from "lucide-react";
 import { t } from "@/lib/i18n";
-import { CATEGORY_META, Category, Severity, Status } from "@/lib/types";
+import { Category, Severity, Status } from "@/lib/types";
 
 /* ---------- colour scales ---------- */
 export const SEVERITY_COLOR: Record<Severity, string> = {
@@ -112,12 +112,14 @@ const STATUS_CLASS: Record<Status, string> = {
   closed_unconfirmed: "bg-sunken text-muted ring-line",
 };
 export const statusLabel = (s: Status) => t(`status.${s}`);
+export const severityLabel = (s: Severity) => t(`severity.${s}`);
+export const categoryLabel = (c: Category) => t(`category.${c}`);
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset ${SEV_CLASS[severity]}`}>
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: SEVERITY_COLOR[severity] }} />
-      {severity}
+      {severityLabel(severity)}
     </span>
   );
 }
@@ -139,7 +141,7 @@ export function CategoryChip({ category }: { category: Category }) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${CATEGORY_TINT[category]}`}>
       <CategoryIcon category={category} size={13} />
-      {CATEGORY_META[category].label}
+      {categoryLabel(category)}
     </span>
   );
 }
@@ -158,11 +160,11 @@ export function IssueThumb({ src, category, className = "" }: { src: string | nu
 export function PriorityMeter({ value, wide = false }: { value: number; wide?: boolean }) {
   const color = value >= 75 ? "#d1343b" : value >= 55 ? "#e26a1b" : value >= 35 ? "#e0a100" : "#3b82c4";
   return (
-    <div className="flex items-center gap-2" title={`Priority ${value}/100`}>
+    <div className="flex items-center gap-2" title={t("ui.priorityTitle", { n: value })}>
       <div className={`h-1.5 overflow-hidden rounded-full bg-sunken ${wide ? "w-24" : "w-14"}`}>
         <div className="h-full rounded-full" style={{ width: `${value}%`, background: color }} />
       </div>
-      <span className="w-6 text-right text-xs font-bold tabular-nums">{value}</span>
+      <span className="w-6 text-end text-xs font-bold tabular-nums">{value}</span>
     </div>
   );
 }

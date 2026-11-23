@@ -7,8 +7,12 @@ import { useEffect } from "react";
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import { CITY_CENTER } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
-import { CATEGORY_META, Issue, SEVERITY_WEIGHT, isActive, isFinished } from "@/lib/types";
-import { CategoryIcon, SEVERITY_COLOR, SeverityBadge, StatusBadge, healthColor } from "./ui";
+import { dirOf, getLocale, t } from "@/lib/i18n";
+import { Issue, SEVERITY_WEIGHT, isActive, isFinished } from "@/lib/types";
+import { CategoryIcon, SEVERITY_COLOR, SeverityBadge, StatusBadge, categoryLabel, healthColor } from "./ui";
+
+/** Popups sit inside the left-to-right map, so they take the page's direction back explicitly. */
+const dir = () => dirOf(getLocale());
 
 export type MapLayer = "issues" | "heat" | "health";
 
@@ -113,11 +117,13 @@ export default function MapInner({
                 {n.name} · {n.healthScore}
               </Tooltip>
               <Popup>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{n.name}</div>
-                <div style={{ fontSize: 12, color: "#6f7a74", marginTop: 2 }}>
-                  Health {n.healthScore}/100 · {n.resolved}/{n.total} resolved · {n.open} open
+                <div dir={dir()}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{n.name}</div>
+                  <div style={{ fontSize: 12, color: "#6f7a74", marginTop: 2 }}>
+                    {t("map.hoodPopup", { health: n.healthScore, resolved: n.resolved, total: n.total, open: n.open })}
+                  </div>
+                  {n.neglected && <div style={{ color: "#d1343b", fontWeight: 600, fontSize: 12, marginTop: 6 }}>{t("home.neglectedTitle")}</div>}
                 </div>
-                {n.neglected && <div style={{ color: "#d1343b", fontWeight: 600, fontSize: 12, marginTop: 6 }}>Possibly neglected</div>}
               </Popup>
             </Circle>
           ))}
@@ -140,9 +146,9 @@ export default function MapInner({
               }}
             >
               <Popup>
-                <div style={{ minWidth: 210 }}>
+                <div dir={dir()} style={{ minWidth: 210 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 600, color: "#6f7a74" }}>
-                    <CategoryIcon category={i.category} size={13} /> {CATEGORY_META[i.category].label}
+                    <CategoryIcon category={i.category} size={13} /> {categoryLabel(i.category)}
                   </div>
                   <div style={{ fontWeight: 700, fontSize: 14, margin: "4px 0 8px" }}>{i.title}</div>
                   <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
@@ -150,10 +156,10 @@ export default function MapInner({
                     <StatusBadge status={i.status} />
                   </div>
                   <div style={{ fontSize: 12, color: "#6f7a74", margin: "8px 0" }}>
-                    {i.neighborhood} · {i.report_count} citizen report{i.report_count > 1 ? "s" : ""}
+                    {i.neighborhood} · {t("map.reportCount", { n: i.report_count })}
                   </div>
                   <Link href={`/issues/${i.id}`} style={{ fontWeight: 700, color: "#0e6b48" }}>
-                    Open issue #{i.id} →
+                    {t("map.openIssue", { id: i.id })}
                   </Link>
                 </div>
               </Popup>
@@ -164,7 +170,7 @@ export default function MapInner({
       {picked && (
         <CircleMarker center={picked} radius={10} pathOptions={{ color: "#ffffff", weight: 4, fillColor: "#0e6b48", fillOpacity: 1 }}>
           <Tooltip permanent direction="top" offset={[0, -12]}>
-            Problem location
+            {t("map.pickedLabel")}
           </Tooltip>
         </CircleMarker>
       )}

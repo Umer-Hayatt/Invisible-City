@@ -54,9 +54,10 @@ export async function getIssue(id: number, demo: boolean, q: Sql = sql(), opts: 
   await closeOverdueFixes();
   const [issue] = await q.query<Issue>(`${ISSUE_SELECT} AND i.id = $2`, [demo, id]);
   if (!issue) return null;
+  // The Urdu original goes with the contact details: Authorities and the assigned Office see both languages.
   const who = opts.contacts
-    ? "p.display_name AS reporter_name, p.email AS reporter_email, p.phone AS reporter_phone"
-    : "NULL::text AS reporter_name";
+    ? "p.display_name AS reporter_name, p.email AS reporter_email, p.phone AS reporter_phone, r.voice_transcript"
+    : "NULL::text AS reporter_name, NULL::text AS voice_transcript";
   const reports = await q.query<Report>(
     `SELECT r.id, r.issue_id, ${who}, r.description, r.image, r.image_hash, r.lat, r.lng, r.ai_category,
             r.ai_severity, r.ai_confidence, r.ai_summary, r.ai_source, r.duplicate_score, r.created_at
@@ -137,6 +138,8 @@ export interface NewReport {
   reporterId: string; // people.id of the signed-in Citizen
   isDemo: boolean;
   description: string;
+  /** What the Citizen said in Urdu, when they used the mic; `description` is then the English translation. */
+  voiceTranscript?: string | null;
   image: string | null;
   imageHash: string | null;
   lat: number;
@@ -230,8 +233,8 @@ export function recordReport(r: NewReport, outer?: Sql) {
     }
     await q.query(
       `INSERT INTO reports (issue_id, reporter_id, description, image, image_hash, lat, lng, ai_category,
-         ai_severity, ai_confidence, ai_summary, ai_source, duplicate_score, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+         ai_severity, ai_confidence, ai_summary, ai_source, duplicate_score, created_at, voice_transcript)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
         id,
         r.reporterId,
@@ -247,6 +250,7 @@ export function recordReport(r: NewReport, outer?: Sql) {
         r.ai.source,
         r.match?.score ?? null,
         now,
+        r.voiceTranscript ?? null,
       ],
     );
     return id;

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Card, Empty, IssueThumb, PageHeader, StatusBadge, btn, field } from "@/components/ui";
 import Gate from "@/components/Gate";
 import { api, timeAgo } from "@/lib/client";
-import { errorText, t, type MessageKey } from "@/lib/i18n";
+import { errorText, formatDate, formatDateTime, t, type MessageKey } from "@/lib/i18n";
 import type { Contributor } from "@/lib/insights";
 import { Category, IssueEvent, Report, Status } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
@@ -55,7 +55,7 @@ function TrackList() {
 
       {impact && (
         <div className="relative mb-8 overflow-hidden rounded-3xl bg-ink p-6 text-white sm:p-7">
-          <div className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full bg-accent/25 blur-3xl" />
+          <div className="pointer-events-none absolute -end-10 -top-20 h-56 w-56 rounded-full bg-accent/25 blur-3xl" />
           <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-5">
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-white/60">
@@ -113,7 +113,7 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
             </div>
             <div className="flex items-center gap-2">
               <StatusBadge status={r.issue_status} />
-              <ChevronRight size={18} className="hidden text-muted transition group-hover:translate-x-0.5 sm:block" />
+              <ChevronRight size={18} className="hidden text-muted transition group-hover:translate-x-0.5 sm:block rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
             </div>
           </div>
           <div className="mt-4 grid grid-cols-5 gap-1.5">
@@ -144,11 +144,11 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
         <ListTree size={14} /> {showTimeline ? t("track.hideTimeline") : t("track.timeline")}
       </button>
       {showTimeline && (
-        <ol className="mt-2 space-y-2 border-l border-line pl-4">
+        <ol className="mt-2 space-y-2 border-s border-line ps-4">
           {r.issue_events.map((e) => (
             <li key={e.id} className="text-sm">
               <div className="leading-snug">{e.message}</div>
-              <div className="text-xs text-muted">{new Date(e.created_at).toLocaleString()}</div>
+              <div className="text-xs text-muted">{formatDateTime(e.created_at)}</div>
             </li>
           ))}
         </ol>
@@ -214,7 +214,7 @@ function FixAnswer({ r, onChanged }: { r: Row; onChanged: () => void }) {
           </button>
         </div>
       )}
-      {answerBy && <p className="text-xs text-muted">{t("track.answerBy", { date: answerBy.toLocaleDateString() })}</p>}
+      {answerBy && <p className="text-xs text-muted">{t("track.answerBy", { date: formatDate(answerBy) })}</p>}
       {err && <p className="text-sm font-medium text-red-600">{err}</p>}
     </div>
   );

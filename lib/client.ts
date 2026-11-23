@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "./i18n";
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -47,11 +49,11 @@ export async function prepareImage(file: File): Promise<{ file: File; hash: stri
 
 export function timeAgo(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  if (s < 60) return t("time.justNow");
+  if (s < 3600) return t("time.minutes", { n: Math.floor(s / 60) });
+  if (s < 86400) return t("time.hours", { n: Math.floor(s / 3600) });
   const d = Math.floor(s / 86400);
-  return d === 1 ? "yesterday" : `${d} days ago`;
+  return d === 1 ? t("time.yesterday") : t("time.days", { n: d });
 }
 
 export async function api<T>(url: string, init?: RequestInit): Promise<T> {

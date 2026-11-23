@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import LanguageSwitch from "@/components/LanguageSwitch";
 import { sessionChanged, useMe } from "@/lib/me";
 import { api } from "@/lib/client";
 import { t } from "@/lib/i18n";
@@ -20,6 +21,9 @@ function linksFor(role: Role | null) {
   if (role === "super_admin") links.push({ href: "/super-admin", label: t("nav.superAdmin") });
   return links;
 }
+
+const aiTitle = (mode: string) =>
+  mode === "gemini" ? t("nav.aiGemini") : mode === "groq" ? t("nav.aiGroq") : t("nav.aiHeuristic");
 
 export function Logo() {
   return (
@@ -80,13 +84,14 @@ export default function Nav() {
         <div className="hidden items-center gap-3 md:flex">
           {aiMode && (
             <span
-              title={aiMode === "gemini" ? "Photos are analysed by Gemini vision" : aiMode === "groq" ? "Photos are analysed by Groq (Qwen vision)" : "No AI API key set - using the offline keyword heuristic"}
+              title={aiTitle(aiMode)}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted"
             >
               <span className={`h-2 w-2 rounded-full ${aiMode !== "heuristic" ? "bg-brand" : "bg-accent"}`} />
-              {aiMode !== "heuristic" ? "AI live" : "AI offline"}
+              {aiMode !== "heuristic" ? t("nav.aiLive") : t("nav.aiOffline")}
             </span>
           )}
+          <LanguageSwitch />
           {canReport && (
             <Link href="/report" className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
               <Plus size={16} strokeWidth={2.5} /> {t("nav.report")}
@@ -94,7 +99,7 @@ export default function Nav() {
           )}
           {me ? (
             <div className="flex items-center gap-2 text-xs">
-              <Link href="/profile" className="text-right leading-tight hover:underline">
+              <Link href="/profile" className="text-end leading-tight hover:underline">
                 <div className="font-semibold">{me.displayName || me.email}</div>
                 <div className="text-muted">{t(`role.${me.role}`)}</div>
               </Link>
@@ -109,7 +114,7 @@ export default function Nav() {
           )}
         </div>
 
-        <button className="rounded-full p-2 md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
+        <button className="rounded-full p-2 md:hidden" onClick={() => setOpen(!open)} aria-label={t("nav.menu")}>
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
@@ -127,13 +132,14 @@ export default function Nav() {
             </Link>
           ))}
           {me && (
-            <button onClick={signOut} className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ink-2">
+            <button onClick={signOut} className="block w-full rounded-xl px-3 py-2.5 text-start text-sm font-semibold text-ink-2">
               {t("nav.signOut")}
             </button>
           )}
+          <LanguageSwitch className="ms-3 mt-2" />
           {aiMode && (
             <div className="mt-2 flex items-center gap-1.5 px-3 text-xs text-muted">
-              <Sparkles size={12} /> {aiMode === "gemini" ? "AI live (Gemini vision)" : aiMode === "groq" ? "AI live (Groq vision)" : "AI offline mode"}
+              <Sparkles size={12} /> {aiTitle(aiMode)}
             </div>
           )}
         </nav>

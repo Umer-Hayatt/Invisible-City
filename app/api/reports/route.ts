@@ -38,6 +38,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "bad_request" }, { status: 400 });
   }
   const description = String(form.get("description") ?? "").slice(0, 2000);
+  // Urdu text from the mic button; `description` then holds Gemini's English translation, which the Citizen saw.
+  const voiceTranscript = String(form.get("voiceTranscript") ?? "").trim().slice(0, 2000) || null;
   const lat = Number(form.get("lat"));
   const lng = Number(form.get("lng"));
   const hashRaw = String(form.get("imageHash") ?? "");
@@ -69,6 +71,7 @@ export async function POST(req: Request) {
     reporterId: actor.personId,
     isDemo: actor.isDemo,
     description,
+    voiceTranscript,
     image: null as string | null,
     imageHash,
     lat,
