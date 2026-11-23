@@ -3,6 +3,7 @@ import { Geist_Mono, Noto_Naskh_Arabic, Plus_Jakarta_Sans } from "next/font/goog
 import { cookies } from "next/headers";
 import DemoBanner from "@/components/DemoBanner";
 import LocaleSync from "@/components/LocaleSync";
+import { MotionEffects } from "@/components/Motion";
 import Nav from "@/components/Nav";
 import { dirOf, isLocale, LANG_COOKIE, setLocale, t } from "@/lib/i18n";
 import "./globals.css";
@@ -25,6 +26,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={lang} dir={dirOf(lang)} className={`${jakarta.variable} ${geistMono.variable} ${urdu.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-canvas text-ink">
         <LocaleSync lang={lang} />
+        <MotionEffects />
         <DemoBanner />
         <Nav />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6">{children}</main>

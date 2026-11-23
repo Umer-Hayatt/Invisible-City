@@ -21,7 +21,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
-import { Card, CategoryChip, IssueThumb, PriorityMeter, SeverityBadge, StatusBadge } from "@/components/ui";
+import { Card, CategoryChip, IssueThumb, PageSkeleton, PriorityMeter, SeverityBadge, StatusBadge } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, formatDate, formatDateTime, t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
@@ -76,7 +76,7 @@ export default function IssuePage() {
   }
 
   if (error) return <div className="text-red-600">{error}</div>;
-  if (!data) return <div className="text-muted">{t("gate.loading")}</div>;
+  if (!data) return <PageSkeleton />;
   const { issue, reports, events } = data;
   const before = issue.cover_image ?? reports.find((r) => r.image)?.image ?? null;
   const photos = reports.filter((r) => r.image);
@@ -238,7 +238,7 @@ export default function IssuePage() {
           </Card>
           <Card className="p-5">
             <h2 className="mb-4 font-bold tracking-tight">{t("issue.timeline")}</h2>
-            <ol className="space-y-0">
+            <ol className="stagger space-y-0">
               {events.map((e, idx) => {
                 const st = EVENT_STYLE[e.kind] ?? EVENT_STYLE.created;
                 return (

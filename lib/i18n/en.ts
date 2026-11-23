@@ -84,6 +84,7 @@ export const en = {
   "home.step4": "Prove the fix",
   "home.step4Body": "Each repair ends with an after-photo that Citizens confirm.",
   "home.outOf100": "out of 100",
+  "home.liveStrip": "Latest Issues",
 
   "map.layerIssues": "Issues",
   "map.layerHeat": "Heatmap",

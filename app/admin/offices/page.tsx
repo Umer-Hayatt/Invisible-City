@@ -4,7 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
-import { Card, PageHeader, btn, field } from "@/components/ui";
+import { Card, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
 import { api } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
 
@@ -62,7 +62,7 @@ function Offices() {
       <NewOffice departments={departments} onCreate={(body) => run(() => api("/api/offices", { method: "POST", ...json(body) }))} />
 
       {offices === null ? (
-        <div className="text-muted">{t("gate.loading")}</div>
+        <ListSkeleton />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {offices.map((o) => (
