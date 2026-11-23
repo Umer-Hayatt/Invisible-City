@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import DemoBanner from "@/components/DemoBanner";
 import LocaleSync from "@/components/LocaleSync";
 import { MotionEffects } from "@/components/Motion";
+import MotionProvider from "@/components/MotionProvider";
 import Nav from "@/components/Nav";
 import { dirOf, isLocale, LANG_COOKIE, setLocale, t } from "@/lib/i18n";
 import "./globals.css";
@@ -27,17 +28,19 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-canvas text-ink">
         <LocaleSync lang={lang} />
         <MotionEffects />
-        <DemoBanner />
-        <Nav />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6">{children}</main>
-        <footer className="border-t border-line">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-xs text-muted sm:px-6">
-            <span>
-              <b className="text-ink">INvisible City</b> · {t("footer.tagline")}
-            </span>
-            <span dir="ltr">Map tiles © Esri · data © OpenStreetMap contributors</span>
-          </div>
-        </footer>
+        <MotionProvider>
+          <DemoBanner />
+          <Nav />
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6">{children}</main>
+          <footer className="border-t border-line">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-xs text-muted sm:px-6">
+              <span>
+                <b className="text-ink">INvisible City</b> · {t("footer.tagline")}
+              </span>
+              <span dir="ltr">Map tiles © Esri · data © OpenStreetMap contributors</span>
+            </div>
+          </footer>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, CircleCheck, Clock, ImagePlus, Inbox, MessageSquareWarning, Undo2, Wrench } from "lucide-react";
 import Link from "next/link";
+import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
 import { Card, Empty, IssueThumb, ListSkeleton, PageHeader, SeverityBadge, StatusBadge, btn, field } from "@/components/ui";
@@ -40,10 +41,15 @@ function Jobs() {
       ) : jobs.length === 0 ? (
         <Empty icon={Inbox} title={t("office.empty")} />
       ) : (
+        // Jobs re-sort as they move on (In progress first); `layout` glides each card to its new place.
         <div className="space-y-4">
-          {jobs.map((j) => (
-            <JobCard key={j.id} job={j} onChanged={load} />
-          ))}
+          <AnimatePresence initial={false}>
+            {jobs.map((j) => (
+              <m.div key={j.id} layout exit={{ opacity: 0, scale: 0.97 }}>
+                <JobCard job={j} onChanged={load} />
+              </m.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>

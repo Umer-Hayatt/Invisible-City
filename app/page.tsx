@@ -4,7 +4,8 @@ import { Activity, ArrowRight, Camera, CircleCheck, Copy, Flame, Layers, MapPin,
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CityMap, { MapLayer } from "@/components/CityMap";
-import { CountUp } from "@/components/Motion";
+import { CountUp, Magnetic, Parallax, Tilt } from "@/components/Motion";
+import { m } from "motion/react";
 import {
   Card,
   CategoryIcon,
@@ -70,12 +71,15 @@ export default function Home() {
     <div className="space-y-10">
       {/* Hero */}
       <section className="relative isolate grid items-center gap-8 py-4 lg:grid-cols-[1.4fr_1fr]">
-        <div aria-hidden className="aurora">
-          <span />
-          <span />
-          <span />
-        </div>
-        <div aria-hidden className="street-grid" />
+        {/* The background drifts down slower than the page scrolls, for depth. */}
+        <Parallax className="pointer-events-none absolute inset-0 -z-10" distance={120}>
+          <div aria-hidden className="aurora">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div aria-hidden className="street-grid" />
+        </Parallax>
         <div>
           <div className="rise mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 px-3 py-1 text-xs font-semibold text-ink-2 backdrop-blur">
             <span className="relative flex h-2 w-2">
@@ -96,16 +100,22 @@ export default function Home() {
             {t("home.heroSub")}
           </p>
           <div className="rise mt-7 flex flex-wrap gap-3" style={{ "--i": 4 } as React.CSSProperties}>
-            <Link href="/report" className={`${btn.primary} px-6 py-3 text-[15px]`}>
-              <Camera size={18} /> {t("nav.reportLong")}
-            </Link>
-            <Link href="/insights" className={`${btn.ghost} px-6 py-3 text-[15px]`}>
-              {t("home.exploreInsights")} <ArrowRight size={16} className="rtl:rotate-180" />
-            </Link>
+            <Magnetic>
+              <Link href="/report" className={`${btn.primary} px-6 py-3 text-[15px]`}>
+                <Camera size={18} /> {t("nav.reportLong")}
+              </Link>
+            </Magnetic>
+            <Magnetic strength={0.18}>
+              <Link href="/insights" className={`${btn.ghost} group px-6 py-3 text-[15px]`}>
+                {t("home.exploreInsights")}{" "}
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
+              </Link>
+            </Magnetic>
           </div>
         </div>
 
-        <div className="rise relative overflow-hidden rounded-3xl bg-ink p-7 text-white shadow-float" style={{ "--i": 3 } as React.CSSProperties}>
+        <div className="rise" style={{ "--i": 3 } as React.CSSProperties}>
+        <Tilt className="overflow-hidden rounded-3xl bg-ink p-7 text-white shadow-float">
           <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 animate-pulse rounded-full bg-brand/40 blur-3xl [animation-duration:5s]" />
           <div className="relative">
             <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">{t("home.cityHealth")}</div>
@@ -122,6 +132,7 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </Tilt>
         </div>
       </section>
 
@@ -264,7 +275,13 @@ export default function Home() {
           <div className="text-xs font-bold uppercase tracking-[0.14em] text-brand">{t("home.howEyebrow")}</div>
           <h2 className="mt-1 text-2xl font-extrabold tracking-tight">{t("home.howTitle")}</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
+        <m.div
+          className="grid gap-4 md:grid-cols-4"
+          initial="hidden"
+          whileInView="shown"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={{ shown: { transition: { staggerChildren: 0.09 } } }}
+        >
           {(
             [
               { icon: Camera, n: 1 },
@@ -273,7 +290,14 @@ export default function Home() {
               { icon: ShieldCheck, n: 4 },
             ] as const
           ).map((s) => (
-            <Card key={s.n} interactive className="p-5">
+            <m.div
+              key={s.n}
+              variants={{
+                hidden: { opacity: 0, y: 28, scale: 0.96 },
+                shown: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 220, damping: 24 } },
+              }}
+            >
+            <Card interactive className="h-full p-5">
               <div className="flex items-center justify-between">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
                   <s.icon size={20} />
@@ -283,8 +307,9 @@ export default function Home() {
               <div className="mt-4 font-bold">{t(`home.step${s.n}`)}</div>
               <div className="mt-1 text-sm leading-relaxed text-ink-2">{t(`home.step${s.n}Body`)}</div>
             </Card>
+            </m.div>
           ))}
-        </div>
+        </m.div>
       </section>
     </div>
   );
@@ -313,7 +338,7 @@ function HealthRing({ value }: { value: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-4xl font-extrabold tabular-nums">
-          <CountUp value={value} duration={900} />
+          <CountUp value={value} />
         </span>
         <span className="text-[11px] text-white/50">{t("home.outOf100")}</span>
       </div>

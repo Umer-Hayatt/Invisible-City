@@ -2,7 +2,9 @@
 
 import { Camera, ChevronRight, CircleCheck, HardHat, Inbox, ListTree, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
 import Link from "next/link";
+import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
+import { celebrate } from "@/components/Motion";
 import { Card, Empty, IssueThumb, ListSkeleton, PageHeader, StatusBadge, btn, field } from "@/components/ui";
 import Gate from "@/components/Gate";
 import { api, timeAgo } from "@/lib/client";
@@ -86,9 +88,13 @@ function TrackList() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {rows.map((r) => (
-            <ReportCard key={r.id} r={r} onChanged={load} />
-          ))}
+          <AnimatePresence initial={false}>
+            {rows.map((r) => (
+              <m.div key={r.id} layout exit={{ opacity: 0, height: 0 }}>
+                <ReportCard r={r} onChanged={load} />
+              </m.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
@@ -173,6 +179,7 @@ function FixAnswer({ r, onChanged }: { r: Row; onChanged: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (path === "confirm") celebrate(); // the Citizen's Fix is now a Resolution
       onChanged();
     } catch (e) {
       setErr(errorText((e as Error).message));
