@@ -83,11 +83,15 @@ export async function duplicateCandidates(demo: boolean, q: Sql = sql()) {
 }
 
 export function recentlyResolvedNearby(category: Category, demo: boolean, q: Sql = sql()) {
-  return q.query<Issue>(`${ISSUE_SELECT} AND i.status = 'resolved' AND i.category = $2 AND i.resolved_at > $3`, [
-    demo,
-    category,
-    new Date(nowMs() - 180 * 86_400_000).toISOString(),
-  ]);
+  // A Fix that closed unconfirmed was still a repair, so a new problem at the same spot is a recurrence too.
+  return q.query<Issue>(
+    `${ISSUE_SELECT} AND i.status IN ('resolved', 'closed_unconfirmed') AND i.category = $2 AND COALESCE(i.resolved_at, i.closed_at) > $3`,
+    [
+      demo,
+      category,
+      new Date(nowMs() - 180 * 86_400_000).toISOString(),
+    ],
+  );
 }
 
 /** A Citizen's own Reports, each with its Issue's status, Fix (after-photo and note) and public timeline. */

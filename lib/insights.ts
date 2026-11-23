@@ -1,7 +1,7 @@
 import { nowMs } from "./clock";
 import { sql } from "./sql";
 import { NEIGHBORHOODS } from "./geo";
-import { CATEGORY_META, Category, Issue, SEVERITY_WEIGHT } from "./types";
+import { CATEGORY_META, Category, Issue, SEVERITY_WEIGHT, isActive } from "./types";
 
 export interface NeighborhoodStat {
   name: string;
@@ -10,6 +10,8 @@ export interface NeighborhoodStat {
   total: number;
   open: number;
   resolved: number;
+  /** Closed unconfirmed: counted apart, never as a Resolution. */
+  unconfirmed: number;
   resolutionRate: number;
   avgResolutionDays: number | null;
   openSeverityLoad: number;
@@ -29,14 +31,15 @@ export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
   const stats = NEIGHBORHOODS.map((n) => {
     const mine = issues.filter((i) => i.neighborhood === n.name);
     const resolved = mine.filter((i) => i.status === "resolved");
-    const open = mine.filter((i) => i.status !== "resolved");
+    const open = mine.filter((i) => isActive(i.status));
+    const unconfirmed = mine.filter((i) => i.status === "closed_unconfirmed").length;
     const resolutionRate = mine.length ? resolved.length / mine.length : 1;
     const avgResolutionDays = resolved.length
       ? resolved.reduce((s, i) => s + days(i.created_at, i.resolved_at!), 0) / resolved.length
       : null;
     // Each open issue weighs by severity and gets heavier the longer it is ignored.
     const openSeverityLoad = open.reduce((s, i) => {
-      const age = days(i.created_at, new Date().toISOString());
+      const age = days(i.created_at, new Date(nowMs()).toISOString());
       return s + SEVERITY_WEIGHT[i.severity] * (1 + Math.min(1, age / 30));
     }, 0);
     const healthScore = Math.round(
@@ -50,6 +53,7 @@ export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
       total: mine.length,
       open: open.length,
       resolved: resolved.length,
+      unconfirmed,
       resolutionRate: Math.round(resolutionRate * 100) / 100,
       avgResolutionDays: avgResolutionDays === null ? null : Math.round(avgResolutionDays * 10) / 10,
       openSeverityLoad: Math.round(openSeverityLoad * 10) / 10,
@@ -99,7 +103,7 @@ export function predictiveInsights(issues: Issue[]): PredictiveInsight[] {
       neighborhood,
       category,
       count: list.length,
-      open: list.filter((i) => i.status !== "resolved").length,
+      open: list.filter((i) => isActive(i.status)).length,
       message: `${list.length} ${label} reports in ${neighborhood} in 120 days${
         recurring ? ` (${recurring} recurred after repair)` : ""
       }. ${advice[category] ?? "Investigate the root cause."}`,
@@ -161,7 +165,8 @@ export async function contributors(demo: boolean, authId?: string): Promise<Cont
 
 export async function cityOverview(issues: Issue[], demo: boolean) {
   const resolved = issues.filter((i) => i.status === "resolved");
-  const open = issues.filter((i) => i.status !== "resolved");
+  const open = issues.filter((i) => isActive(i.status));
+  const unconfirmed = issues.filter((i) => i.status === "closed_unconfirmed").length;
   const hoods = neighborhoodStats(issues).filter((n) => n.total > 0);
   const [{ n: reportCount }] = await sql().query<{ n: number }>(
     "SELECT COUNT(*)::int AS n FROM reports r JOIN issues i ON i.id = r.issue_id WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL AND i.is_demo = $1",
@@ -173,6 +178,7 @@ export async function cityOverview(issues: Issue[], demo: boolean) {
     duplicatesMerged: reportCount - issues.length,
     open: open.length,
     resolved: resolved.length,
+    unconfirmed,
     critical: open.filter((i) => i.severity === "critical").length,
     resolutionRate: issues.length ? Math.round((resolved.length / issues.length) * 100) : 0,
     avgResolutionDays: resolved.length
@@ -189,4 +195,91 @@ export async function cityOverview(issues: Issue[], demo: boolean) {
       resolved: resolved.filter((i) => i.category === c).length,
     })),
   };
+}
+
+/** The public leaderboard: scores only. Names stay with Authorities and the assigned Office (PRD: reporter identity). */
+export type PublicContributor = Omit<Contributor, "reporter_id" | "name">;
+export const anonymousLeaderboard = (list: Contributor[]): PublicContributor[] =>
+  list.map(({ reports, corroborated, resolved, firstReports, score }) => ({ reports, corroborated, resolved, firstReports, score }));
+
+export interface OfficeRecord {
+  officeId: number;
+  name: string;
+  department: string;
+  sector: string;
+  /** Issues the Office holds now, at any stage after Assignment (a sent-back Issue leaves the Office). */
+  assigned: number;
+  fixes: number;
+  rejections: number;
+  resolutions: number;
+  unconfirmed: number;
+  /** From the latest Assignment to the latest Fix, averaged over Issues that have a Fix. */
+  avgDaysToFix: number | null;
+}
+
+/** Office track record for Insights: one row per Office that has held at least one Issue. */
+export async function officeRecords(demo: boolean): Promise<OfficeRecord[]> {
+  const issues = await sql().query<{
+    id: number;
+    office_id: number;
+    office: string;
+    department: string;
+    sector: string;
+    status: string;
+    fixed_at: string | null;
+    resolved_at: string | null;
+  }>(
+    `SELECT i.id, i.office_id, o.name AS office, d.name AS department, o.sector, i.status, i.fixed_at, i.resolved_at
+     FROM issues i JOIN offices o ON o.id = i.office_id JOIN departments d ON d.id = o.department_id
+     WHERE i.deleted_at IS NULL AND i.is_demo = $1`,
+    [demo],
+  );
+  const events = issues.length
+    ? await sql().query<{ issue_id: number; kind: string; created_at: string }>(
+        `SELECT issue_id, kind, created_at FROM events
+         WHERE kind IN ('assigned', 'fixed', 'rejected') AND issue_id = ANY($1::int[]) ORDER BY created_at, id`,
+        [issues.map((i) => i.id)],
+      )
+    : [];
+  const byIssue = new Map<number, typeof events>();
+  for (const e of events) byIssue.set(e.issue_id, [...(byIssue.get(e.issue_id) ?? []), e]);
+
+  const rows = new Map<number, OfficeRecord & { fixDays: number[] }>();
+  for (const i of issues) {
+    const r = rows.get(i.office_id) ?? {
+      officeId: i.office_id,
+      name: i.office,
+      department: i.department,
+      sector: i.sector,
+      assigned: 0,
+      fixes: 0,
+      rejections: 0,
+      resolutions: 0,
+      unconfirmed: 0,
+      avgDaysToFix: null,
+      fixDays: [],
+    };
+    rows.set(i.office_id, r);
+    const evs = byIssue.get(i.id) ?? [];
+    const fixedEvents = evs.filter((e) => e.kind === "fixed");
+    // Issues finished before Fix events were recorded still count one Fix, at the time they were fixed or resolved.
+    const fixedNow = i.status === "fixed" || i.status === "resolved" || i.status === "closed_unconfirmed";
+    const fixes = fixedEvents.length || (fixedNow ? 1 : 0);
+    r.assigned++;
+    r.fixes += fixes;
+    r.rejections += evs.filter((e) => e.kind === "rejected").length;
+    if (i.status === "resolved") r.resolutions++;
+    if (i.status === "closed_unconfirmed") r.unconfirmed++;
+    const lastFix = fixedEvents.at(-1)?.created_at ?? (fixedNow ? (i.fixed_at ?? i.resolved_at) : null);
+    const assignedAt = lastFix
+      ? evs.filter((e) => e.kind === "assigned" && e.created_at <= lastFix).at(-1)?.created_at
+      : undefined;
+    if (lastFix && assignedAt) r.fixDays.push(days(assignedAt, lastFix));
+  }
+  return [...rows.values()]
+    .map(({ fixDays, ...r }) => ({
+      ...r,
+      avgDaysToFix: fixDays.length ? Math.round((fixDays.reduce((a, b) => a + b, 0) / fixDays.length) * 10) / 10 : null,
+    }))
+    .sort((a, b) => b.assigned - a.assigned || a.name.localeCompare(b.name));
 }

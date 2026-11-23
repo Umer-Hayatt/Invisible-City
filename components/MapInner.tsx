@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import { CITY_CENTER } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
-import { CATEGORY_META, Issue, SEVERITY_WEIGHT } from "@/lib/types";
+import { CATEGORY_META, Issue, SEVERITY_WEIGHT, isActive, isFinished } from "@/lib/types";
 import { CategoryIcon, SEVERITY_COLOR, SeverityBadge, StatusBadge, healthColor } from "./ui";
 
 export type MapLayer = "issues" | "heat" | "health";
@@ -33,7 +33,7 @@ function HeatLayer({ issues }: { issues: Issue[] }) {
       await import("leaflet.heat");
       if (cancelled) return;
       const pts = issues
-        .filter((i) => i.status !== "resolved")
+        .filter((i) => isActive(i.status))
         .map(
           (i) =>
             [i.lat, i.lng, (SEVERITY_WEIGHT[i.severity] / 4) * Math.min(1, 0.4 + Math.sqrt(i.report_count) / 4)] as [
@@ -124,17 +124,19 @@ export default function MapInner({
 
       {layer !== "health" &&
         issues.map((i) => {
-          const resolved = i.status === "resolved";
+          // Finished Issues fade out: green when a Citizen confirmed the Fix, grey when it closed unconfirmed.
+          const finished = isFinished(i.status);
+          const doneColor = i.status === "resolved" ? "#0e6b48" : "#8a8f98";
           return (
             <CircleMarker
               key={i.id}
               center={[i.lat, i.lng]}
               radius={5 + Math.min(10, Math.sqrt(i.report_count) * 2.5)}
               pathOptions={{
-                color: resolved ? "#0e6b48" : "#ffffff",
-                weight: resolved ? 1.5 : 2,
-                fillColor: resolved ? "#0e6b48" : SEVERITY_COLOR[i.severity],
-                fillOpacity: resolved ? 0.18 : layer === "heat" ? 0.45 : 0.92,
+                color: finished ? doneColor : "#ffffff",
+                weight: finished ? 1.5 : 2,
+                fillColor: finished ? doneColor : SEVERITY_COLOR[i.severity],
+                fillOpacity: finished ? 0.18 : layer === "heat" ? 0.45 : 0.92,
               }}
             >
               <Popup>

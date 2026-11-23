@@ -112,6 +112,10 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 - Predictive maintenance from recurring problems.
 - Before vs after photos.
 - **Office track record** (new): per Office, Issues assigned, Fixes, Rejections, Unconfirmed closures, and average days to fix.
+  - "Issues assigned" counts the Issues an Office holds now; a sent-back Issue leaves it. Days to fix run from an Issue's latest Assignment to its latest Fix.
+- Open severity load counts every Issue not yet Resolved or Closed unconfirmed (a Fix waiting for an answer still counts). Resolution rate counts only Resolutions; Unconfirmed closures are shown apart and count as neither open nor resolved.
+- A new Report near an Issue that was Resolved or Closed unconfirmed in the last 180 days marks a recurrence.
+- The Citizen Impact leaderboard shows scores without names, like every public page.
 
 ## 8. Demo mode
 The public site has **Demo accounts** (a Citizen, an Authority, an Office, a Super Admin) that anyone can switch between, all with made-up seeded people and data, under a visible "Demo" banner. Real Google sign-ins work on the same site at the same time, and real data never mixes with demo data, so the team can test the real flow live.

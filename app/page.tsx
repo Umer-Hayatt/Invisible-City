@@ -7,7 +7,8 @@ import CityMap, { MapLayer } from "@/components/CityMap";
 import { Card, CategoryIcon, IssueThumb, PriorityMeter, Segmented, SeverityBadge, Stat, btn, healthColor } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import type { NeighborhoodStat } from "@/lib/insights";
-import { CATEGORIES, CATEGORY_META, Issue } from "@/lib/types";
+import { t } from "@/lib/i18n";
+import { CATEGORIES, CATEGORY_META, Issue, isActive } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
 
 interface Stats {
@@ -17,6 +18,7 @@ interface Stats {
     duplicatesMerged: number;
     open: number;
     resolved: number;
+    unconfirmed: number;
     critical: number;
     resolutionRate: number;
     avgResolutionDays: number | null;
@@ -38,10 +40,10 @@ export default function Home() {
   }, []);
 
   const visible = useMemo(
-    () => issues.filter((i) => (!category || i.category === category) && (showResolved || i.status !== "resolved")),
+    () => issues.filter((i) => (!category || i.category === category) && (showResolved || isActive(i.status))),
     [issues, category, showResolved],
   );
-  const urgent = issues.filter((i) => i.status !== "resolved").slice(0, 5);
+  const urgent = issues.filter((i) => isActive(i.status)).slice(0, 5);
   const neglected = stats?.neighborhoods.filter((n) => n.neglected) ?? [];
   const o = stats?.overview;
 
@@ -96,7 +98,7 @@ export default function Home() {
       {o && (
         <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Stat label="Open issues" value={o.open} hint={`${o.critical} critical right now`} icon={Flame} tone={o.critical ? "warn" : undefined} />
-          <Stat label="Fixed" value={o.resolved} hint="with public proof of repair" icon={CircleCheck} tone="good" />
+          <Stat label="Fixed" value={o.resolved} hint={o.unconfirmed ? t("home.unconfirmedHint", { n: o.unconfirmed }) : "with public proof of repair"} icon={CircleCheck} tone="good" />
           <Stat label="Citizen reports" value={o.totalReports} hint="photos + GPS from residents" icon={Camera} />
           <Stat label="Duplicates merged by AI" value={o.duplicatesMerged} hint="no more scattered complaints" icon={Copy} />
         </section>

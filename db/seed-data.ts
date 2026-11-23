@@ -181,6 +181,8 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
     ]);
 
   let firstG9Resolved: { id: number; lat: number; lng: number } | null = null;
+  let closures = 0;
+  const FIX_NOTE = "Repaired by the field team.";
   for (const [name, count, resolvedShare] of SEED_PROFILE) {
     const hood = NEIGHBORHOODS.find((n) => n.name === name)!;
     const resolvedCount = Math.round(count * resolvedShare);
@@ -195,10 +197,22 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
       const created = new Date(now.getTime() - ageDays * 86_400_000);
       const resolved = k < resolvedCount;
       const reportCount = 1 + Math.floor(rand() * rand() * 9);
-      const status = resolved ? "resolved" : rand() < 0.35 ? "assigned" : "open";
+      const baseStatus = resolved ? "resolved" : rand() < 0.35 ? "assigned" : "open";
       const resolvedAt = resolved
         ? new Date(created.getTime() + (1 + rand() * Math.min(ageDays - 1, 14)) * 86_400_000)
         : null;
+      // The workflow behind each finished Issue, without new random draws (so the neglect story stays as it is):
+      // an Office is assigned a day after the first Report, records a Fix, and a Citizen confirms it. Every fourth
+      // Resolution had a first Fix rejected; every other old Assigned Issue in the better-served sectors was fixed
+      // and closed unconfirmed because nobody answered within 7 days.
+      const assignedAt = new Date(created.getTime() + 86_400_000);
+      const closedUnconfirmed = baseStatus === "assigned" && resolvedShare >= 0.5 && ageDays >= 20 && closures++ % 2 === 0;
+      const status = closedUnconfirmed ? "closed_unconfirmed" : baseStatus;
+      const span = resolvedAt ? resolvedAt.getTime() - assignedAt.getTime() : 0;
+      const between = (share: number) => new Date(assignedAt.getTime() + span * share);
+      const rejectedOnce = resolved && k % 4 === 1;
+      const fixedAt = resolved ? between(0.7) : closedUnconfirmed ? new Date(created.getTime() + 3 * 86_400_000) : null;
+      const closedAt = closedUnconfirmed ? new Date(fixedAt!.getTime() + 7 * 86_400_000) : null;
 
       let recurrenceOf: number | null = null;
       if (name === "G-9" && k === 3 && firstG9Resolved) {
@@ -219,14 +233,15 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
       });
       const issueRows: { id: number }[] = await q.query<{ id: number }>(
         `INSERT INTO issues (category, severity, title, summary, lat, lng, neighborhood, constituency, status, priority,
-           office_id, report_count, cover_image, after_image, resolution_note, recurrence_of, is_demo,
-           created_at, updated_at, resolved_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,true,$17,$18,$19) RETURNING id`,
+           office_id, report_count, cover_image, after_image, resolution_note, fix_note, recurrence_of, is_demo,
+           created_at, updated_at, fixed_at, resolved_at, closed_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,true,$18,$19,$20,$21,$22) RETURNING id`,
         [
           category, severity, text.split(",")[0], text + ".", lat, lng, name, constituencyFor(name), status,
-          priority, office?.id ?? null, reportCount, cover, resolved ? (photos?.fixed ?? null) : null,
-          resolved ? "Repaired by field team." : null, recurrenceOf,
-          created.toISOString(), (resolvedAt ?? created).toISOString(), resolvedAt?.toISOString() ?? null,
+          priority, office?.id ?? null, reportCount, cover, fixedAt ? (photos?.fixed ?? null) : null,
+          resolved ? FIX_NOTE : null, fixedAt ? FIX_NOTE : null, recurrenceOf,
+          created.toISOString(), (closedAt ?? resolvedAt ?? created).toISOString(), fixedAt?.toISOString() ?? null,
+          resolvedAt?.toISOString() ?? null, closedAt?.toISOString() ?? null,
         ],
       );
       const issueId: number = issueRows[0].id;
@@ -250,9 +265,18 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
         await event(issueId, "merged", `${reportCount - 1} duplicate report(s) grouped by AI`, created);
       if (recurrenceOf)
         await event(issueId, "recurring", `Recurring problem: issue #${recurrenceOf} here was repaired before`, created);
-      if (office)
-        await event(issueId, "assigned", `Assigned to ${office.name}`, new Date(created.getTime() + 86_400_000));
-      if (resolvedAt) await event(issueId, "resolved", "Marked resolved by city official", resolvedAt);
+      if (office) await event(issueId, "assigned", `Assigned to ${office.name}`, assignedAt);
+      if (office && fixedAt) {
+        const fixMessage = `Fixed by ${office.name}: ${FIX_NOTE} After-repair photo added.`;
+        if (rejectedOnce) {
+          await event(issueId, "fixed", fixMessage, between(0.3));
+          await event(issueId, "rejected", "Fix rejected by a Citizen who reported this: still broken at one edge.", between(0.4));
+        }
+        await event(issueId, "fixed", fixMessage, fixedAt);
+      }
+      if (resolvedAt) await event(issueId, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", resolvedAt);
+      if (closedAt)
+        await event(issueId, "closed_unconfirmed", "Closed unconfirmed: no Citizen confirmed or rejected the Fix within 7 days.", closedAt);
     }
   }
 }

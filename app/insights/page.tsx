@@ -1,18 +1,20 @@
 "use client";
 
-import { Activity, Medal, TrendingUp, TriangleAlert } from "lucide-react";
+import { Activity, Building2, Medal, TrendingUp, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { Card, CategoryIcon, PageHeader, SectionTitle, healthColor } from "@/components/ui";
 import { api } from "@/lib/client";
-import type { Contributor, NeighborhoodStat, PredictiveInsight } from "@/lib/insights";
+import { t } from "@/lib/i18n";
+import type { NeighborhoodStat, OfficeRecord, PredictiveInsight, PublicContributor } from "@/lib/insights";
 import { CATEGORY_META, Category } from "@/lib/types";
 
 interface Stats {
   neighborhoods: NeighborhoodStat[];
   predictive: PredictiveInsight[];
-  leaderboard: Contributor[];
-  overview: { byCategory: { category: Category; open: number; resolved: number }[] };
+  leaderboard: PublicContributor[];
+  offices: OfficeRecord[];
+  overview: { unconfirmed: number; byCategory: { category: Category; open: number; resolved: number }[] };
 }
 
 export default function InsightsPage() {
@@ -74,6 +76,9 @@ export default function InsightsPage() {
                       </td>
                       <td className="py-3 tabular-nums text-ink-2">
                         {n.resolved}/{n.total} <span className="text-muted">· {Math.round(n.resolutionRate * 100)}%</span>
+                        {n.unconfirmed > 0 && (
+                          <div className="text-[11px] text-muted">{t("insights.unconfirmedShort", { n: n.unconfirmed })}</div>
+                        )}
                       </td>
                       <td className="py-3 pr-5 text-right tabular-nums text-ink-2">{n.avgResolutionDays !== null ? `${n.avgResolutionDays} d` : "-"}</td>
                     </tr>
@@ -117,7 +122,7 @@ export default function InsightsPage() {
         <InsightCard icon={Medal} tint="bg-accent-50 text-amber-700" title="Citizen Impact leaderboard" sub="10 pts per report · +15 for first to report · +5 if others back it up · +20 when it gets fixed">
           <ol className="divide-y divide-line">
             {s.leaderboard.map((c, i) => (
-              <li key={c.reporter_id} className="flex items-center gap-3 py-2.5">
+              <li key={i} className="flex items-center gap-3 py-2.5">
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     i === 0 ? "bg-accent text-ink" : i < 3 ? "bg-ink text-white" : "bg-sunken text-ink-2"
@@ -125,13 +130,58 @@ export default function InsightsPage() {
                 >
                   {i + 1}
                 </span>
-                <span className="flex-1 font-semibold">{c.name}</span>
+                <span className="flex-1 font-semibold">{t("insights.anonymousCitizen")}</span>
                 <span className="text-xs text-muted">{c.reports} reports</span>
                 <span className="w-10 text-right font-extrabold tabular-nums">{c.score}</span>
               </li>
             ))}
           </ol>
         </InsightCard>
+      </section>
+
+      <section>
+        <SectionTitle title={t("insights.officesTitle")} sub={t("insights.officesSub")} />
+        <Card className="overflow-hidden">
+          {s.offices.length === 0 ? (
+            <p className="p-6 text-sm text-muted">{t("insights.officesEmpty")}</p>
+          ) : (
+            <div className="max-h-[520px] overflow-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead className="sticky top-0 bg-surface text-left text-[11px] font-bold uppercase tracking-wider text-muted">
+                  <tr className="border-b border-line">
+                    <th className="px-5 py-3">{t("insights.colOffice")}</th>
+                    <th className="py-3 text-right">{t("insights.colAssigned")}</th>
+                    <th className="py-3 text-right">{t("insights.colFixes")}</th>
+                    <th className="py-3 text-right">{t("insights.colRejections")}</th>
+                    <th className="py-3 text-right">{t("insights.colUnconfirmed")}</th>
+                    <th className="py-3 pr-5 text-right">{t("insights.colAvgDays")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {s.offices.map((o) => (
+                    <tr key={o.officeId}>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2 font-bold">
+                          <Building2 size={14} className="shrink-0 text-muted" /> {o.name}
+                        </div>
+                        <div className="text-[11px] text-muted">
+                          {o.department} · {o.sector}
+                        </div>
+                      </td>
+                      <td className="py-3 text-right tabular-nums">{o.assigned}</td>
+                      <td className="py-3 text-right tabular-nums">{o.fixes}</td>
+                      <td className={`py-3 text-right tabular-nums ${o.rejections ? "font-semibold text-red-700" : ""}`}>{o.rejections}</td>
+                      <td className="py-3 text-right tabular-nums">{o.unconfirmed}</td>
+                      <td className="py-3 pr-5 text-right tabular-nums text-ink-2">
+                        {o.avgDaysToFix !== null ? t("insights.days", { n: o.avgDaysToFix }) : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
       </section>
 
       <section>
