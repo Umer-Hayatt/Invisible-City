@@ -139,10 +139,12 @@ export default function MapInner({
               center={[i.lat, i.lng]}
               radius={5 + Math.min(10, Math.sqrt(i.report_count) * 2.5)}
               pathOptions={{
-                color: finished ? doneColor : "#ffffff",
+                // Critical Issues still waiting on the city pulse a red ring (CSS .pulse-critical; still for reduced motion).
+                color: finished ? doneColor : i.severity === "critical" ? SEVERITY_COLOR.critical : "#ffffff",
                 weight: finished ? 1.5 : 2,
                 fillColor: finished ? doneColor : SEVERITY_COLOR[i.severity],
                 fillOpacity: finished ? 0.18 : layer === "heat" ? 0.45 : 0.92,
+                className: !finished && i.severity === "critical" ? "pulse-critical" : undefined,
               }}
             >
               <Popup>

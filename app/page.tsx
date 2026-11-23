@@ -4,6 +4,7 @@ import { Activity, ArrowRight, Camera, CircleCheck, Copy, Flame, Layers, MapPin,
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CityMap, { MapLayer } from "@/components/CityMap";
+import { CountUp } from "@/components/Motion";
 import {
   Card,
   CategoryIcon,
@@ -11,7 +12,9 @@ import {
   PriorityMeter,
   Segmented,
   SeverityBadge,
+  Skeleton,
   Stat,
+  StatusBadge,
   btn,
   categoryLabel,
   healthColor,
@@ -45,9 +48,13 @@ export default function Home() {
   const [layer, setLayer] = useState<MapLayer>("issues");
   const [category, setCategory] = useState("");
   const [showResolved, setShowResolved] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    api<{ issues: Issue[] }>("/api/issues").then((d) => setIssues(d.issues)).catch(() => {});
+    api<{ issues: Issue[] }>("/api/issues")
+      .then((d) => setIssues(d.issues))
+      .catch(() => {})
+      .finally(() => setLoaded(true));
     api<Stats>("/api/stats").then(setStats).catch(() => {});
   }, []);
 
@@ -62,9 +69,15 @@ export default function Home() {
   return (
     <div className="space-y-10">
       {/* Hero */}
-      <section className="grid items-center gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <section className="relative isolate grid items-center gap-8 py-4 lg:grid-cols-[1.4fr_1fr]">
+        <div aria-hidden className="aurora">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div aria-hidden className="street-grid" />
         <div>
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-ink-2">
+          <div className="rise mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 px-3 py-1 text-xs font-semibold text-ink-2 backdrop-blur">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
@@ -72,12 +85,17 @@ export default function Home() {
             {t("home.live")}
           </div>
           <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
-            {t("home.heroLine1")}
-            <br />
-            <span className="text-brand">{t("home.heroLine2")}</span>
+            <span className="rise block" style={{ "--i": 1 } as React.CSSProperties}>
+              {t("home.heroLine1")}
+            </span>
+            <span className="rise block bg-gradient-to-r from-brand via-emerald-600 to-brand-700 bg-clip-text pb-1 text-transparent" style={{ "--i": 2 } as React.CSSProperties}>
+              {t("home.heroLine2")}
+            </span>
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-2 sm:text-lg">{t("home.heroSub")}</p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <p className="rise mt-5 max-w-xl text-base leading-relaxed text-ink-2 sm:text-lg" style={{ "--i": 3 } as React.CSSProperties}>
+            {t("home.heroSub")}
+          </p>
+          <div className="rise mt-7 flex flex-wrap gap-3" style={{ "--i": 4 } as React.CSSProperties}>
             <Link href="/report" className={`${btn.primary} px-6 py-3 text-[15px]`}>
               <Camera size={18} /> {t("nav.reportLong")}
             </Link>
@@ -87,8 +105,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-ink p-7 text-white">
-          <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
+        <div className="rise relative overflow-hidden rounded-3xl bg-ink p-7 text-white shadow-float" style={{ "--i": 3 } as React.CSSProperties}>
+          <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 animate-pulse rounded-full bg-brand/40 blur-3xl [animation-duration:5s]" />
           <div className="relative">
             <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">{t("home.cityHealth")}</div>
             <div className="mt-4 flex items-center gap-6">
@@ -107,9 +125,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Live strip */}
+      {issues.length > 0 && <LiveStrip issues={issues.slice(0, 12)} />}
+
       {/* Stats */}
-      {o && (
+      {!o ? (
         <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-[118px]" />
+          ))}
+        </section>
+      ) : (
+        <section className="reveal grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Stat label={t("home.statOpen")} value={o.open} hint={t("home.statOpenHint", { n: o.critical })} icon={Flame} tone={o.critical ? "warn" : undefined} />
           <Stat
             label={t("home.statFixed")}
@@ -124,7 +151,7 @@ export default function Home() {
       )}
 
       {/* Map + side */}
-      <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <section className="reveal grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-3">
             <Segmented
@@ -190,10 +217,30 @@ export default function Home() {
                 {t("home.workQueue")}
               </Link>
             </div>
-            <Card className="divide-y divide-line">
+            <Card className="stagger divide-y divide-line">
+              {!loaded &&
+                [0, 1, 2, 3].map((n) => (
+                  <div key={n} className="flex gap-3 p-3">
+                    <Skeleton className="h-12 w-12 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3.5 w-4/5" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
               {urgent.map((i) => (
-                <Link key={i.id} href={`/issues/${i.id}`} className="flex gap-3 p-3 transition first:rounded-t-2xl last:rounded-b-2xl hover:bg-canvas">
-                  <IssueThumb src={imageUrl(i.cover_image)} category={i.category} className="h-12 w-12 shrink-0 rounded-xl" />
+                <Link
+                  key={i.id}
+                  href={`/issues/${i.id}`}
+                  className="group flex gap-3 p-3 transition first:rounded-t-2xl last:rounded-b-2xl hover:bg-canvas"
+                >
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                    <IssueThumb
+                      src={imageUrl(i.cover_image)}
+                      category={i.category}
+                      className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-110"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">{i.title}</div>
                     <div className="mt-0.5 truncate text-xs text-muted">
@@ -212,7 +259,7 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section>
+      <section className="reveal">
         <div className="mb-5">
           <div className="text-xs font-bold uppercase tracking-[0.14em] text-brand">{t("home.howEyebrow")}</div>
           <h2 className="mt-1 text-2xl font-extrabold tracking-tight">{t("home.howTitle")}</h2>
@@ -226,9 +273,9 @@ export default function Home() {
               { icon: ShieldCheck, n: 4 },
             ] as const
           ).map((s) => (
-            <Card key={s.n} className="p-5">
+            <Card key={s.n} interactive className="p-5">
               <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
                   <s.icon size={20} />
                 </div>
                 <span className="text-xs font-bold text-muted/60">0{s.n}</span>
@@ -265,10 +312,41 @@ function HealthRing({ value }: { value: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-extrabold tabular-nums">{value}</span>
+        <span className="text-4xl font-extrabold tabular-nums">
+          <CountUp value={value} duration={900} />
+        </span>
         <span className="text-[11px] text-white/50">{t("home.outOf100")}</span>
       </div>
     </div>
+  );
+}
+
+/** The latest Issues glide past under the hero; it pauses under the pointer and stops for reduced motion. */
+function LiveStrip({ issues }: { issues: Issue[] }) {
+  const loop = [...issues, ...issues]; // two copies, so the strip wraps around seamlessly
+  return (
+    <section aria-label={t("home.liveStrip")} className="marquee -mx-4 overflow-hidden py-1 sm:mx-0">
+      <div className="marquee-track gap-3">
+        {loop.map((i, n) => (
+          <Link
+            key={`${i.id}-${n}`}
+            href={`/issues/${i.id}`}
+            aria-hidden={n >= issues.length || undefined}
+            tabIndex={n >= issues.length ? -1 : undefined}
+            className="flex shrink-0 items-center gap-2.5 rounded-full border border-line bg-surface py-1.5 pe-4 ps-1.5 text-sm shadow-card transition hover:border-brand/40"
+          >
+            <span className="h-7 w-7 overflow-hidden rounded-full">
+              <IssueThumb src={imageUrl(i.cover_image)} category={i.category} className="h-full w-full" />
+            </span>
+            <span className="max-w-[220px] truncate font-semibold">{i.title}</span>
+            <span className="text-xs text-muted">
+              {i.neighborhood} · {timeAgo(i.created_at)}
+            </span>
+            <StatusBadge status={i.status} />
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

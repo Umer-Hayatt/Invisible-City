@@ -3,7 +3,7 @@
 import { Camera, ChevronRight, CircleCheck, HardHat, Inbox, ListTree, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Card, Empty, IssueThumb, PageHeader, StatusBadge, btn, field } from "@/components/ui";
+import { Card, Empty, IssueThumb, ListSkeleton, PageHeader, StatusBadge, btn, field } from "@/components/ui";
 import Gate from "@/components/Gate";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, formatDate, formatDateTime, t, type MessageKey } from "@/lib/i18n";
@@ -72,7 +72,7 @@ function TrackList() {
       )}
 
       {rows === null ? (
-        <div className="text-muted">{t("gate.loading")}</div>
+        <ListSkeleton />
       ) : rows.length === 0 ? (
         <Card>
           <Empty icon={Inbox} title={t("track.emptyTitle")}>
@@ -99,7 +99,7 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
   const [showTimeline, setShowTimeline] = useState(false);
   const step = STEP_OF[r.issue_status];
   return (
-    <Card className="p-4">
+    <Card className="rise p-4">
       <Link href={`/issues/${r.issue_id}`} className="group flex gap-4">
         <IssueThumb src={imageUrl(r.image)} category={r.ai_category as Category} className="h-20 w-20 shrink-0 rounded-xl sm:h-24 sm:w-24" />
         <div className="min-w-0 flex-1">
@@ -144,7 +144,7 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
         <ListTree size={14} /> {showTimeline ? t("track.hideTimeline") : t("track.timeline")}
       </button>
       {showTimeline && (
-        <ol className="mt-2 space-y-2 border-s border-line ps-4">
+        <ol className="stagger mt-2 space-y-2 border-s border-line ps-4">
           {r.issue_events.map((e) => (
             <li key={e.id} className="text-sm">
               <div className="leading-snug">{e.message}</div>

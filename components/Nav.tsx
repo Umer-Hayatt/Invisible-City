@@ -3,7 +3,7 @@
 import { LogIn, LogOut, Menu, Plus, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ViewTransition } from "react";
 
 import LanguageSwitch from "@/components/LanguageSwitch";
 import { sessionChanged, useMe } from "@/lib/me";
@@ -27,9 +27,9 @@ const aiTitle = (mode: string) =>
 
 export function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
+    <Link href="/" className="group flex items-center gap-2.5">
       <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="transition-transform duration-500 ease-out group-hover:rotate-90">
           <circle cx="12" cy="12" r="3" />
           <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
         </svg>
@@ -53,6 +53,13 @@ export default function Nav() {
     await api("/api/auth/signout", { method: "POST" });
     sessionChanged("/");
   }
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
@@ -60,10 +67,20 @@ export default function Nav() {
       .catch(() => {});
   }, []);
 
-  const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+  // Exactly one link is active (the longest match), so the sliding pill below has one place to be.
+  const activeHref =
+    [...LINKS, ...(canReport ? [{ href: "/report", label: "" }] : []), ...(me ? [{ href: "/profile", label: "" }] : [])]
+      .filter((l) => (l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/")))
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+  const isActive = (href: string) => href === activeHref;
 
   return (
-    <header className="sticky top-0 z-[1000] border-b border-line/80 bg-canvas/85 backdrop-blur-md">
+    <header
+      style={{ viewTransitionName: "site-header" }}
+      className={`sticky top-0 z-[1000] border-b bg-canvas/80 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 ${
+        scrolled ? "border-line shadow-[0_8px_30px_-12px_rgb(16_32_26/0.18)]" : "border-line/60"
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6">
         <Logo />
 
@@ -72,10 +89,16 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-                isActive(l.href) ? "bg-ink text-white" : "text-ink-2 hover:bg-sunken hover:text-ink"
+              className={`relative isolate rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                isActive(l.href) ? "text-white" : "text-ink-2 hover:bg-sunken hover:text-ink"
               }`}
             >
+              {isActive(l.href) && (
+                // The same named pill sits under whichever link is active, so the browser slides it across.
+                <ViewTransition name="nav-pill" share="nav-pill">
+                  <span aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ink" />
+                </ViewTransition>
+              )}
               {l.label}
             </Link>
           ))}
@@ -93,7 +116,7 @@ export default function Nav() {
           )}
           <LanguageSwitch />
           {canReport && (
-            <Link href="/report" className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
+            <Link href="/report" className="press shine inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
               <Plus size={16} strokeWidth={2.5} /> {t("nav.report")}
             </Link>
           )}

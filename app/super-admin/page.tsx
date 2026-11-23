@@ -3,7 +3,7 @@
 import { Inbox } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
-import { Card, Empty, PageHeader, btn } from "@/components/ui";
+import { Card, Empty, ListSkeleton, PageHeader, btn } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
 
@@ -71,7 +71,7 @@ function Requests() {
       <PageHeader title={t("superadmin.title")} sub={t("superadmin.sub")} />
       {error && <div className="mb-4 text-sm font-medium text-red-600">{error}</div>}
       {rows === null ? (
-        <div className="text-muted">{t("gate.loading")}</div>
+        <ListSkeleton />
       ) : rows.length === 0 ? (
         <Empty icon={Inbox} title={t("superadmin.empty")} />
       ) : (

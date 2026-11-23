@@ -4,7 +4,7 @@ import { ArrowUpRight, CircleCheck, Clock, ImagePlus, Inbox, MessageSquareWarnin
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
-import { Card, Empty, IssueThumb, PageHeader, SeverityBadge, StatusBadge, btn, field } from "@/components/ui";
+import { Card, Empty, IssueThumb, ListSkeleton, PageHeader, SeverityBadge, StatusBadge, btn, field } from "@/components/ui";
 import { api, prepareImage } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
 import type { Category, Severity, Status } from "@/lib/types";
@@ -36,7 +36,7 @@ function Jobs() {
     <div className="mx-auto max-w-4xl">
       <PageHeader title={t("office.title")} sub={t("office.sub")} />
       {jobs === null ? (
-        <div className="text-muted">{t("gate.loading")}</div>
+        <ListSkeleton />
       ) : jobs.length === 0 ? (
         <Empty icon={Inbox} title={t("office.empty")} />
       ) : (
@@ -80,7 +80,7 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="rise overflow-hidden">
       <div className="flex gap-4 p-4">
         <IssueThumb src={imageUrl(job.cover_image)} category={job.category} className="h-24 w-32 shrink-0 rounded-xl" />
         <div className="min-w-0 flex-1">

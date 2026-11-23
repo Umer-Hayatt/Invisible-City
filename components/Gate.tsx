@@ -3,7 +3,7 @@
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Card, btn } from "@/components/ui";
+import { Card, PageSkeleton, btn } from "@/components/ui";
 import { t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
 import type { Role } from "@/lib/roles";
@@ -24,7 +24,7 @@ export default function Gate({
   children: ReactNode;
 }) {
   const { loading, me } = useMe();
-  if (loading) return <div className="text-muted">{t("gate.loading")}</div>;
+  if (loading) return <PageSkeleton />;
 
   const box = (title: string, body: string, action: { href: string; label: string }) => (
     <Card className="mx-auto mt-10 max-w-md p-8 text-center">

@@ -89,6 +89,7 @@ export const ur: Record<MessageKey, string> = {
   "home.step4": "مرمت کا ثبوت",
   "home.step4Body": "ہر مرمت بعد کی تصویر کے ساتھ ختم ہوتی ہے جس کی شہری تصدیق کرتے ہیں۔",
   "home.outOf100": "100 میں سے",
+  "home.liveStrip": "تازہ ترین مسائل",
 
   "map.layerIssues": "مسائل",
   "map.layerHeat": "ہیٹ میپ",

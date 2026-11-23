@@ -3,7 +3,7 @@
 import { Activity, Building2, Medal, TrendingUp, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
-import { Card, CategoryIcon, PageHeader, SectionTitle, categoryLabel, healthColor } from "@/components/ui";
+import { Card, CategoryIcon, PageHeader, PageSkeleton, SectionTitle, categoryLabel, healthColor } from "@/components/ui";
 import { api } from "@/lib/client";
 import { MessageKey, t } from "@/lib/i18n";
 import type { NeighborhoodStat, OfficeRecord, PredictiveInsight, PublicContributor } from "@/lib/insights";
@@ -30,7 +30,7 @@ export default function InsightsPage() {
   useEffect(() => {
     api<Stats>("/api/stats").then(setS).catch(() => {});
   }, []);
-  if (!s) return <div className="text-muted">{t("gate.loading")}</div>;
+  if (!s) return <PageSkeleton />;
   const hoods = s.neighborhoods.filter((n) => n.total > 0);
   const neglected = hoods.filter((n) => n.neglected);
   const maxCat = Math.max(1, ...s.overview.byCategory.map((c) => c.open + c.resolved));
@@ -43,7 +43,7 @@ export default function InsightsPage() {
         sub={t("insights.sub")}
       />
 
-      <section>
+      <section className="reveal">
         <SectionTitle title={t("insights.healthTitle")} sub={t("insights.healthSub")} />
         <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <Card className="overflow-hidden">
@@ -97,7 +97,7 @@ export default function InsightsPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-3">
+      <section className="reveal grid gap-6 lg:grid-cols-3">
         <InsightCard icon={TriangleAlert} tint="bg-red-50 text-red-700" title={t("insights.neglectTitle")} sub={t("insights.neglectSub")}>
           {neglected.length === 0 ? (
             <p className="text-sm text-muted">{t("insights.neglectNone")}</p>
@@ -156,7 +156,7 @@ export default function InsightsPage() {
         </InsightCard>
       </section>
 
-      <section>
+      <section className="reveal">
         <SectionTitle title={t("insights.officesTitle")} sub={t("insights.officesSub")} />
         <Card className="overflow-hidden">
           {s.offices.length === 0 ? (
@@ -201,7 +201,7 @@ export default function InsightsPage() {
         </Card>
       </section>
 
-      <section>
+      <section className="reveal">
         <SectionTitle title={t("insights.byCategoryTitle")} sub={t("insights.byCategorySub")} />
         <Card className="space-y-4 p-6">
           {s.overview.byCategory
@@ -255,7 +255,7 @@ function InsightCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="flex flex-col p-5">
+    <Card interactive className="flex flex-col p-5">
       <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tint}`}>
         <Icon size={20} />
       </div>
