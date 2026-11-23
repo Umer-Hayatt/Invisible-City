@@ -35,7 +35,7 @@ Needs the Supabase project URL (`https://<project-ref>.supabase.co`) and the Ver
 3. Open <https://myaccount.google.com/apppasswords>, name it `Invisible City`, create it, and copy the 16-character password (shown once; spaces do not matter).
 4. Set `GMAIL_USER` (the address) and `GMAIL_APP_PASSWORD` (the 16 characters) in `.env.local` and Vercel. Gmail allows about 500 emails per day, plenty for the demo.
 
-## 4. Gemini API key (photo analysis, later voice)
+## 4. Gemini API key (photo analysis and Urdu voice)
 
 1. Open <https://aistudio.google.com/apikey> signed in with a Google account.
 2. **Create API key** (free tier is enough). Copy it.

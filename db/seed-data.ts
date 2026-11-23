@@ -279,4 +279,71 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
         await event(issueId, "closed_unconfirmed", "Closed unconfirmed: no Citizen confirmed or rejected the Fix within 7 days.", closedAt);
     }
   }
+
+  await demoStory(q, now, offices[0], photos);
+}
+
+/**
+ * Gives the Demo accounts something to do from the first click, by moving three existing road Issues to the
+ * Demo Office (so no Issue is added and Resolutions are unchanged):
+ * - one Assigned, for Office staff to Start work or Send back;
+ * - one In progress, for Office staff to Mark fixed;
+ * - one Fixed, which the Demo Citizen also reported, waiting for the Demo Citizen to confirm or reject.
+ * The Demo Authority still has plenty of Open Issues to assign.
+ */
+async function demoStory(q: Sql, now: Date, office: { id: number; name: string }, photos?: SeedPhotos) {
+  const picks = await q.query<{ id: number; created_at: string; neighborhood: string }>(
+    `SELECT id, created_at, neighborhood FROM issues
+     WHERE is_demo AND category = 'road_damage' AND status IN ('open', 'assigned') AND recurrence_of IS NULL
+     ORDER BY (status = 'assigned') DESC, id LIMIT 3`,
+  );
+  const [{ id: citizenId }] = await q.query<{ id: string }>("SELECT id FROM people WHERE auth_id = 'demo-citizen'");
+  const day = 86_400_000;
+  const at = (ms: number) => new Date(ms).toISOString();
+  const story = ["fixed", "in_progress", "assigned"] as const;
+
+  for (const [n, issue] of picks.entries()) {
+    const status = story[n];
+    const created = new Date(issue.created_at).getTime();
+    const assignedAt = created + day;
+    const startedAt = assignedAt + (now.getTime() - assignedAt) * 0.3;
+    const fixedAt = now.getTime() - 6 * 3_600_000; // well inside the 7 days for an answer
+    await q.query("DELETE FROM events WHERE issue_id = $1 AND kind IN ('assigned', 'in_progress', 'fixed')", [issue.id]);
+    await q.query(
+      `UPDATE issues SET status = $2, office_id = $3, updated_at = $4,
+         fixed_at = $5, after_image = $6, fix_note = $7 WHERE id = $1`,
+      [
+        issue.id,
+        status,
+        office.id,
+        at(status === "fixed" ? fixedAt : status === "in_progress" ? startedAt : assignedAt),
+        status === "fixed" ? at(fixedAt) : null,
+        status === "fixed" ? (photos?.fixed ?? null) : null,
+        status === "fixed" ? "Pothole filled and re-asphalted." : null,
+      ],
+    );
+    const event = (kind: string, message: string, when: number, role: string) =>
+      q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at) VALUES ($1, $2, $3, $4, $5)", [
+        issue.id,
+        kind,
+        message,
+        role,
+        at(when),
+      ]);
+    await event("assigned", `Assigned to ${office.name}`, assignedAt, "authority");
+    if (status !== "assigned") await event("in_progress", `Work started by ${office.name}`, startedAt, "office");
+    if (status === "fixed") {
+      await event("fixed", `Fixed by ${office.name}: Pothole filled and re-asphalted. After-repair photo added.`, fixedAt, "office");
+      // The Demo Citizen reported this one too, half a day after the first Report.
+      await q.query(
+        `INSERT INTO reports (issue_id, reporter_id, description, image, lat, lng, ai_category, ai_severity,
+           ai_confidence, ai_summary, ai_source, created_at)
+         SELECT id, $2, 'Same pothole, still there on my way to work.', cover_image, lat + 0.0001, lng + 0.0001,
+                category, severity, 0.8, summary, 'seed', $3
+         FROM issues WHERE id = $1`,
+        [issue.id, citizenId, at(created + day / 2)],
+      );
+      await q.query("UPDATE issues SET report_count = report_count + 1 WHERE id = $1", [issue.id]);
+    }
+  }
 }
