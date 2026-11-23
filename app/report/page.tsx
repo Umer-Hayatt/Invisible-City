@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowRight, Camera, CircleCheck, Copy, ImagePlus, LoaderCircle, LocateFixed, MapPin, Repeat, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, CircleCheck, Copy, ImagePlus, LoaderCircle, LocateFixed, MapPin, Repeat, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import CityMap from "@/components/CityMap";
-import { Card, CategoryChip, PageHeader, PriorityMeter, SeverityBadge, btn, field } from "@/components/ui";
 import Gate from "@/components/Gate";
+import { Card, CategoryChip, PageHeader, PriorityMeter, SeverityBadge, btn, categoryLabel, field } from "@/components/ui";
+import VoiceInput from "@/components/VoiceInput";
 import { api, prepareImage } from "@/lib/client";
-import { errorText } from "@/lib/i18n";
-import { AIAnalysis, CATEGORIES, CATEGORY_META, Issue } from "@/lib/types";
+import { errorText, t } from "@/lib/i18n";
+import { AIAnalysis, CATEGORIES, Issue } from "@/lib/types";
 
 interface SubmitResult {
   issueId: number;
@@ -51,6 +52,7 @@ export default function ReportPage() {
 function ReportForm() {
   const [photo, setPhoto] = useState<{ file: File; hash: string; preview: string } | null>(null);
   const [description, setDescription] = useState("");
+  const [voiceUrdu, setVoiceUrdu] = useState("");
   const [hint, setHint] = useState("");
   const [loc, setLoc] = useState<[number, number] | null>(null);
   const [locSource, setLocSource] = useState("");
@@ -61,16 +63,16 @@ function ReportForm() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   function locateWithGps() {
-    if (!navigator.geolocation) return setError("Geolocation is not available in this browser");
-    setLocSource("Locating…");
+    if (!navigator.geolocation) return setError(t("report.noGeolocation"));
+    setLocSource(t("report.locating"));
     navigator.geolocation.getCurrentPosition(
       (p) => {
         const v: [number, number] = [p.coords.latitude, p.coords.longitude];
         setLoc(v);
         setFocus(v);
-        setLocSource(`GPS · accurate to ${Math.round(p.coords.accuracy)} m`);
+        setLocSource(t("report.gpsAccuracy", { m: Math.round(p.coords.accuracy) }));
       },
-      () => setLocSource("GPS unavailable - tap the map or choose a demo location"),
+      () => setLocSource(t("report.gpsUnavailable")),
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }
@@ -80,23 +82,22 @@ function ReportForm() {
     setError("");
     try {
       setPhoto(await prepareImage(f));
-    } catch (e) {
-      setError((e as Error).message);
+    } catch {
+      setError(errorText("unsupported_image"));
     }
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!loc) return setError("Set the location: use GPS, tap the map, or choose a demo location.");
+    if (!loc) return setError(errorText("invalid_location"));
     if (!photo) return setError(errorText("photo_required"));
     setBusy(true);
     setError("");
     const fd = new FormData();
-    if (photo) {
-      fd.append("image", photo.file);
-      fd.append("imageHash", photo.hash);
-    }
+    fd.append("image", photo.file);
+    fd.append("imageHash", photo.hash);
     fd.append("description", description);
+    if (voiceUrdu) fd.append("voiceTranscript", voiceUrdu);
     fd.append("lat", String(loc[0]));
     fd.append("lng", String(loc[1]));
     if (hint) fd.append("categoryHint", hint);
@@ -114,6 +115,7 @@ function ReportForm() {
     setResult(null);
     setPhoto(null);
     setDescription("");
+    setVoiceUrdu("");
     setHint("");
     if (fileRef.current) fileRef.current.value = "";
   }
@@ -122,14 +124,10 @@ function ReportForm() {
 
   return (
     <form onSubmit={submit}>
-      <PageHeader
-        eyebrow="Citizen report"
-        title="Report a problem"
-        sub="One photo is enough. AI works out what it is and how serious it is, and checks whether your neighbours have already reported it."
-      />
+      <PageHeader eyebrow={t("report.eyebrow")} title={t("nav.reportLong")} sub={t("report.sub")} />
       <div className="grid gap-6 lg:grid-cols-[1fr_1.05fr]">
         <div className="space-y-5">
-          <Step n={1} title="Add a photo" hint="Taken on your phone or uploaded">
+          <Step n={1} title={t("report.step1")} hint={t("report.step1Hint")}>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
@@ -139,9 +137,9 @@ function ReportForm() {
               {photo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.preview} alt="Selected" className="max-h-[340px] w-full object-cover" />
-                  <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
-                    <Camera size={14} /> Change photo
+                  <img src={photo.preview} alt={t("report.selectedPhoto")} className="max-h-[340px] w-full object-cover" />
+                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
+                    <Camera size={14} /> {t("office.changePhoto")}
                   </span>
                 </>
               ) : (
@@ -149,8 +147,8 @@ function ReportForm() {
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand transition group-hover:scale-105">
                     <ImagePlus size={26} />
                   </div>
-                  <div className="mt-3 font-semibold">Tap to take or upload a photo</div>
-                  <div className="mt-1 text-xs text-muted">JPEG, PNG or WebP · resized on your device before upload</div>
+                  <div className="mt-3 font-semibold">{t("report.tapPhoto")}</div>
+                  <div className="mt-1 text-xs text-muted">{t("report.photoTypes")}</div>
                 </div>
               )}
             </button>
@@ -158,28 +156,59 @@ function ReportForm() {
             {photo && (
               <div className="mt-3 flex items-center gap-2 text-xs text-muted">
                 <Sparkles size={13} className="text-brand" />
-                Photo fingerprint <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-ink-2">{photo.hash}</code> used for duplicate
-                detection
+                {t("report.fingerprint")} <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-ink-2">{photo.hash}</code>
               </div>
             )}
           </Step>
 
-          <Step n={2} title="Describe it" hint="Optional if you added a photo">
+          <Step n={2} title={t("report.step2")} hint={t("report.step2Hint")}>
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <VoiceInput
+                disabled={busy}
+                onText={(v) => {
+                  setVoiceUrdu(v.urdu);
+                  setDescription(v.english);
+                }}
+              />
+              <span className="text-xs text-muted">{t("voice.hint")}</span>
+            </div>
+            {voiceUrdu && (
+              <div className="mb-3 rounded-xl border border-brand-100 bg-brand-50 p-3">
+                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-brand-700">
+                  {t("voice.urduLabel")}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceUrdu("");
+                      setDescription("");
+                    }}
+                    className="inline-flex items-center gap-1 text-muted hover:text-ink"
+                  >
+                    <X size={13} /> {t("voice.remove")}
+                  </button>
+                </div>
+                <p dir="rtl" lang="ur" className="mt-1 text-base leading-loose text-ink">
+                  {voiceUrdu}
+                </p>
+                <div className="mt-2 text-xs text-muted">{t("voice.englishBelow")}</div>
+              </div>
+            )}
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="e.g. Deep pothole in the left lane near the F-10 Markaz signal, bikes are swerving to avoid it"
+              placeholder={t("report.descriptionPlaceholder")}
               className={field}
+              dir={voiceUrdu ? "ltr" : undefined}
             />
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="text-xs font-semibold text-ink-2">
-                Category
+                {t("report.category")}
                 <select value={hint} onChange={(e) => setHint(e.target.value)} className={`${field} mt-1.5`}>
-                  <option value="">Let AI decide</option>
+                  <option value="">{t("report.letAiDecide")}</option>
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>
-                      {CATEGORY_META[c].label}
+                      {categoryLabel(c)}
                     </option>
                   ))}
                 </select>
@@ -189,10 +218,10 @@ function ReportForm() {
         </div>
 
         <div className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-          <Step n={3} title="Pin the location" hint="Use GPS, tap the map, or choose a demo spot">
+          <Step n={3} title={t("report.step3")} hint={t("report.step3Hint")}>
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <button type="button" onClick={locateWithGps} className={btn.dark}>
-                <LocateFixed size={15} /> Use my location
+                <LocateFixed size={15} /> {t("report.useLocation")}
               </button>
               {PRESETS.map((p) => (
                 <button
@@ -203,7 +232,7 @@ function ReportForm() {
                     const v: [number, number] = [p.lat + (Math.random() - 0.5) * 0.0002, p.lng + (Math.random() - 0.5) * 0.0002];
                     setLoc(v);
                     setFocus(v);
-                    setLocSource(`Demo location · ${p.name}`);
+                    setLocSource(t("report.demoLocation", { place: p.name }));
                   }}
                   className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-2 transition hover:border-brand hover:text-brand"
                 >
@@ -217,7 +246,7 @@ function ReportForm() {
                 focus={focus}
                 onPick={(lat, lng) => {
                   setLoc([lat, lng]);
-                  setLocSource("Pinned on map");
+                  setLocSource(t("report.pinned"));
                 }}
                 className="h-[340px]"
               />
@@ -226,13 +255,13 @@ function ReportForm() {
               <MapPin size={13} className={loc ? "text-brand" : ""} />
               {loc ? (
                 <>
-                  <span className="font-mono text-ink-2">
+                  <span className="font-mono text-ink-2" dir="ltr">
                     {loc[0].toFixed(5)}, {loc[1].toFixed(5)}
                   </span>
                   · {locSource}
                 </>
               ) : (
-                locSource || "No location yet"
+                locSource || t("report.noLocation")
               )}
             </div>
           </Step>
@@ -242,11 +271,11 @@ function ReportForm() {
           <button disabled={busy} className={`${btn.primary} w-full py-4 text-base`}>
             {busy ? (
               <>
-                <LoaderCircle size={18} className="animate-spin" /> AI is analysing your report…
+                <LoaderCircle size={18} className="animate-spin" /> {t("report.analysing")}
               </>
             ) : (
               <>
-                Submit report <ArrowRight size={18} />
+                {t("report.submit")} <ArrowRight size={18} className="rtl:rotate-180" />
               </>
             )}
           </button>
@@ -264,13 +293,12 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white">
           <CircleCheck size={30} />
         </div>
-        <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Report received</h1>
+        <h1 className="mt-4 text-3xl font-extrabold tracking-tight">{t("report.received")}</h1>
         <p className="mt-1 text-ink-2">
-          {r.duplicate ? `Added to existing issue #${r.issueId}.` : `New issue #${r.issueId} created.`} Follow it under{" "}
+          {r.duplicate ? t("report.addedTo", { id: r.issueId }) : t("report.created", { id: r.issueId })} {t("report.followUnder")}{" "}
           <Link href="/track" className="font-semibold text-brand underline-offset-2 hover:underline">
-            My reports
+            {t("nav.myReports")}
           </Link>
-          .
         </p>
       </div>
 
@@ -281,26 +309,26 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
               <Copy size={20} />
             </div>
             <div>
-              <div className="text-lg font-bold">Possible duplicate detected · reports grouped</div>
+              <div className="text-lg font-bold">{t("report.duplicateTitle")}</div>
               <p className="mt-1 text-sm leading-relaxed text-ink-2">
-                Your report matches <b>issue #{r.duplicate.issueId}, “{r.duplicate.title}”</b>. Instead of opening a new ticket, it was added as
-                supporting evidence. <b>{r.issue.report_count} citizens</b> have now reported this, so its priority went up.
+                {t("report.duplicateBody", { id: r.duplicate.issueId, title: r.duplicate.title, n: r.issue.report_count })}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-3">
-            <Metric label="Match score" value={`${Math.round(r.duplicate.score * 100)}%`} />
-            <Metric label="Distance apart" value={`${r.duplicate.distance} m`} />
-            <Metric label="Photo similarity" value={r.duplicate.imageSimilarity === null ? "n/a" : `${Math.round(r.duplicate.imageSimilarity * 100)}%`} />
+            <Metric label={t("report.matchScore")} value={`${Math.round(r.duplicate.score * 100)}%`} />
+            <Metric label={t("report.distanceApart")} value={t("report.metres", { n: r.duplicate.distance })} />
+            <Metric
+              label={t("report.photoSimilarity")}
+              value={r.duplicate.imageSimilarity === null ? "-" : `${Math.round(r.duplicate.imageSimilarity * 100)}%`}
+            />
           </div>
         </div>
       )}
       {r.recurrenceOf && (
         <div className="flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-4 text-sm">
           <Repeat size={18} className="mt-0.5 shrink-0 text-violet-700" />
-          <div>
-            <b>Recurring problem.</b> Issue #{r.recurrenceOf} at this spot was marked as fixed before. It has been flagged for predictive maintenance.
-          </div>
+          <div>{t("report.recurring", { id: r.recurrenceOf })}</div>
         </div>
       )}
 
@@ -314,13 +342,14 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           )}
           <div className="space-y-3 p-6">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-brand">
-              <Sparkles size={12} /> AI analysis · {a.source === "gemini" ? "Gemini vision" : a.source === "groq" ? "Groq vision" : "offline heuristic"}
+              <Sparkles size={12} /> {t("report.aiAnalysis")} ·{" "}
+              {a.source === "gemini" ? "Gemini" : a.source === "groq" ? "Groq" : t("report.aiOffline")}
             </div>
             <div className="text-xl font-bold leading-snug">{a.title}</div>
             <div className="flex flex-wrap items-center gap-2">
               <CategoryChip category={a.category} />
               <SeverityBadge severity={a.severity} />
-              <span className="text-xs font-medium text-muted">{Math.round(a.confidence * 100)}% confidence</span>
+              <span className="text-xs font-medium text-muted">{t("report.confidence", { n: Math.round(a.confidence * 100) })}</span>
             </div>
             <p className="text-sm leading-relaxed text-ink-2">{a.summary}</p>
             {a.hazards.length > 0 && (
@@ -333,16 +362,10 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
                 ))}
               </ul>
             )}
-            {!a.is_civic_issue && (
-              <div className="rounded-lg bg-accent-50 p-2.5 text-xs text-ink-2">
-                The AI isn&apos;t sure this photo shows a civic problem. An official will review it.
-              </div>
-            )}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 text-sm">
               <span className="flex items-center gap-2 font-medium">
-                Priority <PriorityMeter value={r.issue.priority} wide />
+                {t("admin.colPriority")} <PriorityMeter value={r.issue.priority} wide />
               </span>
-              <span className="text-muted">Routed to {CATEGORY_META[r.issue.category].team}</span>
             </div>
           </div>
         </div>
@@ -350,13 +373,13 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
 
       <div className="flex flex-wrap justify-center gap-3 pt-2">
         <Link href={`/issues/${r.issueId}`} className={btn.primary}>
-          View issue #{r.issueId} <ArrowRight size={16} />
+          {t("map.openIssue", { id: r.issueId })} <ArrowRight size={16} className="rtl:rotate-180" />
         </Link>
         <button onClick={onAnother} className={btn.ghost}>
-          <Camera size={16} /> Report another
+          <Camera size={16} /> {t("report.another")}
         </button>
         <Link href="/" className={btn.ghost}>
-          <MapPin size={16} /> See it on the map
+          <MapPin size={16} /> {t("report.seeOnMap")}
         </Link>
       </div>
     </div>

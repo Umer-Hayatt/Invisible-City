@@ -97,7 +97,7 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
             </div>
           </div>
           <Link href={`/issues/${job.id}`} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
-            {t("office.details")} <ArrowUpRight size={14} />
+            {t("office.details")} <ArrowUpRight size={14} className="rtl:-scale-x-100" />
           </Link>
         </div>
       </div>

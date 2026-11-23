@@ -65,3 +65,23 @@ body {
 .leaflet-tooltip.area-label::before {
   display: none;
 }
+
+/* Urdu: a Naskh face for Arabic script (Latin falls back to Jakarta) and a little more line height for its marks. */
+html[lang="ur"] body,
+html[lang="ur"] .leaflet-container {
+  font-family: var(--font-urdu), var(--font-jakarta), system-ui, sans-serif;
+  font-feature-settings: normal;
+  line-height: 1.75;
+}
+html[lang="ur"] h1,
+html[lang="ur"] h2,
+html[lang="ur"] h3 {
+  line-height: 1.5;
+}
+/* Letter spacing and upper-casing break joined Arabic letters. */
+html[lang="ur"] [class*="tracking-"] {
+  letter-spacing: 0;
+}
+html[lang="ur"] .uppercase {
+  text-transform: none;
+}

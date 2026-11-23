@@ -103,6 +103,8 @@ export interface Report {
   /** Present only in responses to an Authority or the assigned Office's staff. */
   reporter_email?: string | null;
   reporter_phone?: string | null;
+  /** The Citizen's own Urdu words when they spoke the Report; only for an Authority or the assigned Office. */
+  voice_transcript?: string | null;
   description: string;
   image: string | null;
   image_hash: string | null;

@@ -18,11 +18,25 @@ import CityMap from "@/components/CityMap";
 import Gate from "@/components/Gate";
 import { errorText, t } from "@/lib/i18n";
 import { sessionChanged } from "@/lib/me";
-import { Card, CategoryChip, CategoryIcon, Empty, IssueThumb, PriorityMeter, SeverityBadge, Stat, StatusBadge, btn, field, statusLabel } from "@/components/ui";
+import {
+  Card,
+  CategoryChip,
+  CategoryIcon,
+  Empty,
+  IssueThumb,
+  PriorityMeter,
+  SeverityBadge,
+  Stat,
+  StatusBadge,
+  btn,
+  categoryLabel,
+  field,
+  statusLabel,
+} from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { NEIGHBORHOODS } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
-import { CATEGORIES, CATEGORY_META, Issue, STATUSES, isActive } from "@/lib/types";
+import { CATEGORIES, Issue, STATUSES, isActive } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
 
 interface SuggestedOffice {
@@ -72,8 +86,8 @@ function Dashboard() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">{t("admin.eyebrow")}</div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Repair work queue</h1>
-          <p className="mt-1 text-sm text-muted">Ranked by AI priority, which combines severity, number of citizen reports, age and hazard.</p>
+          <h1 className="text-3xl font-extrabold tracking-tight">{t("admin.title")}</h1>
+          <p className="mt-1 text-sm text-muted">{t("admin.sub")}</p>
         </div>
         <button
           onClick={async () => {
@@ -82,19 +96,19 @@ function Dashboard() {
           }}
           className={btn.ghost}
         >
-          <LogOut size={15} /> Sign out
+          <LogOut size={15} /> {t("nav.signOut")}
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <Stat label="Awaiting assignment" value={open.filter((i) => i.status === "open").length} icon={Inbox} />
-        <Stat label="Assigned" value={open.filter((i) => i.status === "assigned").length} icon={HardHat} />
-        <Stat label="In progress" value={open.filter((i) => i.status === "in_progress").length} icon={Wrench} />
-        <Stat label="Critical open" value={open.filter((i) => i.severity === "critical").length} icon={Flame} tone="bad" />
+        <Stat label={t("admin.statAwaiting")} value={open.filter((i) => i.status === "open").length} icon={Inbox} />
+        <Stat label={t("status.assigned")} value={open.filter((i) => i.status === "assigned").length} icon={HardHat} />
+        <Stat label={t("status.in_progress")} value={open.filter((i) => i.status === "in_progress").length} icon={Wrench} />
+        <Stat label={t("admin.statCritical")} value={open.filter((i) => i.severity === "critical").length} icon={Flame} tone="bad" />
         <Stat
-          label="Neglected sectors"
+          label={t("admin.statNeglected")}
           value={neglected.length}
-          hint={neglected.join(", ") || "none"}
+          hint={neglected.join(", ") || t("home.none")}
           icon={TriangleAlert}
           tone={neglected.length ? "bad" : "good"}
         />
@@ -109,8 +123,8 @@ function Dashboard() {
           <Card className="overflow-hidden">
             <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">
               <Pill value={status} onChange={setStatus}>
-                <option value="unresolved">All unresolved</option>
-                <option value="">All statuses</option>
+                <option value="unresolved">{t("admin.allUnresolved")}</option>
+                <option value="">{t("admin.allStatuses")}</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {statusLabel(s)}
@@ -118,35 +132,35 @@ function Dashboard() {
                 ))}
               </Pill>
               <Pill value={category} onChange={setCategory}>
-                <option value="">All categories</option>
+                <option value="">{t("home.allCategories")}</option>
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {CATEGORY_META[c].label}
+                    {categoryLabel(c)}
                   </option>
                 ))}
               </Pill>
               <Pill value={hood} onChange={setHood}>
-                <option value="">All sectors</option>
+                <option value="">{t("admin.allSectors")}</option>
                 {NEIGHBORHOODS.map((n) => (
                   <option key={n.name} value={n.name}>
                     {n.name}
-                    {neglected.includes(n.name) ? " (neglected)" : ""}
+                    {neglected.includes(n.name) ? ` (${t("insights.neglected")})` : ""}
                   </option>
                 ))}
               </Pill>
-              <span className="ml-auto pr-2 text-xs font-semibold text-muted">{filtered.length} issues</span>
+              <span className="ms-auto pe-2 text-xs font-semibold text-muted">{t("admin.count", { n: filtered.length })}</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead className="text-left text-[11px] font-bold uppercase tracking-wider text-muted">
+              <table className="w-full min-w-[720px] text-start text-sm">
+                <thead className="text-[11px] font-bold uppercase tracking-wider text-muted">
                   <tr className="border-b border-line">
-                    <th className="px-4 py-3">Priority</th>
-                    <th className="py-3">Issue</th>
-                    <th className="py-3">Sector</th>
-                    <th className="py-3">Severity</th>
-                    <th className="py-3 text-center">Reports</th>
-                    <th className="py-3">Status</th>
-                    <th className="py-3 pr-4 text-right">Age</th>
+                    <th className="px-4 py-3 text-start">{t("admin.colPriority")}</th>
+                    <th className="py-3 text-start">{t("admin.colIssue")}</th>
+                    <th className="py-3 text-start">{t("insights.colSector")}</th>
+                    <th className="py-3 text-start">{t("admin.colSeverity")}</th>
+                    <th className="py-3 text-center">{t("admin.colReports")}</th>
+                    <th className="py-3 text-start">{t("admin.colStatus")}</th>
+                    <th className="py-3 pe-4 text-end">{t("admin.colAge")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -159,7 +173,7 @@ function Dashboard() {
                       <td className="px-4 py-3">
                         <PriorityMeter value={i.priority} />
                       </td>
-                      <td className="max-w-[280px] py-3 pr-3">
+                      <td className="max-w-[280px] py-3 pe-3">
                         <div className="flex items-center gap-2.5">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sunken text-ink-2">
                             <CategoryIcon category={i.category} size={15} />
@@ -171,7 +185,7 @@ function Dashboard() {
                               {i.recurrence_of ? (
                                 <>
                                   {" "}
-                                  · <Repeat size={11} /> recurring
+                                  · <Repeat size={11} /> {t("admin.recurring")}
                                 </>
                               ) : null}
                             </div>
@@ -180,7 +194,7 @@ function Dashboard() {
                       </td>
                       <td className="py-3">
                         <span className="font-medium">{i.neighborhood}</span>
-                        {neglected.includes(i.neighborhood) && <TriangleAlert size={12} className="ml-1 inline text-red-600" />}
+                        {neglected.includes(i.neighborhood) && <TriangleAlert size={12} className="ms-1 inline text-red-600" />}
                       </td>
                       <td className="py-3">
                         <SeverityBadge severity={i.severity} />
@@ -189,7 +203,7 @@ function Dashboard() {
                       <td className="py-3">
                         <StatusBadge status={i.status} />
                       </td>
-                      <td className="py-3 pr-4 text-right text-xs text-muted">{timeAgo(i.created_at)}</td>
+                      <td className="py-3 pe-4 text-end text-xs text-muted">{timeAgo(i.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -203,8 +217,8 @@ function Dashboard() {
             <IssuePanel key={sel.id} issue={sel} onChanged={load} />
           ) : (
             <Card>
-              <Empty icon={MousePointerClick} title="Select an issue">
-                Choose a row in the queue to assign a crew or close it out with an after-repair photo.
+              <Empty icon={MousePointerClick} title={t("admin.selectTitle")}>
+                {t("admin.selectBody")}
               </Empty>
             </Card>
           )}
@@ -269,7 +283,7 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
     <Card className="overflow-hidden">
       <div className="relative">
         <IssueThumb src={imageUrl(issue.cover_image)} category={issue.category} className="h-44 w-full" />
-        <div className="absolute left-3 top-3">
+        <div className="absolute start-3 top-3">
           <StatusBadge status={issue.status} />
         </div>
       </div>
@@ -285,11 +299,11 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
           <p className="mt-1 text-sm leading-relaxed text-ink-2">{issue.summary}</p>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             <SeverityBadge severity={issue.severity} />
-            <span className="font-medium text-ink-2">{issue.report_count} reports</span>
+            <span className="font-medium text-ink-2">{t("office.reports", { n: issue.report_count })}</span>
             <PriorityMeter value={issue.priority} />
           </div>
           <Link href={`/issues/${issue.id}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
-            Full history <ArrowUpRight size={14} />
+            {t("admin.fullHistory")} <ArrowUpRight size={14} className="rtl:-scale-x-100" />
           </Link>
         </div>
 

@@ -17,6 +17,8 @@ export interface NeighborhoodStat {
   openSeverityLoad: number;
   healthScore: number;
   neglected: boolean;
+  /** The city-wide resolution rate the neglect test compares against. */
+  cityRate: number;
   neglectReason: string | null;
 }
 
@@ -59,6 +61,8 @@ export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
       openSeverityLoad: Math.round(openSeverityLoad * 10) / 10,
       healthScore,
       neglected,
+      cityRate: Math.round(cityRate * 100) / 100,
+      // English summary for API readers; screens build their own sentence from the numbers in the chosen language.
       neglectReason: neglected
         ? `Only ${resolved.length} of ${mine.length} complaints resolved (${Math.round(
             resolutionRate * 100,
@@ -74,6 +78,9 @@ export interface PredictiveInsight {
   category: Category;
   count: number;
   open: number;
+  /** How many of them came back after a repair. */
+  recurring: number;
+  /** English summary for API readers; screens build their own sentence from the fields above. */
   message: string;
 }
 
@@ -104,6 +111,7 @@ export function predictiveInsights(issues: Issue[]): PredictiveInsight[] {
       category,
       count: list.length,
       open: list.filter((i) => isActive(i.status)).length,
+      recurring,
       message: `${list.length} ${label} reports in ${neighborhood} in 120 days${
         recurring ? ` (${recurring} recurred after repair)` : ""
       }. ${advice[category] ?? "Investigate the root cause."}`,

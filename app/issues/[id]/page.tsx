@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { Card, CategoryChip, IssueThumb, PriorityMeter, SeverityBadge, StatusBadge } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
-import { errorText, t } from "@/lib/i18n";
+import { errorText, formatDate, formatDateTime, t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
 import { Issue, IssueEvent, Report } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
@@ -76,7 +76,7 @@ export default function IssuePage() {
   }
 
   if (error) return <div className="text-red-600">{error}</div>;
-  if (!data) return <div className="text-muted">Loading…</div>;
+  if (!data) return <div className="text-muted">{t("gate.loading")}</div>;
   const { issue, reports, events } = data;
   const before = issue.cover_image ?? reports.find((r) => r.image)?.image ?? null;
   const photos = reports.filter((r) => r.image);
@@ -89,7 +89,7 @@ export default function IssuePage() {
   return (
     <div className="space-y-6">
       <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
-        <ArrowLeft size={16} /> City map
+        <ArrowLeft size={16} className="rtl:rotate-180" /> {t("nav.map")}
       </Link>
 
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -102,13 +102,12 @@ export default function IssuePage() {
           </div>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{issue.title}</h1>
           <p className="mt-2 text-sm text-muted">
-            {issue.neighborhood}, Islamabad · reported by {issue.report_count} citizen{issue.report_count > 1 ? "s" : ""} · first seen{" "}
-            {timeAgo(issue.created_at)}
+            {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
           </p>
         </div>
         {!finished && (
           <Card className="px-5 py-3">
-            <div className="text-xs font-semibold text-muted">Priority score</div>
+            <div className="text-xs font-semibold text-muted">{t("issue.priority")}</div>
             <div className="mt-1">
               <PriorityMeter value={issue.priority} wide />
             </div>
@@ -121,8 +120,8 @@ export default function IssuePage() {
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
               <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
-              <figcaption className="absolute left-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                {t("issue.before")} · {new Date(issue.created_at).toLocaleDateString()}
+              <figcaption className="absolute start-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+                {t("issue.before")} · {formatDate(issue.created_at)}
               </figcaption>
             </figure>
             <figure className="relative">
@@ -134,8 +133,8 @@ export default function IssuePage() {
                   <CircleCheck size={28} /> {t("issue.noAfter")}
                 </div>
               )}
-              <figcaption className="absolute left-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">
-                {t("issue.after")} · {afterDate ? new Date(afterDate).toLocaleDateString() : ""}
+              <figcaption className="absolute start-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">
+                {t("issue.after")} · {afterDate ? formatDate(afterDate) : ""}
               </figcaption>
             </figure>
           </div>
@@ -154,28 +153,27 @@ export default function IssuePage() {
         <div className="space-y-6">
           <Card className="p-5">
             <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand">
-              <Sparkles size={13} /> AI summary
+              <Sparkles size={13} /> {t("issue.aiSummary")}
             </div>
             <p className="mt-2 leading-relaxed text-ink-2">{issue.summary}</p>
             {issue.recurrence_of && (
               <p className="mt-3 flex items-center gap-2 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-800">
-                <Repeat size={15} /> Recurring problem: an earlier issue at this spot,{" "}
+                <Repeat size={15} /> {t("issue.recurring")}{" "}
                 <Link className="font-semibold underline" href={`/issues/${issue.recurrence_of}`}>
                   #{issue.recurrence_of}
                 </Link>
-                , was already fixed once.
               </p>
             )}
             {issue.assigned_team && !showFix && (
               <p className="mt-3 flex items-center gap-2 text-sm">
-                <HardHat size={15} className="text-violet-700" /> Assigned to <b>{issue.assigned_team}</b>
+                <HardHat size={15} className="text-violet-700" /> {t("admin.assignedTo", { office: issue.assigned_team })}
               </p>
             )}
           </Card>
 
           <div>
             <h2 className="mb-3 font-bold tracking-tight">
-              Citizen reports <span className="text-muted">({reports.length})</span>
+              {t("issue.reportsTitle")} <span className="text-muted">({reports.length})</span>
             </h2>
             {photos.length > 0 && (
               <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -194,7 +192,7 @@ export default function IssuePage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-semibold">
-                        {r.reporter_name || "Anonymous citizen"} <span className="font-normal text-muted">· {timeAgo(r.created_at)}</span>
+                        {r.reporter_name || t("insights.anonymousCitizen")} <span className="font-normal text-muted">· {timeAgo(r.created_at)}</span>
                       </span>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
@@ -202,13 +200,21 @@ export default function IssuePage() {
                         }`}
                       >
                         {idx === 0
-                          ? "First report"
+                          ? t("issue.firstReport")
                           : r.duplicate_score !== null
-                            ? `Grouped · ${Math.round(r.duplicate_score * 100)}% match`
-                            : "Grouped by AI"}
+                            ? t("issue.groupedMatch", { n: Math.round(r.duplicate_score * 100) })
+                            : t("issue.grouped")}
                       </span>
                     </div>
-                    <div className="mt-1 text-ink-2">{r.description || <i className="text-muted">Photo only</i>}</div>
+                    <div className="mt-1 text-ink-2">{r.description || <i className="text-muted">{t("issue.photoOnly")}</i>}</div>
+                    {r.voice_transcript && (
+                      <div className="mt-1 rounded-lg bg-sunken px-2.5 py-1.5 text-ink-2">
+                        <div className="text-xs font-semibold text-muted">{t("issue.voiceUrdu")}</div>
+                        <div dir="rtl" lang="ur">
+                          {r.voice_transcript}
+                        </div>
+                      </div>
+                    )}
                     {r.reporter_email !== undefined && (
                       <div className="mt-1 text-xs text-muted">
                         {t("review.contact")}: {r.reporter_email ?? "-"} · {r.reporter_phone ?? "-"}
@@ -231,19 +237,19 @@ export default function IssuePage() {
             <CityMap issues={[issue]} focus={[issue.lat, issue.lng]} zoom={16} className="h-[240px]" />
           </Card>
           <Card className="p-5">
-            <h2 className="mb-4 font-bold tracking-tight">Accountability timeline</h2>
+            <h2 className="mb-4 font-bold tracking-tight">{t("issue.timeline")}</h2>
             <ol className="space-y-0">
               {events.map((e, idx) => {
                 const st = EVENT_STYLE[e.kind] ?? EVENT_STYLE.created;
                 return (
                   <li key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
-                    {idx < events.length - 1 && <span className="absolute left-[13px] top-7 h-full w-px bg-line" />}
+                    {idx < events.length - 1 && <span className="absolute start-[13px] top-7 h-full w-px bg-line" />}
                     <span className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${st.cls}`}>
                       <st.icon size={14} />
                     </span>
                     <div className="text-sm">
                       <div className="font-medium leading-snug">{e.message}</div>
-                      <div className="mt-0.5 text-xs text-muted">{new Date(e.created_at).toLocaleString()}</div>
+                      <div className="mt-0.5 text-xs text-muted">{formatDateTime(e.created_at)}</div>
                     </div>
                   </li>
                 );
