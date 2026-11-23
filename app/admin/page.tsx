@@ -22,7 +22,7 @@ import { Card, CategoryChip, CategoryIcon, Empty, IssueThumb, PriorityMeter, Sev
 import { api, timeAgo } from "@/lib/client";
 import { NEIGHBORHOODS } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
-import { CATEGORIES, CATEGORY_META, Issue, STATUSES } from "@/lib/types";
+import { CATEGORIES, CATEGORY_META, Issue, STATUSES, isActive } from "@/lib/types";
 import { imageUrl } from "@/lib/uploads-url";
 
 interface SuggestedOffice {
@@ -57,14 +57,14 @@ function Dashboard() {
     () =>
       issues.filter(
         (i) =>
-          (status === "unresolved" ? i.status !== "resolved" : !status || i.status === status) &&
+          (status === "unresolved" ? isActive(i.status) : !status || i.status === status) &&
           (!category || i.category === category) &&
           (!hood || i.neighborhood === hood),
       ),
     [issues, status, category, hood],
   );
   const sel = issues.find((i) => i.id === selected) ?? null;
-  const open = issues.filter((i) => i.status !== "resolved");
+  const open = issues.filter((i) => isActive(i.status));
   const neglected = hoods.filter((n) => n.neglected).map((n) => n.name);
 
   return (

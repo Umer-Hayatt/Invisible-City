@@ -1,7 +1,15 @@
 import { listIssues } from "@/lib/db";
-import { cityOverview, contributors, neighborhoodStats, predictiveInsights } from "@/lib/insights";
+import {
+  anonymousLeaderboard,
+  cityOverview,
+  contributors,
+  neighborhoodStats,
+  officeRecords,
+  predictiveInsights,
+} from "@/lib/insights";
 import { dataWorld } from "@/lib/roles";
 
+/** Public: Insights for everyone, with no reporter identity anywhere in the response. */
 export async function GET() {
   const { demo } = await dataWorld();
   const issues = await listIssues(demo);
@@ -9,6 +17,7 @@ export async function GET() {
     overview: await cityOverview(issues, demo),
     neighborhoods: neighborhoodStats(issues),
     predictive: predictiveInsights(issues),
-    leaderboard: (await contributors(demo)).slice(0, 10),
+    leaderboard: anonymousLeaderboard((await contributors(demo)).slice(0, 10)),
+    offices: await officeRecords(demo),
   });
 }

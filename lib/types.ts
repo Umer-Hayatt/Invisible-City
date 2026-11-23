@@ -17,6 +17,10 @@ export type Severity = (typeof SEVERITIES)[number];
 
 export const STATUSES = ["open", "assigned", "in_progress", "fixed", "resolved", "closed_unconfirmed"] as const;
 export type Status = (typeof STATUSES)[number];
+/** Resolved (a Citizen confirmed the Fix) or Closed unconfirmed (nobody answered within 7 days). */
+export const isFinished = (s: Status) => s === "resolved" || s === "closed_unconfirmed";
+/** Still waiting on the city: Open, Assigned, In progress, or Fixed and waiting for a Citizen's answer. */
+export const isActive = (s: Status) => !isFinished(s);
 
 export const TEAMS = [
   "Road Maintenance Unit",

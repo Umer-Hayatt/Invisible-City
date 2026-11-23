@@ -19,7 +19,7 @@ export function computePriority(issue: {
   status: string;
   recurrence_of?: number | null;
 }) {
-  if (issue.status === "resolved") return 0;
+  if (issue.status === "resolved" || issue.status === "closed_unconfirmed") return 0;
   const sev = SEVERITY_WEIGHT[issue.severity] * 15; // 15..60
   const crowd = Math.min(20, 8 * Math.log2(Math.max(1, issue.report_count))); // 0..20
   const ageDays = (nowMs() - new Date(issue.created_at).getTime()) / 86_400_000;
