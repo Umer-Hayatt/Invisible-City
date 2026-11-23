@@ -50,7 +50,7 @@ function SignIn() {
   return (
     <div className="mx-auto mt-6 max-w-md space-y-4">
       <Card className="p-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-on-brand">
           <LogIn size={22} />
         </div>
         <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{t("signin.title")}</h1>

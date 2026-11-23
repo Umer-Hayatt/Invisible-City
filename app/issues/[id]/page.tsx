@@ -35,7 +35,7 @@ interface IssueData {
 }
 
 const EVENT_STYLE: Record<string, { icon: LucideIcon; cls: string }> = {
-  created: { icon: Camera, cls: "bg-ink text-white" },
+  created: { icon: Camera, cls: "bg-ink text-canvas" },
   merged: { icon: Copy, cls: "bg-accent text-ink" },
   escalated: { icon: ArrowUp, cls: "bg-orange-500 text-white" },
   assigned: { icon: HardHat, cls: "bg-violet-600 text-white" },
@@ -44,7 +44,7 @@ const EVENT_STYLE: Record<string, { icon: LucideIcon; cls: string }> = {
   rejected: { icon: ThumbsDown, cls: "bg-red-600 text-white" },
   sent_back: { icon: Undo2, cls: "bg-sunken text-ink" },
   closed_unconfirmed: { icon: Clock, cls: "bg-sunken text-ink" },
-  resolved: { icon: CircleCheck, cls: "bg-brand text-white" },
+  resolved: { icon: CircleCheck, cls: "bg-brand text-on-brand" },
   recurring: { icon: Repeat, cls: "bg-violet-600 text-white" },
   open: { icon: RotateCcw, cls: "bg-sunken text-ink" },
 };
@@ -120,7 +120,7 @@ export default function IssuePage() {
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
               <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
-              <figcaption className="absolute start-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+              <figcaption className="absolute start-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-canvas backdrop-blur">
                 {t("issue.before")} · {formatDate(issue.created_at)}
               </figcaption>
             </figure>
@@ -133,7 +133,7 @@ export default function IssuePage() {
                   <CircleCheck size={28} /> {t("issue.noAfter")}
                 </div>
               )}
-              <figcaption className="absolute start-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">
+              <figcaption className="absolute start-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-bold text-on-brand">
                 {t("issue.after")} · {afterDate ? formatDate(afterDate) : ""}
               </figcaption>
             </figure>
@@ -196,7 +196,7 @@ export default function IssuePage() {
                       </span>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                          idx === 0 ? "bg-ink text-white" : "bg-accent-50 text-ink-2 ring-1 ring-inset ring-amber-200"
+                          idx === 0 ? "bg-ink text-canvas" : "bg-accent-50 text-ink-2 ring-1 ring-inset ring-amber-200"
                         }`}
                       >
                         {idx === 0

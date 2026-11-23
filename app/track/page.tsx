@@ -56,7 +56,7 @@ function TrackList() {
       <PageHeader eyebrow={t("track.eyebrow")} title={t("track.title")} sub={t("track.sub")} />
 
       {impact && (
-        <div className="relative mb-8 overflow-hidden rounded-3xl bg-ink p-6 text-white sm:p-7">
+        <div className="relative mb-8 overflow-hidden rounded-3xl bg-ink p-6 text-canvas sm:p-7">
           <div className="pointer-events-none absolute -end-10 -top-20 h-56 w-56 rounded-full bg-accent/25 blur-3xl" />
           <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-5">
             <div className="col-span-2 sm:col-span-1">

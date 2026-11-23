@@ -132,13 +132,13 @@ export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: string; t
 
 export const btn = {
   primary:
-    "press shine inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-brand-600 hover:shadow-md hover:shadow-brand/25 disabled:opacity-50",
+    "press shine inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand shadow-sm shadow-brand/20 transition hover:bg-brand-600 hover:shadow-md hover:shadow-brand/25 disabled:opacity-50",
   accent:
     "press shine inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink shadow-sm transition hover:brightness-95 disabled:opacity-50",
   ghost:
     "press inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white disabled:opacity-50",
   dark:
-    "press inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/85 disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-canvas transition hover:bg-ink/85 disabled:opacity-50",
 };
 
 export const field =
@@ -223,16 +223,19 @@ export function Stat({
   hint,
   icon: Icon,
   tone,
+  glow = false,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: string;
   icon?: LucideIcon;
   tone?: "good" | "bad" | "warn";
+  /** A slowly travelling light around the border, for headline figures. */
+  glow?: boolean;
 }) {
   const toneCls = tone === "good" ? "text-brand" : tone === "bad" ? "text-red-600" : tone === "warn" ? "text-orange-600" : "text-ink";
   return (
-    <Card interactive className="p-5">
+    <Card interactive className={`p-5 ${glow ? "glow-border" : ""}`}>
       <div className="flex items-center justify-between text-xs font-semibold text-muted">
         {label}
         {Icon && (
