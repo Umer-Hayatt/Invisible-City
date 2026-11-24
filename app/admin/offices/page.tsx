@@ -18,6 +18,80 @@ interface OfficeRow {
 
 const json = (data: unknown) => ({ headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
 
+interface JoinRequest {
+  id: number;
+  office: string;
+  department: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  decision: "pending" | "approved" | "declined";
+  created_at: string;
+}
+
+/** People who signed up as Office staff and are waiting for an Authority. Approving adds them to that Office's staff. */
+function JoinRequests({ onDecided }: { onDecided: () => void }) {
+  const [rows, setRows] = useState<JoinRequest[] | null>(null);
+  const [error, setError] = useState("");
+  const load = useCallback(() => {
+    api<{ requests: JoinRequest[] }>("/api/offices/requests")
+      .then((d) => setRows(d.requests))
+      .catch((e) => setError(errorText((e as Error).message)));
+  }, []);
+  useEffect(load, [load]);
+
+  async function decide(id: number, decision: "approved" | "declined") {
+    setError("");
+    try {
+      await api(`/api/offices/requests/${id}`, { method: "POST", ...json({ decision }) });
+      load();
+      onDecided();
+    } catch (e) {
+      setError(errorText((e as Error).message));
+    }
+  }
+
+  const pending = (rows ?? []).filter((r) => r.decision === "pending");
+  return (
+    <section aria-labelledby="join-requests" className="space-y-3">
+      <h2 id="join-requests" className="text-xl font-black">
+        {t("offices.requestsTitle")} {pending.length > 0 && <span className="figure ms-1 rounded-[6px] bg-accent px-2 py-0.5 text-base text-[#0f1a14]">{pending.length}</span>}
+      </h2>
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {rows === null ? (
+        <ListSkeleton rows={1} />
+      ) : pending.length === 0 ? (
+        <p className="text-sm text-muted">{t("offices.requestsEmpty")}</p>
+      ) : (
+        <ul className="space-y-3">
+          {pending.map((r) => (
+            <li key={r.id}>
+              <Card className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="font-bold">
+                    {r.name} <span className="font-normal text-muted">→ {r.office}</span>
+                  </div>
+                  <div className="truncate text-sm text-muted">
+                    {r.email} · {r.phone ?? "-"} · {r.department}
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <button onClick={() => decide(r.id, "approved")} className={btn.primary}>
+                    {t("superadmin.approve")}
+                  </button>
+                  <button onClick={() => decide(r.id, "declined")} className={btn.ghost}>
+                    {t("superadmin.decline")}
+                  </button>
+                </div>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default function OfficesPage() {
   return (
     <Gate roles={["authority"]} next="/admin/offices">
@@ -58,6 +132,8 @@ function Offices() {
         {t("offices.back")}
       </Link>
       {error && <div className="text-sm font-medium text-red-600">{error}</div>}
+
+      <JoinRequests onDecided={load} />
 
       <NewOffice departments={departments} onCreate={(body) => run(() => api("/api/offices", { method: "POST", ...json(body) }))} />
 

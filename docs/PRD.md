@@ -18,7 +18,7 @@ The demo story: a Citizen reports a pothole in F-10 → the AI recognises road d
 |---|---|---|
 | **Citizen** | Any member of the public | Signs in with Google and completes their profile |
 | **Authority** | A city official who reviews, flags spam and assigns | Submits an **Access request**; a **Super Admin** approves it |
-| **Office** staff | People working at one Office of a **Department** | An Authority adds their email and picks their Office |
+| **Office** staff | People working at one Office of a **Department** | They sign in with Google and ask to join their Office on **Join an Office** (an Authority approves it), or an Authority adds their email directly |
 | **Super Admin** | The Invisible City team | Their Gmail is listed in the server setting `SUPER_ADMIN_EMAILS` |
 | **MNA** | Elected representative of a **Constituency** | Later release |
 
@@ -93,7 +93,7 @@ The same updates show in the app on the Citizen's **My reports** page.
 |---|---|
 | Public | City map (heatmap and health layers), Issue page (no reporter identity, before/after photos, timeline), Insights |
 | Citizen | Profile setup, Report a problem (phone-first: camera, GPS, map pin), My reports (with confirm/reject on Fixed Issues) |
-| Authority | Priority queue with filters; Issue review (each Report with reporter email and phone, Spam flag, suggested Offices, Assign); Offices and staff management |
+| Authority | Priority queue with filters; Issue review (each Report with reporter email and phone, Spam flag, suggested Offices, Assign); Offices and staff management, including approving requests to join an Office |
 | Office | My jobs (Start work, Mark fixed with after-photo, Send back) |
 | Super Admin | Access requests (approve / decline) |
 | Anyone | Request Authority access form (name, department, official email, phone) |

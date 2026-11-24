@@ -65,9 +65,20 @@ function SignIn() {
         </button>
         {error && <div className="mt-3 text-sm font-medium text-red-600">{error}</div>}
         <p className="mt-4 text-xs text-muted">{t("signin.public")}</p>
-        <Link href="/request-access" className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">
-          {t("nav.requestAccess")}
-        </Link>
+      </Card>
+
+      {/* The two ways an official gets their role; both are checked by someone before access is given. */}
+      <Card className="p-6">
+        <h2 className="text-base font-extrabold">{t("signin.officialsTitle")}</h2>
+        <p className="mt-1 text-sm text-muted">{t("signin.officialsSub")}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <Link href="/join-office" className={`${btn.ghost} justify-start py-3`}>
+            {t("join.title")}
+          </Link>
+          <Link href="/request-access" className={`${btn.ghost} justify-start py-3`}>
+            {t("nav.requestAccess")}
+          </Link>
+        </div>
       </Card>
 
       {demoMode && (
