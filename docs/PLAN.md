@@ -74,3 +74,5 @@ See PRD section 10.
 - [ ] Authorities register for one area.
 - [ ] Offices record their workers; a sector is neglected when its Offices keep having spare workers and the work is still not done. Show it on Insights.
 - [ ] Enforce one email per Office in the API (the screen already does).
+- [ ] Bring back the previous map design (the user does not like the new one). Details in `docs/HANDOFF.md`.
+- [ ] Look at the branch `official-signup` before building Office self-registration: it already has Office staff sign-up.
