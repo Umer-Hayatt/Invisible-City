@@ -2,7 +2,7 @@
 
 import { Flag, Mail, MapPin, Phone, Plus, Search, Send, Users, X } from "lucide-react";
 import { useState } from "react";
-import { Card, PriorityMeter, Segmented, SeverityBadge, btn, field } from "@/components/ui";
+import { Card, Segmented, CriticalTag, btn, field } from "@/components/ui";
 import { CatChip, Photo, StatusPill, Timeline } from "./bits";
 import {
   type Action,
@@ -95,7 +95,7 @@ function Queue({ state, dispatch }: { state: State; dispatch: (a: Action) => voi
                 onClick={() => setSelected(i.id)}
                 className={`flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-sunken/60 ${current?.id === i.id ? "bg-brand-50" : ""}`}
               >
-                <PriorityMeter value={priority(i)} />
+                <span>{priority(i)}</span>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold">{i.title}</div>
                   <div className="truncate text-xs text-muted">
@@ -131,7 +131,7 @@ function Review({ issue, state, dispatch }: { issue: Issue; state: State; dispat
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill status={issue.status} />
             <CatChip category={issue.category} />
-            <SeverityBadge severity={issue.severity} />
+            <CriticalTag severity={issue.severity} />
             {issue.recurring && <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">Recurrence</span>}
           </div>
           <h3 className="text-lg font-extrabold leading-snug">
@@ -142,7 +142,7 @@ function Review({ issue, state, dispatch }: { issue: Issue; state: State; dispat
               <MapPin size={13} /> {issue.sector}
             </span>
             <span>Open {issue.ageDays} days</span>
-            <PriorityMeter value={priority(issue)} wide />
+            <span>{priority(issue)}</span>
           </div>
         </div>
       </div>

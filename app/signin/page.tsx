@@ -1,6 +1,5 @@
 "use client";
 
-import { LogIn } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -50,30 +49,27 @@ function SignIn() {
   return (
     <div className="mx-auto mt-6 max-w-md space-y-4">
       <Card className="p-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-on-brand">
-          <LogIn size={22} />
-        </div>
-        <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{t("signin.title")}</h1>
-        <p className="mt-1 text-sm text-muted">{t("signin.sub")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("signin.title")}</h1>
+        <p className="mt-2 text-base text-ink-2">{t("signin.sub")}</p>
         {!loading && me && (
-          <p className="mt-4 rounded-xl bg-sunken px-3 py-2 text-sm">
+          <p className="mt-4 rounded-[6px] bg-sunken px-3 py-2 text-base">
             {t("signin.signedInAs", { name: me.displayName || me.email || t(`role.${me.role}`) })}
           </p>
         )}
         <button onClick={google} disabled={busy} className={`${btn.primary} mt-6 w-full py-3`}>
           {busy ? t("signin.working") : t("signin.google")}
         </button>
-        {error && <div className="mt-3 text-sm font-medium text-red-600">{error}</div>}
-        <p className="mt-4 text-xs text-muted">{t("signin.public")}</p>
-        <Link href="/request-access" className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">
+        {error && <div className="mt-3 text-sm font-medium text-danger-ink">{error}</div>}
+        <p className="mt-4 text-sm text-muted">{t("signin.public")}</p>
+        <Link href="/request-access" className="mt-3 inline-block text-base font-semibold text-brand hover:underline">
           {t("nav.requestAccess")}
         </Link>
       </Card>
 
       {demoMode && (
         <Card className="p-6">
-          <h2 className="text-base font-extrabold">{t("signin.demoTitle")}</h2>
-          <p className="mt-1 text-sm text-muted">{t("signin.demoSub")}</p>
+          <h2 className="text-xl font-semibold">{t("signin.demoTitle")}</h2>
+          <p className="mt-1 text-base text-ink-2">{t("signin.demoSub")}</p>
           <div className="mt-4 grid grid-cols-2 gap-2">
             {demoAccounts.map((a) => (
               <button key={a.key} onClick={() => demo(a.key)} className={btn.ghost}>

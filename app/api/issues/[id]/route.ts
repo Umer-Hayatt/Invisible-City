@@ -2,8 +2,8 @@ import { getIssue } from "@/lib/db";
 import { currentActor, dataWorld } from "@/lib/roles";
 
 /**
- * Public and anonymous by default. An Authority, or staff of the Office the Issue is assigned to, also get
- * each reporter's name, email and phone. This is decided here, in the response shape, not in the screens.
+ * Public, with each reporter's display name. An Authority, or staff of the Office the Issue is assigned to, also
+ * get email and phone. This is decided here, in the response shape, not in the screens.
  */
 export async function GET(_req: Request, ctx: RouteContext<"/api/issues/[id]">) {
   const { id } = await ctx.params;

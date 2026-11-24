@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
-import { Noto_Naskh_Arabic, Overpass, Overpass_Mono } from "next/font/google";
+import { Google_Sans, Noto_Naskh_Arabic } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "next-themes";
 import DemoBanner from "@/components/DemoBanner";
 import LocaleSync from "@/components/LocaleSync";
 import { MotionEffects } from "@/components/Motion";
 import MotionProvider from "@/components/MotionProvider";
-import ScrollProgress from "@/components/ScrollProgress";
+import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
-import { dirOf, isLocale, LANG_COOKIE, setLocale, t } from "@/lib/i18n";
+import PageShell from "@/components/PageShell";
+import { dirOf, isLocale, LANG_COOKIE, setLocale } from "@/lib/i18n";
 import "./globals.css";
 
-// Overpass descends from the highway-gothic lettering on road signs; its mono sets every figure.
-const overpass = Overpass({ variable: "--font-overpass", subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
-const overpassMono = Overpass_Mono({ variable: "--font-overpass-mono", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const googleSans = Google_Sans({ variable: "--font-google-sans", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 // Naskh rather than Nastaliq: it keeps the compact line heights the screens were designed with.
 const urdu = Noto_Naskh_Arabic({ variable: "--font-urdu", subsets: ["arabic"], weight: ["400", "500", "600", "700"] });
 
@@ -27,24 +26,16 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = isLocale(saved) ? saved : "en";
   setLocale(lang); // for the text this server layout renders itself
   return (
-    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${overpass.variable} ${overpassMono.variable} ${urdu.variable} h-full antialiased`}>
+    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${googleSans.variable} ${urdu.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-canvas text-ink">
         <LocaleSync lang={lang} />
         <MotionEffects />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <MotionProvider>
-          <ScrollProgress />
           <DemoBanner />
           <Nav />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6">{children}</main>
-          <footer className="border-t border-line">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-xs text-muted sm:px-6">
-              <span>
-                <b className="text-ink">INvisible City</b> · {t("footer.tagline")}
-              </span>
-              <span dir="ltr">Map tiles © Esri · data © OpenStreetMap contributors</span>
-            </div>
-          </footer>
+          <PageShell>{children}</PageShell>
+          <Footer />
         </MotionProvider>
         </ThemeProvider>
       </body>

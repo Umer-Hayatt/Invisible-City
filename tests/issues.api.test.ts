@@ -29,7 +29,7 @@ describe("the public map and Issue pages", () => {
     expect(issues.every((i: { neighborhood: string; status: string }) => i.neighborhood === "I-10" && i.status !== "resolved")).toBe(true);
   });
 
-  it("opens one Issue with its Reports and timeline, without any reporter identity", async () => {
+  it("opens one Issue with its Reports and timeline, with reporter names but no contact details", async () => {
     const { issues } = await json(await listIssues(new Request("http://test/api/issues")));
     const res = await getIssue(new Request("http://test/api/issues/1"), ctx({ id: String(issues[0].id) }));
     expect(res.status).toBe(200);
@@ -38,7 +38,7 @@ describe("the public map and Issue pages", () => {
     expect(body.reports.length).toBe(body.issue.report_count);
     expect(body.events.length).toBeGreaterThan(0);
     expect(JSON.stringify(body)).not.toMatch(/reporter_id|@invisible\.city|\+92/);
-    for (const r of body.reports) expect(r.reporter_name).toBeNull();
+    for (const r of body.reports) expect(r.reporter_name).toBeTruthy();
   });
 
   it("answers 404 for an Issue that does not exist", async () => {

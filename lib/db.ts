@@ -6,9 +6,8 @@ import { Sql, sql } from "./sql";
 import { Category, Issue, IssueEvent, Report, Severity } from "./types";
 
 // ---------------------------------------------------------------------------
-// Reads. Reporter identity never leaves this module in a public shape: Reports
-// come back without name, email or phone (the Authority and Office views, which
-// may see contact details, arrive with sign-in).
+// Reads. A reporter's display name is public; email, phone and the Urdu original
+// leave this module only for an Authority or the assigned Office.
 // ---------------------------------------------------------------------------
 const ISSUE_SELECT = `
   SELECT i.id, i.category, i.severity, i.title, i.summary, i.lat, i.lng, i.neighborhood, i.constituency,
@@ -46,8 +45,8 @@ export async function listIssues(
 }
 
 /**
- * `contacts` adds each reporter's name, email and phone to the Reports. Only the caller decides who may
- * ask for that (an Authority, or staff of the assigned Office); every other response stays anonymous.
+ * Every Report carries its reporter's display name. `contacts` adds email and phone; only the caller decides who
+ * may ask for that (an Authority, or staff of the assigned Office).
  */
 export async function getIssue(id: number, demo: boolean, q: Sql = sql(), opts: { contacts?: boolean } = {}) {
   if (!Number.isInteger(id)) return null;
@@ -57,7 +56,7 @@ export async function getIssue(id: number, demo: boolean, q: Sql = sql(), opts: 
   // The Urdu original goes with the contact details: Authorities and the assigned Office see both languages.
   const who = opts.contacts
     ? "p.display_name AS reporter_name, p.email AS reporter_email, p.phone AS reporter_phone, r.voice_transcript"
-    : "NULL::text AS reporter_name, NULL::text AS voice_transcript";
+    : "p.display_name AS reporter_name, NULL::text AS voice_transcript";
   const reports = await q.query<Report>(
     `SELECT r.id, r.issue_id, ${who}, r.description, r.image, r.image_hash, r.lat, r.lng, r.ai_category,
             r.ai_severity, r.ai_confidence, r.ai_summary, r.ai_source, r.duplicate_score, r.created_at

@@ -3,7 +3,7 @@
 import { Camera, ChevronDown, ClipboardList, LocateFixed, Mic, Sparkles, Trash2, UserRound } from "lucide-react";
 import { useState } from "react";
 import CityMap from "@/components/CityMap";
-import { SeverityBadge, btn, field } from "@/components/ui";
+import { CriticalTag, btn, field } from "@/components/ui";
 import { Photo, PhotoPicker, SamplePhotoButton, StatusPill, Stepper, Timeline } from "./bits";
 import { type Action, CATEGORIES, CATEGORY, type Category, ME, type Profile, type Severity, type State, liveReports } from "./data";
 
@@ -207,7 +207,7 @@ function ReportForm({ dispatch, onDone }: { dispatch: (a: Action) => void; onDon
           {aiDone && (
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <SeverityBadge severity={AI.severity} />
+                <CriticalTag severity={AI.severity} />
                 <span className="text-[11px] text-muted">confidence {Math.round(AI.confidence * 100)}%</span>
               </div>
               <p className="text-xs text-ink-2">{AI.summary}</p>

@@ -45,11 +45,11 @@ function Requests() {
   const row = (r: Req) => (
     <Card key={r.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
       <div className="min-w-0">
-        <div className="font-bold">{r.name}</div>
-        <div className="text-sm text-ink-2">
-          {r.department} · {r.official_email} · {r.phone}
+        <div className="text-lg font-semibold">{r.name}</div>
+        <div className="text-base text-ink-2">
+          {[r.department, r.official_email, r.phone].filter(Boolean).join(", ")}
         </div>
-        <div className="text-xs text-muted">{t("superadmin.requestedOn", { when: timeAgo(r.created_at) })}</div>
+        <div className="text-sm text-muted">{t("superadmin.requestedOn", { when: timeAgo(r.created_at) })}</div>
       </div>
       {r.decision === "pending" ? (
         <div className="flex gap-2">
@@ -67,9 +67,9 @@ function Requests() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <PageHeader title={t("superadmin.title")} sub={t("superadmin.sub")} />
-      {error && <div className="mb-4 text-sm font-medium text-red-600">{error}</div>}
+      {error && <div className="mb-4 rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
       {rows === null ? (
         <ListSkeleton />
       ) : rows.length === 0 ? (
@@ -78,13 +78,13 @@ function Requests() {
         <div className="space-y-6">
           {pending.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-lg font-black">{t("superadmin.pending")}</h2>
+              <h2 className="text-2xl font-bold">{t("superadmin.pending")}</h2>
               {pending.map(row)}
             </section>
           )}
           {done.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-lg font-black">{t("superadmin.decided")}</h2>
+              <h2 className="text-2xl font-bold">{t("superadmin.decided")}</h2>
               {done.map(row)}
             </section>
           )}

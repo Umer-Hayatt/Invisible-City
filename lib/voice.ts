@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 /**
- * Urdu voice adapter. Real: Gemini listens to the recording and returns what was said in Urdu script plus an
- * English translation. There is no fallback provider: without a Gemini key the mic button says voice is off.
+ * Voice adapter for Urdu and English. Real: Gemini listens to the recording and returns what was said in English,
+ * plus the Urdu original when it was spoken in Urdu. There is no fallback provider: without a Gemini key the mic button says voice is off.
  * Tests swap the whole thing with `setTranscriber`.
  */
 export interface VoiceReading {
@@ -17,10 +17,10 @@ export const baseType = (type: string) => type.split(";")[0].trim().toLowerCase(
 
 const ReadingSchema = z.object({ urdu: z.string(), english: z.string() });
 
-const PROMPT = `The recording is a resident of Islamabad, Pakistan describing a public problem (a pothole, rubbish, a broken light, a leak, a blocked drain and so on) for a civic reporting app. They usually speak Urdu and may mix in English words.
+const PROMPT = `The recording is a resident of Islamabad, Pakistan describing a public problem (a pothole, rubbish, a broken light, a leak, a blocked drain and so on) for a civic reporting app. They may speak Urdu, English or a mix of the two.
 Return JSON with exactly two fields:
-- "urdu": what they said, written in Urdu script. Keep English words they used as they said them.
-- "english": a faithful, plain English translation that a city official can act on.
+- "urdu": if they spoke Urdu, what they said, written in Urdu script, keeping English words they used as they said them. If they spoke only English, an empty string.
+- "english": if they spoke English, what they said; otherwise a faithful, plain English translation that a city official can act on.
 Do not add anything they did not say. If there is no speech, return empty strings for both.`;
 
 type Transcriber = (audio: Buffer, mimeType: string) => Promise<VoiceReading>;

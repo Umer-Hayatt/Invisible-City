@@ -1,12 +1,13 @@
 "use client";
 
-import { LogIn, LogOut, Menu, Plus, Sparkles, X } from "lucide-react";
+import { LogOut, Menu, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, ViewTransition } from "react";
+import { useEffect, useState } from "react";
 
 import LanguageSwitch from "@/components/LanguageSwitch";
 import ThemeToggle from "@/components/ThemeToggle";
+import { btn } from "@/components/ui";
 import { sessionChanged, useMe } from "@/lib/me";
 import { api } from "@/lib/client";
 import { t } from "@/lib/i18n";
@@ -26,20 +27,22 @@ function linksFor(role: Role | null) {
 const aiTitle = (mode: string) =>
   mode === "gemini" ? t("nav.aiGemini") : mode === "groq" ? t("nav.aiGroq") : t("nav.aiHeuristic");
 
-/** The mark: a small green sign plate with "IN" in white reflective lettering, then the name. */
+/** The mark: a lime map pin, then the name with "IN" in lime. Always on charcoal. */
 export function Logo() {
   return (
-    <Link href="/" dir="ltr" className="flex items-center gap-1" aria-label="INvisible City">
-      <span
-        aria-hidden
-        className="flex h-9 items-center rounded-[7px] bg-sign px-2 text-[15px] font-black leading-none tracking-tight text-sign-ink shadow-[inset_0_0_0_2px_var(--color-sign),inset_0_0_0_3.5px_var(--color-sign-ink)]"
-      >
-        IN
+    <Link href="/" dir="ltr" className="flex shrink-0 items-center gap-2 text-on-dark" aria-label="INvisible City">
+      <svg aria-hidden viewBox="0 0 24 32" className="h-7 w-auto">
+        <path d="M12 0a12 12 0 0 0-12 12c0 8.5 12 20 12 20s12-11.5 12-20A12 12 0 0 0 12 0Z" fill="var(--color-lime)" />
+        <path d="M6.8 12.4l3.7 3.7 6.9-7.4" fill="none" stroke="var(--color-char)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span aria-hidden className="text-xl font-semibold tracking-[-0.015em]">
+        <span className="text-lime">IN</span>visible City
       </span>
-      <span className="text-[18px] font-extrabold tracking-[-0.01em]">visible City</span>
     </Link>
   );
 }
+
+export const iconBtn = "flex h-10 w-10 items-center justify-center rounded-[6px] border border-char-line text-on-dark transition-colors hover:border-on-dark-2 hover:text-lime";
 
 export default function Nav() {
   const path = usePathname();
@@ -52,13 +55,6 @@ export default function Nav() {
     await api("/api/auth/signout", { method: "POST" });
     sessionChanged("/");
   }
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
@@ -66,7 +62,7 @@ export default function Nav() {
       .catch(() => {});
   }, []);
 
-  // Exactly one link is active (the longest match), so the sliding pill below has one place to be.
+  // Exactly one link is active (the longest match).
   const activeHref =
     [...LINKS, ...(canReport ? [{ href: "/report", label: "" }] : []), ...(me ? [{ href: "/profile", label: "" }] : [])]
       .filter((l) => (l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/")))
@@ -74,88 +70,69 @@ export default function Nav() {
   const isActive = (href: string) => href === activeHref;
 
   return (
-    <header
-      style={{ viewTransitionName: "site-header" }}
-      className={`sticky top-0 z-[1000] border-b-[3px] border-ink bg-canvas transition-shadow duration-300 ${
-        scrolled ? "shadow-[0_10px_30px_-18px_rgb(0_0_0/0.45)]" : ""
-      }`}
-    >
+    <header style={{ viewTransitionName: "site-header" }} className="on-dark sticky top-0 z-[1000] bg-char text-on-dark">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6">
         <Logo />
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className={`relative px-3 py-5 text-[15px] font-bold transition-colors ${
-                isActive(l.href) ? "text-ink" : "text-ink-2 hover:text-ink"
+              aria-current={isActive(l.href) ? "page" : undefined}
+              className={`whitespace-nowrap rounded-[6px] px-3 py-2 text-base font-medium transition-colors ${
+                isActive(l.href) ? "text-lime" : "text-on-dark hover:text-lime"
               }`}
             >
-              {isActive(l.href) && (
-                // A painted lane marker under the active link; the same named marker slides to the next one.
-                <ViewTransition name="nav-pill" share="nav-pill">
-                  <span aria-hidden className="absolute inset-x-3 -bottom-[3px] h-[5px] bg-brand" />
-                </ViewTransition>
-              )}
               {l.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
-          {aiMode && (
-            <span
-              title={aiTitle(aiMode)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted"
-            >
-              <span className={`h-2 w-2 rounded-full ${aiMode !== "heuristic" ? "bg-brand" : "bg-accent"}`} />
-              {aiMode !== "heuristic" ? t("nav.aiLive") : t("nav.aiOffline")}
-            </span>
-          )}
+        <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
           <LanguageSwitch />
-          {canReport && (
-            <Link href="/report" className="press inline-flex items-center gap-1.5 rounded-[10px] bg-brand px-4 py-2 text-sm font-extrabold text-on-brand transition-colors hover:bg-brand-600">
-              <Plus size={16} strokeWidth={2.5} /> {t("nav.report")}
-            </Link>
-          )}
           {me ? (
-            <div className="flex items-center gap-2 text-xs">
-              <Link href="/profile" className="text-end leading-tight hover:underline">
-                <div className="font-semibold">{me.displayName || me.email}</div>
-                <div className="text-muted">{t(`role.${me.role}`)}</div>
+            <div className="flex items-center gap-2 text-sm">
+              <Link href="/profile" className="max-w-40 text-end leading-tight hover:text-lime">
+                <div className="truncate font-semibold">{me.displayName || me.email}</div>
+                <div className="text-on-dark-2">{t(`role.${me.role}`)}</div>
               </Link>
-              <button onClick={signOut} aria-label={t("nav.signOut")} title={t("nav.signOut")} className="rounded-full border border-line p-2 hover:border-ink/30">
-                <LogOut size={14} />
+              <button onClick={signOut} aria-label={t("nav.signOut")} title={t("nav.signOut")} className={iconBtn}>
+                <LogOut size={16} />
               </button>
             </div>
           ) : (
-            <Link href="/signin" className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-semibold hover:border-ink/30">
-              <LogIn size={15} /> {t("nav.signIn")}
+            <Link href="/signin" className="whitespace-nowrap px-2 py-2 text-base font-medium hover:text-lime">
+              {t("nav.signIn")}
+            </Link>
+          )}
+          {canReport && (
+            <Link href="/report" className={btn.primary}>
+              {t("nav.reportLong")}
             </Link>
           )}
         </div>
 
-        <button className="rounded-full p-2 md:hidden" onClick={() => setOpen(!open)} aria-label={t("nav.menu")}>
-          {open ? <X size={20} /> : <Menu size={20} />}
+        <button className="flex h-11 w-11 items-center justify-center rounded-[6px] lg:hidden" aria-expanded={open} onClick={() => setOpen(!open)} aria-label={t("nav.menu")}>
+          {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {open && (
-        <nav className="border-t border-line bg-canvas px-4 py-3 md:hidden">
+        <nav className="border-t border-char-line px-4 py-3 lg:hidden">
           {[...(canReport ? [{ href: "/report", label: t("nav.reportLong") }] : []), ...LINKS, ...(me ? [{ href: "/profile", label: t("nav.profile") }] : [{ href: "/signin", label: t("nav.signIn") }])].map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className={`block rounded-xl px-3 py-2.5 text-sm font-semibold ${isActive(l.href) ? "bg-ink text-canvas" : "text-ink-2"}`}
+              className={`block rounded-[6px] px-3 py-3 text-base font-medium ${isActive(l.href) ? "bg-lime text-on-lime" : "text-on-dark"}`}
             >
               {l.label}
             </Link>
           ))}
           {me && (
-            <button onClick={signOut} className="block w-full rounded-xl px-3 py-2.5 text-start text-sm font-semibold text-ink-2">
+            <button onClick={signOut} className="block w-full rounded-[6px] px-3 py-3 text-start text-base font-medium">
               {t("nav.signOut")}
             </button>
           )}
@@ -164,8 +141,8 @@ export default function Nav() {
             <LanguageSwitch />
           </div>
           {aiMode && (
-            <div className="mt-2 flex items-center gap-1.5 px-3 text-xs text-muted">
-              <Sparkles size={12} /> {aiTitle(aiMode)}
+            <div className="mt-2 flex items-center gap-1.5 px-3 text-sm text-on-dark-2">
+              <Sparkles size={14} aria-hidden /> {aiTitle(aiMode)}
             </div>
           )}
         </nav>

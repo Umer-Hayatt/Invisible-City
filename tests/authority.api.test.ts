@@ -115,11 +115,12 @@ describe("reporter contact details", () => {
     signInAs("crew-a@gov.pk");
     expect(await contactOf()).toMatchObject({ reporter_name: "ReporterOne" });
 
+    // Everyone else sees the display name only.
     for (const who of [() => setSession(null), () => citizen("NosyNeighbour"), () => signInAs("crew-b@gov.pk")]) {
       process.env.DEMO_MODE = "false"; // signed-out visitors see real data only when Demo mode is off
       await who();
       const r = await contactOf();
-      expect(r.reporter_name).toBeNull();
+      expect(r.reporter_name).toBe("ReporterOne");
       expect(r).not.toHaveProperty("reporter_email");
       expect(r).not.toHaveProperty("reporter_phone");
     }

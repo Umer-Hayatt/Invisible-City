@@ -189,8 +189,10 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
     for (let k = 0; k < count; k++) {
       // G-9 gets recurring road damage: the first repair fails and the problem comes back.
       const category: Category = name === "G-9" && k < 4 ? "road_damage" : pick(SEED_CATEGORIES);
-      const severity = pick(sevs);
+      const rolled = pick(sevs);
       const text = pick(SEED_TEXT[category]!);
+      // Critical is kept for an immediate danger; anything else tops out at high.
+      const severity: Severity = rolled === "critical" && !/exposed wires|sewage/.test(text) ? "high" : rolled;
       let lat = hood.lat + (rand() - 0.5) * 0.012;
       let lng = hood.lng + (rand() - 0.5) * 0.014;
       const ageDays = 3 + Math.floor(rand() * 75);

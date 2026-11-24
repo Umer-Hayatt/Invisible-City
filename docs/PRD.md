@@ -46,7 +46,8 @@ Everyone signs in with Google. Signing in alone only ever makes someone a Citize
 4. An Authority can put a **Spam flag** on a Report. A flagged Report is hidden; if it was the Issue's only Report, the Issue is removed. Three Spam flags cause a **Suspension**.
 
 ### Privacy
-- A reporter's name, email and phone are visible only to Authorities and to the Office the Issue is assigned to. Public pages, the map and other Citizens see Issues without reporter identity.
+- A reporter's display name is visible to everyone. Email and phone are visible only to Authorities and to the Office the Issue is assigned to. (Changed 24 November 2026: names were hidden before.)
+- Citizens are not shown severity levels, priority numbers or neglected sectors. Only "Critical" is shown, and only for an immediate danger that is still waiting. Authorities also see the priority number and the neglected list.
 
 ### Issue workflow
 
@@ -91,7 +92,7 @@ The same updates show in the app on the Citizen's **My reports** page.
 
 | Who | Screens |
 |---|---|
-| Public | City map (heatmap and health layers), Issue page (no reporter identity, before/after photos, timeline), Insights |
+| Public | City map (Issues and heatmap layers), Issue page (reporter names, before/after photos, timeline), Insights |
 | Citizen | Profile setup, Report a problem (phone-first: camera, GPS, map pin), My reports (with confirm/reject on Fixed Issues) |
 | Authority | Priority queue with filters; Issue review (each Report with reporter email and phone, Spam flag, suggested Offices, Assign); Offices and staff management |
 | Office | My jobs (Start work, Mark fixed with after-photo, Send back) |
@@ -103,19 +104,19 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 ## 6. AI
 
 - **Photo analysis**: Gemini first, then Groq, then the offline keyword guess as fallbacks. It produces Category, severity, a confidence, a summary, and whether the photo shows a civic problem at all.
-- **Urdu voice**: the Citizen taps the mic button, speaks (up to a minute) and taps again to stop; Gemini returns Urdu text plus an English translation. The Citizen sees the text before submitting and can correct the English. The English becomes the Report's description (public, and what the photo analysis reads); the Urdu original is shown only to Authorities and the assigned Office, alongside the contact details. Without a Gemini key the mic says voice is off; there is no fallback provider.
+- **Voice (Urdu or English)**: the Citizen taps the mic button, speaks (up to a minute) and taps again to stop; Gemini returns the English, plus the Urdu text when Urdu was spoken. The Citizen sees the text before submitting and can correct the English. The English becomes the Report's description (public, and what the photo analysis reads); the Urdu original is shown only to Authorities and the assigned Office, alongside the contact details. Without a Gemini key the mic says voice is off; there is no fallback provider.
 
 ## 7. Insights (existing, kept)
 - Invisible-problems heatmap.
-- Neighbourhood health score: `0.55·max(0, 100 − 4·open severity load) + 0.45·resolution rate·100`.
-- Neglected neighbourhood: ≥ 3 complaints, resolution rate < 35% and below 60% of the city rate.
+- Sectors: the percentage of reported problems fixed, and average days to fix. The neighbourhood health score is still computed by the API but shown nowhere (24 November 2026).
+- Neglected neighbourhood: ≥ 3 complaints, resolution rate < 35% and below 60% of the city rate. Shown to Authorities and Super Admins only. To be replaced by a rule based on Offices' spare workers (agreed 24 November 2026, not built).
 - Predictive maintenance from recurring problems.
 - Before vs after photos.
 - **Office track record** (new): per Office, Issues assigned, Fixes, Rejections, Unconfirmed closures, and average days to fix.
   - "Issues assigned" counts the Issues an Office holds now; a sent-back Issue leaves it. Days to fix run from an Issue's latest Assignment to its latest Fix.
 - Open severity load counts every Issue not yet Resolved or Closed unconfirmed (a Fix waiting for an answer still counts). Resolution rate counts only Resolutions; Unconfirmed closures are shown apart and count as neither open nor resolved.
 - A new Report near an Issue that was Resolved or Closed unconfirmed in the last 180 days marks a recurrence.
-- The Citizen Impact leaderboard shows scores without names, like every public page.
+- "Citizens who report most" shows names and Report counts. The Citizen Impact score is computed but not shown for now (24 November 2026).
 
 ## 8. Demo mode
 The public site has **Demo accounts** (a Citizen, an Authority, an Office, a Super Admin) that anyone can switch between, all with made-up seeded people and data, under a visible "Demo" banner. Real Google sign-ins work on the same site at the same time, and real data never mixes with demo data, so the team can test the real flow live.

@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, ChevronRight, CircleCheck, HardHat, Inbox, ListTree, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
+import { Camera, ChevronRight, CircleCheck, HardHat, Inbox, ListTree, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
@@ -52,25 +52,16 @@ function TrackList() {
   useEffect(load, [load]);
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <PageHeader eyebrow={t("track.eyebrow")} title={t("track.title")} sub={t("track.sub")} />
+    <div>
+      <PageHeader title={t("track.title")} sub={t("track.sub")} />
 
       {impact && (
-        <div className="relative mb-8 overflow-hidden rounded-3xl border border-white/5 bg-[#0b1612] p-6 text-white shadow-float sm:p-7">
-          <div className="pointer-events-none absolute -end-10 -top-20 h-56 w-56 rounded-full bg-accent/25 blur-3xl" />
-          <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-5">
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-white/60">
-                <Trophy size={14} className="text-accent" /> {t("track.impact")}
-              </div>
-              <div className="mt-1 text-5xl font-extrabold tabular-nums">{impact.score}</div>
-            </div>
-            <Mini label={t("track.statReports")} v={impact.reports} />
-            <Mini label={t("track.statFirst")} v={impact.firstReports} />
-            <Mini label={t("track.statBacked")} v={impact.corroborated} />
-            <Mini label={t("track.statFixed")} v={impact.resolved} />
-          </div>
-        </div>
+        <dl className="mb-8 grid grid-cols-2 divide-line rounded-[8px] border border-line bg-surface sm:grid-cols-4 sm:divide-x">
+          <Mini label={t("track.statReports")} v={impact.reports} />
+          <Mini label={t("track.statFirst")} v={impact.firstReports} />
+          <Mini label={t("track.statBacked")} v={impact.corroborated} />
+          <Mini label={t("track.statFixed")} v={impact.resolved} />
+        </dl>
       )}
 
       {rows === null ? (
@@ -107,13 +98,13 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
   return (
     <Card className="rise p-4">
       <Link href={`/issues/${r.issue_id}`} className="group flex gap-4">
-        <IssueThumb src={imageUrl(r.image)} category={r.ai_category as Category} className="h-20 w-20 shrink-0 rounded-xl sm:h-24 sm:w-24" />
+        <IssueThumb src={imageUrl(r.image)} category={r.ai_category as Category} className="h-20 w-20 shrink-0 rounded-[6px] sm:h-24 sm:w-24" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="truncate font-bold group-hover:underline">{r.issue_title}</div>
-              <div className="mt-0.5 text-xs text-muted">
-                {t("track.meta", { id: r.issue_id, place: r.issue_neighborhood, when: timeAgo(r.created_at) })} ·{" "}
+              <div className="text-lg font-semibold leading-snug group-hover:text-brand">{r.issue_title}</div>
+              <div className="mt-0.5 text-sm text-muted">
+                {t("track.meta", { id: r.issue_id, place: r.issue_neighborhood, when: timeAgo(r.created_at) })}{" "}
                 {r.issue_report_count > 1 ? t("track.others", { n: r.issue_report_count }) : t("track.onlyYou")}
               </div>
             </div>
@@ -125,14 +116,14 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
           <div className="mt-4 grid grid-cols-5 gap-1.5">
             {STEP_LABEL.map((l, i) => (
               <div key={l}>
-                <div className={`h-1.5 rounded-full ${i <= step ? "bg-brand" : "bg-sunken"}`} />
-                <div className={`mt-1.5 text-[11px] leading-tight ${i <= step ? "font-semibold text-ink" : "text-muted"}`}>{t(l)}</div>
+                <div className={`h-1.5 rounded-[2px] ${i <= step ? "bg-lime-600" : "bg-sunken"}`} />
+                <div className={`mt-1.5 text-xs leading-tight sm:text-sm ${i <= step ? "font-semibold text-ink" : "text-muted"}`}>{t(l)}</div>
               </div>
             ))}
           </div>
           {r.issue_team && (r.issue_status === "assigned" || r.issue_status === "in_progress") && (
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-ink-2">
-              <HardHat size={13} /> {r.issue_team}
+            <div className="mt-2 flex items-center gap-1.5 text-sm text-ink-2">
+              <HardHat size={15} aria-hidden /> {r.issue_team}
             </div>
           )}
         </div>
@@ -146,15 +137,15 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
       )}
       {r.issue_status === "closed_unconfirmed" && <p className="mt-3 text-sm text-muted">{t("track.closedUnconfirmed")}</p>}
 
-      <button onClick={() => setShowTimeline((s) => !s)} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2 hover:text-ink">
-        <ListTree size={14} /> {showTimeline ? t("track.hideTimeline") : t("track.timeline")}
+      <button onClick={() => setShowTimeline((s) => !s)} className="mt-3 inline-flex items-center gap-1.5 min-h-9 text-sm font-semibold text-ink-2 hover:text-ink">
+        <ListTree size={16} aria-hidden /> {showTimeline ? t("track.hideTimeline") : t("track.timeline")}
       </button>
       {showTimeline && (
         <ol className="stagger mt-2 space-y-2 border-s border-line ps-4">
           {r.issue_events.map((e) => (
             <li key={e.id} className="text-sm">
               <div className="leading-snug">{e.message}</div>
-              <div className="text-xs text-muted">{formatDateTime(e.created_at)}</div>
+              <div className="text-sm text-muted">{formatDateTime(e.created_at)}</div>
             </li>
           ))}
         </ol>
@@ -190,12 +181,12 @@ function FixAnswer({ r, onChanged }: { r: Row; onChanged: () => void }) {
 
   const answerBy = r.issue_fixed_at ? new Date(new Date(r.issue_fixed_at).getTime() + FIX_ANSWER_DAYS * 86_400_000) : null;
   return (
-    <div className="mt-4 space-y-3 rounded-2xl bg-amber-50 p-3 ring-1 ring-inset ring-amber-200">
-      <div className="text-sm font-bold">{t("track.fixedAsk")}</div>
+    <div className="mt-4 space-y-3 rounded-[6px] border border-note-line bg-note p-4">
+      <div className="text-lg font-semibold">{t("track.fixedAsk")}</div>
       {r.issue_after_image && (
         <figure>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl(r.issue_after_image)!} alt={t("track.afterPhoto")} className="max-h-64 w-full rounded-xl object-cover" />
+          <img src={imageUrl(r.issue_after_image)!} alt={t("track.afterPhoto")} className="max-h-64 w-full rounded-[6px] object-cover" />
           {r.issue_fix_note && <figcaption className="mt-1.5 text-sm text-ink-2">{r.issue_fix_note}</figcaption>}
         </figure>
       )}
@@ -221,17 +212,17 @@ function FixAnswer({ r, onChanged }: { r: Row; onChanged: () => void }) {
           </button>
         </div>
       )}
-      {answerBy && <p className="text-xs text-muted">{t("track.answerBy", { date: formatDate(answerBy) })}</p>}
-      {err && <p className="text-sm font-medium text-red-600">{err}</p>}
+      {answerBy && <p className="text-sm text-ink-2">{t("track.answerBy", { date: formatDate(answerBy) })}</p>}
+      {err && <p className="text-sm font-medium text-danger-ink">{err}</p>}
     </div>
   );
 }
 
 function Mini({ label, v }: { label: string; v: number }) {
   return (
-    <div>
-      <div className="text-xs font-semibold text-white/60">{label}</div>
-      <div className="mt-1 text-3xl font-extrabold tabular-nums">{v}</div>
+    <div className="flex flex-col-reverse p-5">
+      <dt className="text-sm text-muted">{label}</dt>
+      <dd className="text-3xl font-bold tabular-nums">{v}</dd>
     </div>
   );
 }

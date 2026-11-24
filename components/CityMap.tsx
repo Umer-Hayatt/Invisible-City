@@ -25,3 +25,4 @@ export default function CityMap(props: MapProps) {
   );
 }
 export type { MapLayer } from "./MapInner";
+export { pinColor } from "./pin";

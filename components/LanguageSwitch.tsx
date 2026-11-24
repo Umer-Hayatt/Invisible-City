@@ -16,7 +16,7 @@ export default function LanguageSwitch({ className = "" }: { className?: string 
       onClick={change}
       lang={next}
       title={t("lang.switchTitle")}
-      className={`inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-semibold hover:border-ink/30 ${className}`}
+      className={`inline-flex h-10 items-center gap-1.5 rounded-[6px] border border-char-line px-3 text-[15px] font-medium text-on-dark transition-colors hover:border-on-dark-2 hover:text-lime ${className}`}
     >
       <Languages size={15} aria-hidden /> {next === "ur" ? "اردو" : "English"}
     </button>

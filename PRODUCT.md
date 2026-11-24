@@ -34,7 +34,7 @@ A closed loop with proof. An Issue is not done when an official says so: the Off
 - AI: Gemini, then Groq, then an offline keyword guess for photo analysis; Gemini for Urdu voice Reports.
 - Every on-screen string goes through `lib/i18n` (`t()`); English and Urdu (right to left) must both work.
 - Light and dark mode exist and must keep working.
-- Reporter name, email and phone are shown only to Authorities and the assigned Office; public pages stay anonymous.
+- Reporter display names are public; email and phone are shown only to Authorities and the assigned Office.
 - Domain terms come from `GLOSSARY.md` (Citizen, Authority, Office, Issue, Report, Fix, Resolution, Rejection, Unconfirmed closure).
 
 ## Brand Commitments
@@ -50,11 +50,11 @@ A closed loop with proof. An Issue is not done when an official says so: the Off
 ## Product Principles
 
 1. Proof over promises: show the after-photo and the Citizen's answer, not claims.
-2. Public accountability without exposing people: name Offices and sectors, never reporters.
+2. Public accountability without exposing people: name Offices and sectors; never show a reporter's contact details.
 3. Thirty seconds to report, on a phone, in English or Urdu.
 4. The demo must tell the whole loop in a few minutes.
 
 ## Accessibility & Inclusion
 
-- Urdu right-to-left layout and Urdu voice input.
+- Urdu right-to-left layout; voice input in Urdu or English.
 - Reduced-motion users get every state without movement.

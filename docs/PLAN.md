@@ -66,3 +66,11 @@ Ordered work list for the 28 November 2026 deadline. The rules are in [`PRD.md`]
 
 ## Later
 See PRD section 10.
+
+## Fixes of 24 November 2026 (fixes.docx)
+
+- [x] Frontend: new theme on every page, Citizens see only Critical, no health score, reporter names shown to everyone, one email per Office, voice in Urdu or English.
+- [ ] Offices register themselves and ask for access, as a Department with an area (private businesses included).
+- [ ] Authorities register for one area.
+- [ ] Offices record their workers; a sector is neglected when its Offices keep having spare workers and the work is still not done. Show it on Insights.
+- [ ] Enforce one email per Office in the API (the screen already does).

@@ -14,8 +14,8 @@ const MAX_SECONDS = 60;
 const TYPES = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
 
 /**
- * The mic button on the Report form: tap to start speaking (in Urdu), tap again to stop. The recording goes to
- * `/api/voice`, which returns Urdu text and an English translation for the Citizen to check before sending.
+ * The mic button on the Report form: tap to start speaking (in Urdu or English), tap again to stop. The recording goes to
+ * `/api/voice`, which returns the words in English (and in Urdu when they were spoken in Urdu) for the Citizen to check before sending.
  */
 export default function VoiceInput({ onText, disabled }: { onText: (v: VoiceText) => void; disabled?: boolean }) {
   const [state, setState] = useState<"idle" | "recording" | "working">("idle");
@@ -88,8 +88,8 @@ export default function VoiceInput({ onText, disabled }: { onText: (v: VoiceText
         disabled={disabled || state === "working"}
         onClick={state === "recording" ? stop : start}
         aria-pressed={state === "recording"}
-        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${
-          state === "recording" ? "bg-red-600 text-white" : "border border-line bg-surface text-ink hover:border-brand hover:text-brand"
+        className={`press inline-flex min-h-11 items-center gap-2 rounded-[6px] px-4 text-[15px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+          state === "recording" ? "bg-danger text-on-status" : "border border-muted bg-surface text-ink hover:border-ink hover:bg-sunken"
         }`}
       >
         {state === "recording" ? (
@@ -102,11 +102,11 @@ export default function VoiceInput({ onText, disabled }: { onText: (v: VoiceText
           </>
         ) : (
           <>
-            <Mic size={15} /> {t("voice.start")}
+            <Mic size={17} aria-hidden /> {t("voice.start")}
           </>
         )}
       </button>
-      {error && <div className="mt-2 text-xs font-medium text-red-600">{error}</div>}
+      {error && <div className="mt-2 text-sm font-medium text-danger-ink">{error}</div>}
     </div>
   );
 }

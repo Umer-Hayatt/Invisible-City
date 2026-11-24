@@ -2,7 +2,7 @@
 
 import { Camera, CornerUpLeft, Mail, MapPin, Phone, Play, Wrench } from "lucide-react";
 import { useState } from "react";
-import { Card, SeverityBadge, btn, field } from "@/components/ui";
+import { Card, CriticalTag, btn, field } from "@/components/ui";
 import { CatChip, Photo, PhotoPicker, SamplePhotoButton, StatusPill } from "./bits";
 import { type Action, type Issue, type Office, type State, distanceKm, liveReports } from "./data";
 
@@ -79,7 +79,7 @@ function Job({ issue, office, dispatch }: { issue: Issue; office: Office; dispat
           </div>
           <div className="mt-1 flex flex-wrap gap-1.5">
             <CatChip category={issue.category} />
-            <SeverityBadge severity={issue.severity} />
+            <CriticalTag severity={issue.severity} />
           </div>
         </div>
       </div>

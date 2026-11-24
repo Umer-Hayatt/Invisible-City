@@ -25,9 +25,8 @@ import {
   CategoryIcon,
   Empty,
   IssueThumb,
+  CriticalTag,
   PageHeader,
-  PriorityMeter,
-  SeverityBadge,
   Stat,
   StatusBadge,
   btn,
@@ -86,7 +85,6 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={t("admin.eyebrow")}
         title={t("admin.title")}
         sub={t("admin.sub")}
         right={
@@ -95,7 +93,7 @@ function Dashboard() {
               await api("/api/auth/signout", { method: "POST" });
               sessionChanged("/");
             }}
-            className={btn.ghost}
+            className={btn.onDark}
           >
             <LogOut size={15} /> {t("nav.signOut")}
           </button>
@@ -116,7 +114,7 @@ function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_400px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-4">
           <Card className="overflow-hidden">
             <CityMap issues={filtered} layer="issues" className="h-[300px]" focus={sel ? [sel.lat, sel.lng] : null} />
@@ -150,17 +148,16 @@ function Dashboard() {
                   </option>
                 ))}
               </Pill>
-              <span className="ms-auto pe-2 text-xs font-semibold text-muted">{t("admin.count", { n: filtered.length })}</span>
+              <span className="ms-auto pe-2 text-sm font-medium text-muted">{t("admin.count", { n: filtered.length })}</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-start text-sm">
-                <thead className="text-[11px] font-bold uppercase tracking-wider text-muted">
+              <table className="w-full min-w-[680px] text-start text-[15px]">
+                <thead className="text-sm font-semibold text-muted">
                   <tr className="border-b border-line">
                     <th className="px-4 py-3 text-start">{t("admin.colPriority")}</th>
                     <th className="py-3 text-start">{t("admin.colIssue")}</th>
                     <th className="py-3 text-start">{t("insights.colSector")}</th>
-                    <th className="py-3 text-start">{t("admin.colSeverity")}</th>
-                    <th className="py-3 text-center">{t("admin.colReports")}</th>
+                    <th className="px-4 py-3 text-center">{t("admin.colReports")}</th>
                     <th className="py-3 text-start">{t("admin.colStatus")}</th>
                     <th className="py-3 pe-4 text-end">{t("admin.colAge")}</th>
                   </tr>
@@ -174,42 +171,43 @@ function Dashboard() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       onClick={() => setSelected(i.id)}
-                      className={`cursor-pointer transition-colors ${selected === i.id ? "bg-brand-50" : "hover:bg-canvas"}`}
+                      className={`cursor-pointer transition-colors ${selected === i.id ? "bg-brand-50" : "hover:bg-sunken"}`}
                     >
                       <td className="px-4 py-3">
-                        <PriorityMeter value={i.priority} />
+                        <span className="text-lg font-semibold tabular-nums">{i.priority}</span>
                       </td>
-                      <td className="max-w-[280px] py-3 pe-3">
+                      <td className="max-w-[320px] py-3 pe-3">
                         <div className="flex items-center gap-2.5">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sunken text-ink-2">
-                            <CategoryIcon category={i.category} size={15} />
-                          </span>
+                          <CategoryIcon category={i.category} size={20} className="shrink-0 text-muted" />
                           <div className="min-w-0">
-                            <div className="truncate font-semibold">{i.title}</div>
-                            <div className="flex items-center gap-1 text-xs text-muted">
+                            <button
+                              type="button"
+                              onClick={() => setSelected(i.id)}
+                              className="block max-w-full truncate text-start font-semibold hover:text-brand"
+                            >
+                              {i.title}
+                            </button>
+                            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-muted">
                               #{i.id}
                               {i.recurrence_of ? (
                                 <>
-                                  {" "}
-                                  · <Repeat size={11} /> {t("admin.recurring")}
+                                  <Repeat size={13} aria-hidden /> {t("admin.recurring")}
                                 </>
                               ) : null}
+                              <CriticalTag severity={i.severity} status={i.status} />
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="py-3">
                         <span className="font-medium">{i.neighborhood}</span>
-                        {neglected.includes(i.neighborhood) && <TriangleAlert size={12} className="ms-1 inline text-red-600" />}
-                      </td>
-                      <td className="py-3">
-                        <SeverityBadge severity={i.severity} />
+                        {neglected.includes(i.neighborhood) && <TriangleAlert size={14} className="ms-1 inline text-danger-ink" aria-label={t("insights.neglected")} />}
                       </td>
                       <td className="py-3 text-center font-semibold tabular-nums">{i.report_count}</td>
                       <td className="py-3">
                         <StatusBadge status={i.status} />
                       </td>
-                      <td className="py-3 pe-4 text-end text-xs text-muted">{timeAgo(i.created_at)}</td>
+                      <td className="py-3 whitespace-nowrap pe-4 text-end text-sm text-muted">{timeAgo(i.created_at)}</td>
                     </m.tr>
                   ))}
                 </tbody>
@@ -239,7 +237,7 @@ function Pill({ value, onChange, children }: { value: string; onChange: (v: stri
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium capitalize outline-none focus:border-brand"
+      className="min-h-10 rounded-[6px] border border-muted bg-surface px-3 text-[15px] font-medium"
     >
       {children}
     </select>
@@ -296,17 +294,17 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
       <div className="space-y-5 p-5">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-muted">
-              #{issue.id} · {issue.neighborhood}
+            <span className="text-sm font-medium text-muted">
+              #{issue.id}, {issue.neighborhood}
             </span>
             <CategoryChip category={issue.category} />
           </div>
-          <h2 className="mt-2 text-lg font-bold leading-snug">{issue.title}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-ink-2">{issue.summary}</p>
+          <h2 className="mt-2 text-xl font-semibold leading-snug">{issue.title}</h2>
+          <p className="mt-1 text-base leading-relaxed text-ink-2">{issue.summary}</p>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-            <SeverityBadge severity={issue.severity} />
             <span className="font-medium text-ink-2">{t("office.reports", { n: issue.report_count })}</span>
-            <PriorityMeter value={issue.priority} />
+            <span className="text-ink-2">{t("ui.priorityTitle", { n: issue.priority })}</span>
+            <CriticalTag severity={issue.severity} status={issue.status} />
           </div>
           <Link href={`/issues/${issue.id}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
             {t("admin.fullHistory")} <ArrowUpRight size={14} className="rtl:-scale-x-100" />
@@ -316,8 +314,8 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
         {issue.status !== "resolved" && issue.status !== "closed_unconfirmed" ? (
           <>
             <div className="space-y-2.5 border-t border-line pt-5">
-              <div className="flex items-center gap-2 text-sm font-bold">
-                <HardHat size={16} className="text-violet-600" /> {t("admin.assignTitle")}
+              <div className="flex items-center gap-2 text-base font-semibold">
+                <HardHat size={18} className="text-muted" aria-hidden /> {t("admin.assignTitle")}
               </div>
               {issue.status !== "open" ? (
                 <p className="text-sm text-muted">
@@ -337,11 +335,11 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
                   <select value={officeId ?? ""} onChange={(e) => setOfficeId(Number(e.target.value))} className={`${field} py-2`}>
                     {offices.map((o) => (
                       <option key={o.id} value={o.id}>
-                        {o.name} · {t("admin.distance", { km: (o.distance / 1000).toFixed(1) })}
+                        {o.name} ({t("admin.distance", { km: (o.distance / 1000).toFixed(1) })})
                       </option>
                     ))}
                   </select>
-                  <button disabled={busy || officeId === null} onClick={assign} className={btn.dark}>
+                  <button disabled={busy || officeId === null} onClick={assign} className={btn.primary}>
                     {t("admin.assign")}
                   </button>
                 </div>
@@ -352,7 +350,7 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
               <div className="space-y-3 border-t border-line pt-5">
                 {issue.after_image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-40 w-full rounded-xl object-cover" />
+                  <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-40 w-full rounded-[6px] object-cover" />
                 )}
                 <p className="text-sm text-ink-2">{t("office.waiting")}</p>
               </div>
@@ -362,7 +360,7 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
           <div className="space-y-3 border-t border-line pt-5">
             {issue.after_image && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-40 w-full rounded-xl object-cover" />
+              <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-40 w-full rounded-[6px] object-cover" />
             )}
             {issue.status === "resolved" ? (
               <p className="flex items-center gap-2 text-sm font-medium text-brand">
@@ -374,7 +372,7 @@ function IssuePanel({ issue, onChanged }: { issue: Issue; onChanged: () => void 
             )}
           </div>
         )}
-        {err && <div className="text-sm font-medium text-red-600">{err}</div>}
+        {err && <div className="text-sm font-medium text-danger-ink">{err}</div>}
       </div>
     </Card>
   );

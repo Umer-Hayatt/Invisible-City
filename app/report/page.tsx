@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowRight, Camera, CircleCheck, Copy, ImagePlus, LoaderCircle, LocateFixed, MapPin, Repeat, Sparkles, X } from "lucide-react";
+import { Camera, CircleCheck, Copy, ImagePlus, LoaderCircle, LocateFixed, MapPin, Repeat, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { m } from "motion/react";
 import { useRef, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { celebrate } from "@/components/Motion";
 import Gate from "@/components/Gate";
-import { Card, CategoryChip, PageHeader, PriorityMeter, SeverityBadge, btn, categoryLabel, field } from "@/components/ui";
+import { Card, CategoryChip, CriticalTag, PageHeader, btn, categoryLabel, field } from "@/components/ui";
 import VoiceInput from "@/components/VoiceInput";
 import { api, prepareImage } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
@@ -32,10 +32,10 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint?: s
   return (
     <Card className="p-5">
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-xs font-bold text-canvas">{n}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-lime text-base font-bold text-on-lime">{n}</span>
         <div>
-          <div className="font-bold">{title}</div>
-          {hint && <div className="text-xs text-muted">{hint}</div>}
+          <h2 className="text-xl font-semibold">{title}</h2>
+          {hint && <div className="text-sm text-muted">{hint}</div>}
         </div>
       </div>
       {children}
@@ -127,45 +127,37 @@ function ReportForm() {
 
   return (
     <form onSubmit={submit}>
-      <PageHeader eyebrow={t("report.eyebrow")} title={t("nav.reportLong")} sub={t("report.sub")} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.05fr]">
+      <PageHeader title={t("nav.reportLong")} sub={t("report.sub")} />
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
         <div className="space-y-5">
           <Step n={1} title={t("report.step1")} hint={t("report.step1Hint")}>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="group relative flex w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-line bg-canvas transition hover:border-brand"
+              className="group relative flex w-full items-center justify-center overflow-hidden rounded-[8px] border-2 border-dashed border-muted bg-canvas transition-colors hover:border-brand"
               style={{ minHeight: 260 }}
             >
               {photo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photo.preview} alt={t("report.selectedPhoto")} className="max-h-[340px] w-full object-cover" />
-                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 text-xs font-semibold text-canvas">
+                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-[4px] bg-char px-3 py-1.5 text-sm font-semibold text-on-dark">
                     <Camera size={14} /> {t("office.changePhoto")}
                   </span>
                 </>
               ) : (
                 <div className="p-8 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand transition group-hover:scale-105">
-                    <ImagePlus size={26} />
-                  </div>
-                  <div className="mt-3 font-semibold">{t("report.tapPhoto")}</div>
-                  <div className="mt-1 text-xs text-muted">{t("report.photoTypes")}</div>
+                  <ImagePlus size={36} strokeWidth={1.5} className="mx-auto text-brand" aria-hidden />
+                  <div className="mt-3 text-lg font-semibold">{t("report.tapPhoto")}</div>
+                  <div className="mt-1 text-sm text-muted">{t("report.photoTypes")}</div>
                 </div>
               )}
             </button>
             <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onPhoto(e.target.files?.[0])} />
-            {photo && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-muted">
-                <Sparkles size={13} className="text-brand" />
-                {t("report.fingerprint")} <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-ink-2">{photo.hash}</code>
-              </div>
-            )}
           </Step>
 
-          <Step n={2} title={t("report.step2")} hint={t("report.step2Hint")}>
-            <div className="mb-3 flex flex-wrap items-center gap-3">
+          <Step n={2} title={t("report.step2")}>
+            <div className="mb-3">
               <VoiceInput
                 disabled={busy}
                 onText={(v) => {
@@ -173,11 +165,10 @@ function ReportForm() {
                   setDescription(v.english);
                 }}
               />
-              <span className="text-xs text-muted">{t("voice.hint")}</span>
             </div>
             {voiceUrdu && (
-              <div className="mb-3 rounded-xl border border-brand-100 bg-brand-50 p-3">
-                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-brand-700">
+              <div className="mb-3 rounded-[6px] border border-brand-100 bg-brand-50 p-3">
+                <div className="flex items-center justify-between gap-2 text-sm font-semibold text-brand-700">
                   {t("voice.urduLabel")}
                   <button
                     type="button"
@@ -193,7 +184,7 @@ function ReportForm() {
                 <p dir="rtl" lang="ur" className="mt-1 text-base leading-loose text-ink">
                   {voiceUrdu}
                 </p>
-                <div className="mt-2 text-xs text-muted">{t("voice.englishBelow")}</div>
+                <div className="mt-2 text-sm text-muted">{t("voice.englishBelow")}</div>
               </div>
             )}
             <textarea
@@ -205,7 +196,7 @@ function ReportForm() {
               dir={voiceUrdu ? "ltr" : undefined}
             />
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="text-xs font-semibold text-ink-2">
+              <label className="text-sm font-semibold text-ink-2">
                 {t("report.category")}
                 <select value={hint} onChange={(e) => setHint(e.target.value)} className={`${field} mt-1.5`}>
                   <option value="">{t("report.letAiDecide")}</option>
@@ -237,13 +228,13 @@ function ReportForm() {
                     setFocus(v);
                     setLocSource(t("report.demoLocation", { place: p.name }));
                   }}
-                  className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-2 transition hover:border-brand hover:text-brand"
+                  className="min-h-11 rounded-[6px] border border-line bg-surface px-3 text-sm font-medium text-ink-2 transition-colors hover:border-ink hover:text-ink"
                 >
                   {p.name}
                 </button>
               ))}
             </div>
-            <div className="overflow-hidden rounded-xl border border-line">
+            <div className="overflow-hidden rounded-[6px] border border-line">
               <CityMap
                 picked={loc}
                 focus={focus}
@@ -254,14 +245,14 @@ function ReportForm() {
                 className="h-[340px]"
               />
             </div>
-            <div className="mt-2.5 flex items-center gap-1.5 text-xs text-muted">
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-sm text-muted">
               <MapPin size={13} className={loc ? "text-brand" : ""} />
               {loc ? (
                 <>
-                  <span className="font-mono text-ink-2" dir="ltr">
+                  <span className="tabular-nums text-ink-2" dir="ltr">
                     {loc[0].toFixed(5)}, {loc[1].toFixed(5)}
                   </span>
-                  · {locSource}
+                  <span>{locSource}</span>
                 </>
               ) : (
                 locSource || t("report.noLocation")
@@ -269,7 +260,7 @@ function ReportForm() {
             </div>
           </Step>
 
-          {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</div>}
+          {error && <div className="rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
 
           <button disabled={busy} className={`${btn.primary} w-full py-4 text-base`}>
             {busy ? (
@@ -278,7 +269,7 @@ function ReportForm() {
               </>
             ) : (
               <>
-                {t("report.submit")} <ArrowRight size={18} className="rtl:rotate-180" />
+                {t("report.submit")}
               </>
             )}
           </button>
@@ -297,7 +288,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           initial={{ scale: 0, rotate: -40 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 16 }}
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand text-on-brand shadow-lg shadow-brand/30"
+          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-lime text-on-lime"
         >
           <CircleCheck size={30} />
         </m.div>
@@ -305,24 +296,22 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mt-4 text-3xl font-extrabold tracking-tight"
+          className="mt-4 text-4xl font-bold tracking-tight"
         >
           {t("report.received")}
         </m.h1>
         <p className="mt-1 text-ink-2">
           {r.duplicate ? t("report.addedTo", { id: r.issueId }) : t("report.created", { id: r.issueId })} {t("report.followUnder")}{" "}
-          <Link href="/track" className="font-semibold text-brand underline-offset-2 hover:underline">
+          <Link href="/track" className="font-semibold text-brand hover:underline">
             {t("nav.myReports")}
           </Link>
         </p>
       </div>
 
       {r.duplicate && (
-        <div className="rounded-2xl border border-amber-300 bg-accent-50 p-5">
+        <div className="rounded-[8px] border border-note-line bg-note p-5">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-ink">
-              <Copy size={20} />
-            </div>
+            <Copy size={22} className="mt-0.5 shrink-0" aria-hidden />
             <div>
               <div className="text-lg font-bold">{t("report.duplicateTitle")}</div>
               <p className="mt-1 text-sm leading-relaxed text-ink-2">
@@ -341,8 +330,8 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
         </div>
       )}
       {r.recurrenceOf && (
-        <div className="flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-4 text-sm">
-          <Repeat size={18} className="mt-0.5 shrink-0 text-violet-700" />
+        <div className="flex items-start gap-3 rounded-[8px] border border-note-line bg-note p-4 text-base">
+          <Repeat size={18} className="mt-0.5 shrink-0" />
           <div>{t("report.recurring", { id: r.recurrenceOf })}</div>
         </div>
       )}
@@ -356,39 +345,33 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
             <div className="hidden bg-sunken sm:block" />
           )}
           <div className="space-y-3 p-6">
-            <div className="inline-flex items-center gap-1.5 rounded-[8px] bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand">
-              <Sparkles size={12} /> {t("report.aiAnalysis")} ·{" "}
-              {a.source === "gemini" ? "Gemini" : a.source === "groq" ? "Groq" : t("report.aiOffline")}
+            <div className="inline-flex items-center gap-1.5 text-sm font-medium text-muted">
+              <Sparkles size={14} aria-hidden /> {t("report.aiAnalysis")} (
+              {a.source === "gemini" ? "Gemini" : a.source === "groq" ? "Groq" : t("report.aiOffline")})
             </div>
             <div className="text-xl font-bold leading-snug">{a.title}</div>
             <div className="flex flex-wrap items-center gap-2">
               <CategoryChip category={a.category} />
-              <SeverityBadge severity={a.severity} />
-              <span className="text-xs font-medium text-muted">{t("report.confidence", { n: Math.round(a.confidence * 100) })}</span>
+              <CriticalTag severity={a.severity} />
             </div>
-            <p className="text-sm leading-relaxed text-ink-2">{a.summary}</p>
+            <p className="text-base leading-relaxed text-ink-2">{a.summary}</p>
             {a.hazards.length > 0 && (
               <ul className="space-y-1 text-sm text-ink-2">
                 {a.hazards.map((h) => (
                   <li key={h} className="flex gap-2">
-                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-orange-500" />
+                    <span aria-hidden className="mt-2.5 h-px w-3 shrink-0 bg-muted" />
                     {h}
                   </li>
                 ))}
               </ul>
             )}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 text-sm">
-              <span className="flex items-center gap-2 font-medium">
-                {t("admin.colPriority")} <PriorityMeter value={r.issue.priority} wide />
-              </span>
-            </div>
           </div>
         </div>
       </Card>
 
       <div className="flex flex-wrap justify-center gap-3 pt-2">
         <Link href={`/issues/${r.issueId}`} className={btn.primary}>
-          {t("map.openIssue", { id: r.issueId })} <ArrowRight size={16} className="rtl:rotate-180" />
+          {t("map.openIssue", { id: r.issueId })}
         </Link>
         <button onClick={onAnother} className={btn.ghost}>
           <Camera size={16} /> {t("report.another")}
@@ -403,9 +386,9 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white p-3 text-center">
-      <div className="text-xl font-extrabold tabular-nums">{value}</div>
-      <div className="text-[11px] font-medium text-muted">{label}</div>
+    <div className="border-s border-note-line ps-3">
+      <div className="text-xl font-bold tabular-nums">{value}</div>
+      <div className="text-sm text-ink-2">{label}</div>
     </div>
   );
 }

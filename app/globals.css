@@ -1,64 +1,126 @@
+/* Hallmark · genre: modern-minimal · theme: custom · idea: "a night repair crew's hi-vis vest is the interface" · vibe: "hi-vis lime on charcoal, plain and quick"
+ * redesign: full · palette and posture from the team's reference picture (fixes.docx) · paper: light · accent: lime, posture: Committed (hi-vis) · faces: Google Sans, Noto Naskh Arabic (Urdu)
+ * job: report a problem, the action in the nav, the hero and the close · hero: Poster (photograph) (/) · nav: charcoal bar, centred links, lime action (by request) · footer: charcoal, columns (by request)
+ * imagery: photographs, Wikimedia Commons 4, natural · map captured live · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S4 R4 V4 · weakest: S, a lime civic app could be anywhere; led with the live Islamabad map, its sectors and Hill Road */
+/* Hallmark · waive 3 · three facts sit in one hairline-divided panel at the hero's foot · the reference picture the team chose asks for three hero facts */
+/* Hallmark · waive 42 · nav and footer named in the stamp · the reference picture the team chose sets both */
+/* Hallmark · answered F19 · Google Sans 700 heads, 600 actions, 500 table and meta labels, 400 prose, the split the reference picture uses */
+/* Hallmark · dismissed 40 · the sentence on the figures band sits wholly on solid lime; the gradient is a hard step 88px from its top */
+/* Hallmark · dismissed 77 · the render tier reads the app shell before the live sections mount; the page has six */
 @import "tailwindcss";
 
 /* Dark mode follows the `dark` class that next-themes puts on <html> (light, dark, or the system's choice). */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --font-sans: var(--font-overpass), system-ui, sans-serif;
-  --font-mono: var(--font-overpass-mono), ui-monospace, monospace;
+  --font-sans: var(--font-google-sans), system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
 /* ----------------------------------------------------------------------
-   Colour tokens. Light is the default; `.dark` swaps every token, so all
-   screens follow the theme without per-screen changes.
+   Colour tokens. Hi-vis lime on charcoal and navy, over a light ground.
+   Light is the default; `.dark` swaps the ground tokens. The charcoal, navy,
+   lime and status tokens are the same day and night.
    ---------------------------------------------------------------------- */
-/* Islamabad road signage. By day: pale concrete ground, sign-green panels, white lettering, sign yellow
-   only for warnings. */
 @theme {
-  --color-canvas: #eef0ec;
-  --color-surface: #ffffff;
-  --color-sunken: #e3e6e1;
-  --color-ink: #0f1a14;
-  --color-ink-2: #34403a;
-  --color-muted: #5f6b64;
-  --color-line: #cfd4ce;
-  --color-brand: #00653a;
-  --color-brand-600: #00562f;
-  --color-brand-700: #004526;
-  --color-brand-50: #e1efe6;
-  --color-brand-100: #bfdfcb;
-  --color-accent: #ffc400;
-  --color-accent-50: #fff4c2;
-  --color-sign: #00653a;
-  --color-sign-ink: #ffffff;
-  --color-sign-soft: #b9dcc6;
-  --color-on-brand: #ffffff;
-  --shadow-card: 0 1px 2px rgb(15 26 20 / 0.06), 0 8px 24px -12px rgb(15 26 20 / 0.12);
-  --shadow-float: 0 18px 50px -18px rgb(15 26 20 / 0.35);
+  /* ground */
+  --color-canvas: #f3f4f7;
+  --color-surface: #fdfdfe;
+  --color-sunken: #e7e9ee;
+  --color-ink: #171a20;
+  --color-ink-2: #3a404b;
+  --color-muted: #5c6370;
+  --color-line: #d3d7df;
+
+  /* hi-vis lime: fills only, always with on-lime lettering */
+  --color-lime: #cdf22b;
+  --color-lime-600: #bae012;
+  --color-on-lime: #171a0c;
+  /* brand: the lime family where it has to be read as text or a thin edge */
+  --color-brand: #47600a;
+  --color-brand-600: #3a4f06;
+  --color-brand-700: #2e3f05;
+  --color-brand-50: #f0f8d2;
+  --color-brand-100: #dcee9a;
+  --color-on-brand: #fbfdf2;
+
+  /* charcoal (nav, footer) and navy (map, page heads) */
+  --color-char: #1b1b1c;
+  --color-char-2: #2a2b2d;
+  --color-char-line: #3d3f43;
+  --color-navy: #242b3a;
+  --color-navy-2: #2d3547;
+  --color-navy-line: #434d63;
+  --color-on-dark: #f6f7f9;
+  --color-on-dark-2: #bcc3cf;
+
+  /* status and warning fills, each with its lettering */
+  --color-st-open: #2763c4;
+  --color-st-assigned: #52617d;
+  --color-st-work: #b9540a;
+  --color-st-done: #1d7443;
+  --color-st-closed: #5d6471;
+  --color-on-status: #fbfcfe;
+  --color-danger: #cc2a21;
+  --color-danger-ink: #a81d16;
+  --color-danger-50: #fcebea;
+  --color-note: #f8f2dc;
+  --color-note-line: #d9c98c;
+  --color-chart-open: #8e97a8;
+  /* map pins: brighter than the badges, since they carry no lettering */
+  --color-pin-open: #4f9bff;
+  --color-pin-work: #ff9d2e;
+  --color-pin-done: #3fc47a;
+  --color-pin-closed: #9aa3b2;
+
+  --shadow-card: 0 1px 2px rgb(23 26 32 / 0.05);
+  --shadow-float: 0 10px 28px rgb(23 26 32 / 0.18);
 }
 
-/* By night: asphalt ground; the signs stay green and their lettering reflects white. */
+/* The night values, swapped in by `.dark` below. */
+:root {
+  --night-canvas: #14171d;
+  --night-surface: #1d222b;
+  --night-sunken: #272d38;
+  --night-ink: #eff1f5;
+  --night-ink-2: #c3c9d3;
+  --night-muted: #949cab;
+  --night-line: #363e4c;
+  --night-brand: #cdf22b;
+  --night-brand-600: #bae012;
+  --night-brand-700: #def77a;
+  --night-brand-50: #262d14;
+  --night-brand-100: #3b481a;
+  --night-on-brand: #171a0c;
+  --night-danger-ink: #ff9a92;
+  --night-danger-50: #3a1d1d;
+  --night-note: #322d1b;
+  --night-note-line: #5f5530;
+  --night-chart-open: #6d778a;
+  --night-float: 0 10px 28px rgb(4 6 10 / 0.5);
+}
 .dark {
-  --color-canvas: #0d0f0e;
-  --color-surface: #151917;
-  --color-sunken: #1c211e;
-  --color-ink: #edf2ee;
-  --color-ink-2: #b9c3bc;
-  --color-muted: #84908a;
-  --color-line: #29302c;
-  --color-brand: #3fb57a;
-  --color-brand-600: #2f9e66;
-  --color-brand-700: #8ad8ae;
-  --color-brand-50: #11271b;
-  --color-brand-100: #183d29;
-  --color-accent: #ffcf26;
-  --color-accent-50: #2b2309;
-  --color-sign: #006b3e;
-  --color-sign-ink: #ffffff;
-  --color-sign-soft: #a9d6bb;
-  --color-on-brand: #06140c;
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 28px -14px rgb(0 0 0 / 0.7);
-  --shadow-float: 0 22px 60px -20px rgb(0 0 0 / 0.85);
+  --color-canvas: var(--night-canvas);
+  --color-surface: var(--night-surface);
+  --color-sunken: var(--night-sunken);
+  --color-ink: var(--night-ink);
+  --color-ink-2: var(--night-ink-2);
+  --color-muted: var(--night-muted);
+  --color-line: var(--night-line);
+  --color-brand: var(--night-brand);
+  --color-brand-600: var(--night-brand-600);
+  --color-brand-700: var(--night-brand-700);
+  --color-brand-50: var(--night-brand-50);
+  --color-brand-100: var(--night-brand-100);
+  --color-on-brand: var(--night-on-brand);
+  --color-danger-ink: var(--night-danger-ink);
+  --color-danger-50: var(--night-danger-50);
+  --color-note: var(--night-note);
+  --color-note-line: var(--night-note-line);
+  --color-chart-open: var(--night-chart-open);
+  --shadow-card: none;
+  --shadow-float: var(--night-float);
 }
 
 html {
@@ -68,51 +130,108 @@ html.dark {
   color-scheme: dark;
 }
 body {
-  font-family: var(--font-overpass), system-ui, sans-serif;
-  font-feature-settings: "tnum" 0;
-  transition:
-    background-color 300ms ease,
-    color 300ms ease;
+  font-family: var(--font-sans);
+}
+h1,
+h2,
+h3 {
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+p,
+dd,
+li {
+  text-wrap: pretty;
 }
 
-.leaflet-container {
-  font-family: var(--font-overpass), system-ui, sans-serif;
+html .leaflet-container {
+  font-family: var(--font-sans);
   background: var(--color-sunken);
 }
 .leaflet-popup-content-wrapper {
-  border-radius: 14px;
+  border-radius: 8px;
   box-shadow: var(--shadow-float);
 }
-.leaflet-popup-content {
-  margin: 14px 16px;
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--color-surface);
   color: var(--color-ink);
 }
-.leaflet-control-zoom {
-  border: none !important;
-  box-shadow: var(--shadow-card) !important;
-  border-radius: 10px !important;
+.leaflet-popup-content {
+  margin: 12px 16px;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--color-muted);
+}
+.leaflet-control-zoom.leaflet-control-zoom {
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
   overflow: hidden;
 }
-.leaflet-control-zoom a {
-  color: #10201a !important;
+.leaflet-bar.leaflet-bar a {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.leaflet-touch .leaflet-bar.leaflet-bar a,
+.leaflet-bar.leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+html .leaflet-container .leaflet-control-attribution {
+  background: var(--color-surface);
+  color: var(--color-ink-2);
+}
+html .leaflet-container .leaflet-control-attribution a {
+  color: var(--color-ink-2);
 }
 .leaflet-tooltip.area-label {
-  background: transparent;
+  background: var(--color-char);
   border: 0;
+  border-radius: 4px;
+  padding: 4px 8px;
   box-shadow: none;
-  font-weight: 700;
-  font-size: 11px;
-  color: #10201a;
-  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--color-on-dark);
 }
 .leaflet-tooltip.area-label::before {
   display: none;
 }
+/* Day tiles are calmed so the pins carry the colour. */
+html:not(.dark) .leaflet-tile-pane {
+  filter: saturate(0.4) contrast(0.95);
+}
+/* The home map is always the night map, tinted by the navy behind it. */
+html .map-night .leaflet-container {
+  background: var(--color-navy);
+}
+.dark .leaflet-tile-pane,
+html .map-night .leaflet-tile-pane.leaflet-tile-pane {
+  filter: sepia(0.75) hue-rotate(185deg) saturate(1.15) brightness(0.86);
+}
+/* Map pins: a teardrop in the status colour. */
+.pin {
+  background: none;
+  border: 0;
+  color: var(--pin);
+}
+.pin svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
 
-/* Urdu: a Naskh face for Arabic script (Latin falls back to Overpass) and a little more line height for its marks. */
+/* Urdu: a Naskh face for Arabic script (Latin falls back to Google Sans) and a little more line height for its marks. */
+html[lang="ur"] {
+  --font-sans: var(--font-urdu), var(--font-google-sans), system-ui, sans-serif;
+}
 html[lang="ur"] body,
 html[lang="ur"] .leaflet-container {
-  font-family: var(--font-urdu), var(--font-overpass), system-ui, sans-serif;
+  font-family: var(--font-urdu), var(--font-google-sans), system-ui, sans-serif;
   font-feature-settings: normal;
   line-height: 1.75;
 }
@@ -171,17 +290,15 @@ html[lang="ur"] .uppercase {
   to {
     opacity: 0;
     transform: translateY(-6px);
-    filter: blur(2px);
   }
 }
 @keyframes page-in {
   from {
     opacity: 0;
     transform: translateY(12px);
-    filter: blur(4px);
   }
 }
-/* The active Nav pill slides from link to link. */
+/* The chosen option's highlight slides from button to button. */
 ::view-transition-group(.nav-pill) {
   animation-duration: 380ms;
   animation-timing-function: var(--ease-out);
@@ -196,7 +313,6 @@ html[lang="ur"] .uppercase {
   from {
     opacity: 0;
     transform: translateY(18px);
-    filter: blur(6px);
   }
 }
 
@@ -238,24 +354,6 @@ html[lang="ur"] .uppercase {
   }
 }
 
-/* --- Map: critical Issues pulse ----------------------------------------- */
-.pulse-critical {
-  animation: pulse-critical 2.2s var(--ease-out) infinite;
-  transform-origin: center;
-  transform-box: fill-box;
-}
-@keyframes pulse-critical {
-  0%,
-  100% {
-    stroke-width: 2;
-    stroke-opacity: 1;
-  }
-  50% {
-    stroke-width: 9;
-    stroke-opacity: 0.25;
-  }
-}
-
 /* --- Timeline: each step arrives in turn -------------------------------- */
 .stagger > * {
   animation: rise 520ms var(--ease-out) both;
@@ -282,36 +380,21 @@ html[lang="ur"] .uppercase {
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
-  .marquee-track {
-    animation: none !important;
-  }
   .reveal {
     animation: none !important;
   }
 }
 
-/* Bars (priority, health) fill in from the start edge. */
-@keyframes grow {
-  from {
-    transform: scaleX(0);
-  }
-}
 
-/* Decorative light in the hero reaches past the screen edge; clip it so the page never scrolls sideways.
-   `clip` (not `hidden`) keeps the sticky Nav working. */
 html,
 body {
   overflow-x: clip;
 }
 
-/* ======================================================================
-   Redesign: scrollbar, glowing borders, floating chips
-   ====================================================================== */
-
-/* A slim scrollbar in the city's colours (Firefox, then Chrome/Edge/Safari). */
+/* A slim scrollbar in the site's colours (Firefox, then Chrome/Edge/Safari). */
 html {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-brand) var(--color-sunken);
+  scrollbar-color: var(--color-muted) var(--color-sunken);
 }
 ::-webkit-scrollbar {
   width: 11px;
@@ -323,188 +406,69 @@ html {
 ::-webkit-scrollbar-thumb {
   border: 3px solid var(--color-sunken);
   border-radius: 9999px;
-  background: var(--color-brand);
+  background: var(--color-muted);
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand-600);
+.scroll-navy {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-navy-line) transparent;
+}
+:is(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+input,
+textarea {
+  caret-color: var(--color-brand);
 }
 ::selection {
-  background: var(--color-brand-100);
-  color: var(--color-brand-700);
+  background: var(--color-lime);
+  color: var(--color-on-lime);
 }
-
-/* ----------------------------------------------------------------------
-   Dark mode for the small tinted badges and notes (light red, amber, violet…):
-   soft tinted backgrounds, light text, faint borders.
-   ---------------------------------------------------------------------- */
-.dark :is(.bg-red-50, .bg-red-100) { background-color: rgb(239 68 68 / 0.13); }
-.dark :is(.bg-red-50\/60, .bg-red-50\/70) { background-color: rgb(239 68 68 / 0.1); }
-.dark :is(.text-red-600, .text-red-700, .text-red-800, .text-red-900, .text-red-950) { color: #fca5a5; }
-.dark :is(.ring-red-200) { --tw-ring-color: rgb(239 68 68 / 0.3); }
-.dark :is(.border-red-100, .border-red-200, .border-red-300, .border-red-400) { border-color: rgb(239 68 68 / 0.3); }
-.dark :is(.bg-orange-50, .bg-orange-100) { background-color: rgb(249 115 22 / 0.13); }
-.dark :is(.bg-orange-50\/60, .bg-orange-50\/70) { background-color: rgb(249 115 22 / 0.1); }
-.dark :is(.text-orange-600, .text-orange-700, .text-orange-800, .text-orange-900, .text-orange-950) { color: #fdba74; }
-.dark :is(.ring-orange-200) { --tw-ring-color: rgb(249 115 22 / 0.3); }
-.dark :is(.border-orange-100, .border-orange-200, .border-orange-300, .border-orange-400) { border-color: rgb(249 115 22 / 0.3); }
-.dark :is(.bg-amber-50, .bg-amber-100) { background-color: rgb(245 158 11 / 0.13); }
-.dark :is(.bg-amber-50\/60, .bg-amber-50\/70) { background-color: rgb(245 158 11 / 0.1); }
-.dark :is(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950) { color: #fcd34d; }
-.dark :is(.ring-amber-200) { --tw-ring-color: rgb(245 158 11 / 0.3); }
-.dark :is(.border-amber-100, .border-amber-200, .border-amber-300, .border-amber-400) { border-color: rgb(245 158 11 / 0.3); }
-.dark :is(.bg-yellow-50, .bg-yellow-100) { background-color: rgb(234 179 8 / 0.13); }
-.dark :is(.bg-yellow-50\/60, .bg-yellow-50\/70) { background-color: rgb(234 179 8 / 0.1); }
-.dark :is(.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900, .text-yellow-950) { color: #fde047; }
-.dark :is(.ring-yellow-200) { --tw-ring-color: rgb(234 179 8 / 0.3); }
-.dark :is(.border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400) { border-color: rgb(234 179 8 / 0.3); }
-.dark :is(.bg-lime-50, .bg-lime-100) { background-color: rgb(132 204 22 / 0.13); }
-.dark :is(.bg-lime-50\/60, .bg-lime-50\/70) { background-color: rgb(132 204 22 / 0.1); }
-.dark :is(.text-lime-600, .text-lime-700, .text-lime-800, .text-lime-900, .text-lime-950) { color: #bef264; }
-.dark :is(.ring-lime-200) { --tw-ring-color: rgb(132 204 22 / 0.3); }
-.dark :is(.border-lime-100, .border-lime-200, .border-lime-300, .border-lime-400) { border-color: rgb(132 204 22 / 0.3); }
-.dark :is(.bg-emerald-50, .bg-emerald-100) { background-color: rgb(16 185 129 / 0.13); }
-.dark :is(.bg-emerald-50\/60, .bg-emerald-50\/70) { background-color: rgb(16 185 129 / 0.1); }
-.dark :is(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900, .text-emerald-950) { color: #6ee7b7; }
-.dark :is(.ring-emerald-200) { --tw-ring-color: rgb(16 185 129 / 0.3); }
-.dark :is(.border-emerald-100, .border-emerald-200, .border-emerald-300, .border-emerald-400) { border-color: rgb(16 185 129 / 0.3); }
-.dark :is(.bg-sky-50, .bg-sky-100) { background-color: rgb(14 165 233 / 0.13); }
-.dark :is(.bg-sky-50\/60, .bg-sky-50\/70) { background-color: rgb(14 165 233 / 0.1); }
-.dark :is(.text-sky-600, .text-sky-700, .text-sky-800, .text-sky-900, .text-sky-950) { color: #7dd3fc; }
-.dark :is(.ring-sky-200) { --tw-ring-color: rgb(14 165 233 / 0.3); }
-.dark :is(.border-sky-100, .border-sky-200, .border-sky-300, .border-sky-400) { border-color: rgb(14 165 233 / 0.3); }
-.dark :is(.bg-cyan-50, .bg-cyan-100) { background-color: rgb(6 182 212 / 0.13); }
-.dark :is(.bg-cyan-50\/60, .bg-cyan-50\/70) { background-color: rgb(6 182 212 / 0.1); }
-.dark :is(.text-cyan-600, .text-cyan-700, .text-cyan-800, .text-cyan-900, .text-cyan-950) { color: #67e8f9; }
-.dark :is(.ring-cyan-200) { --tw-ring-color: rgb(6 182 212 / 0.3); }
-.dark :is(.border-cyan-100, .border-cyan-200, .border-cyan-300, .border-cyan-400) { border-color: rgb(6 182 212 / 0.3); }
-.dark :is(.bg-blue-50, .bg-blue-100) { background-color: rgb(59 130 246 / 0.13); }
-.dark :is(.bg-blue-50\/60, .bg-blue-50\/70) { background-color: rgb(59 130 246 / 0.1); }
-.dark :is(.text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900, .text-blue-950) { color: #93c5fd; }
-.dark :is(.ring-blue-200) { --tw-ring-color: rgb(59 130 246 / 0.3); }
-.dark :is(.border-blue-100, .border-blue-200, .border-blue-300, .border-blue-400) { border-color: rgb(59 130 246 / 0.3); }
-.dark :is(.bg-violet-50, .bg-violet-100) { background-color: rgb(139 92 246 / 0.13); }
-.dark :is(.bg-violet-50\/60, .bg-violet-50\/70) { background-color: rgb(139 92 246 / 0.1); }
-.dark :is(.text-violet-600, .text-violet-700, .text-violet-800, .text-violet-900, .text-violet-950) { color: #c4b5fd; }
-.dark :is(.ring-violet-200) { --tw-ring-color: rgb(139 92 246 / 0.3); }
-.dark :is(.border-violet-100, .border-violet-200, .border-violet-300, .border-violet-400) { border-color: rgb(139 92 246 / 0.3); }
-.dark :is(.bg-rose-50, .bg-rose-100) { background-color: rgb(244 63 94 / 0.13); }
-.dark :is(.bg-rose-50\/60, .bg-rose-50\/70) { background-color: rgb(244 63 94 / 0.1); }
-.dark :is(.text-rose-600, .text-rose-700, .text-rose-800, .text-rose-900, .text-rose-950) { color: #fda4af; }
-.dark :is(.ring-rose-200) { --tw-ring-color: rgb(244 63 94 / 0.3); }
-.dark :is(.border-rose-100, .border-rose-200, .border-rose-300, .border-rose-400) { border-color: rgb(244 63 94 / 0.3); }
-.dark :is(.bg-stone-50, .bg-stone-100) { background-color: rgb(168 162 158 / 0.13); }
-.dark :is(.bg-stone-50\/60, .bg-stone-50\/70) { background-color: rgb(168 162 158 / 0.1); }
-.dark :is(.text-stone-600, .text-stone-700, .text-stone-800, .text-stone-900, .text-stone-950) { color: #d6d3d1; }
-.dark :is(.ring-stone-200) { --tw-ring-color: rgb(168 162 158 / 0.3); }
-.dark :is(.border-stone-100, .border-stone-200, .border-stone-300, .border-stone-400) { border-color: rgb(168 162 158 / 0.3); }
-.dark :is(.bg-slate-50, .bg-slate-100) { background-color: rgb(148 163 184 / 0.13); }
-.dark :is(.bg-slate-50\/60, .bg-slate-50\/70) { background-color: rgb(148 163 184 / 0.1); }
-.dark :is(.text-slate-600, .text-slate-700, .text-slate-800, .text-slate-900, .text-slate-950) { color: #cbd5e1; }
-.dark :is(.ring-slate-200) { --tw-ring-color: rgb(148 163 184 / 0.3); }
-.dark :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400) { border-color: rgb(148 163 184 / 0.3); }
-.dark .bg-white { background-color: var(--color-surface); }
-.dark .bg-white\/80 { background-color: rgb(21 25 23 / 0.85); }
-
-/* Map popups and controls in dark mode */
-.dark .leaflet-popup-content-wrapper,
-.dark .leaflet-popup-tip,
-.dark .leaflet-control-zoom a,
-.dark .leaflet-bar a {
-  background: var(--color-surface) !important;
-  color: var(--color-ink) !important;
-  border-color: var(--color-line) !important;
+:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 2px;
 }
-.dark .leaflet-control-attribution {
-  background: rgb(21 25 23 / 0.85) !important;
-  color: var(--color-muted) !important;
-}
-.dark .leaflet-control-attribution a {
-  color: var(--color-ink-2) !important;
-}
-.dark .leaflet-tooltip.area-label {
-  color: var(--color-ink);
-  text-shadow: 0 0 3px #000, 0 0 3px #000;
+.on-dark :focus-visible,
+.on-dark:focus-visible {
+  outline-color: var(--color-lime);
 }
 
 /* ======================================================================
-   Road-sign world
+   Bands
    ====================================================================== */
 
-/* A sign panel: green face, white reflective lettering, a white border set just inside the edge. */
-.sign {
-  background: var(--color-sign);
-  color: var(--color-sign-ink);
-  border-radius: 18px;
-  box-shadow:
-    inset 0 0 0 5px var(--color-sign),
-    inset 0 0 0 8px var(--color-sign-ink),
-    var(--shadow-float);
-}
-.sign-row {
-  border: 2.5px solid currentColor;
-  border-radius: 10px;
-}
-.sign-warn {
-  background: var(--color-accent);
-  color: #0f1a14;
-  border-color: var(--color-accent);
-}
-/* The yellow tab that hangs from the top edge of an exit sign. */
-.exit-tab {
-  background: var(--color-accent);
-  color: #0f1a14;
-  border-radius: 0 0 8px 8px;
+/* A band of colour that reaches both screen edges from inside the centred column. */
+.bleed {
+  box-shadow: 0 0 0 100vmax var(--bleed);
+  clip-path: inset(0 -100vmax 1px);
+  background: var(--bleed);
 }
 
-/* Figures: counts, sector codes and days read as tabular numbers. */
-.figure {
-  font-family: var(--font-overpass-mono), ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
+/* The hero photograph sits at the end side; the charcoal runs in from the start side under the lettering. */
+.hero-scrim {
+  background: linear-gradient(to right, var(--color-char) 23%, color-mix(in oklab, var(--color-char) 62%, transparent) 44%, color-mix(in oklab, var(--color-char) 8%, transparent) 72%);
+}
+[dir="rtl"] .hero-scrim {
+  background: linear-gradient(to left, var(--color-char) 23%, color-mix(in oklab, var(--color-char) 62%, transparent) 44%, color-mix(in oklab, var(--color-char) 8%, transparent) 72%);
+}
+.photo-dim {
+  background: color-mix(in oklab, var(--color-char) 62%, transparent);
 }
 
-/* The route line: each stage is painted in turn on load, like fresh lane markings. */
-.route-paint {
-  transform-origin: left center;
-  animation: paint 700ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 160ms + 250ms);
+/* Camera corners around the "take a photo" step. */
+.viewfinder::before,
+.viewfinder::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--color-lime), var(--color-lime)) 0 0 / 34px 4px,
+    linear-gradient(var(--color-lime), var(--color-lime)) 0 0 / 4px 34px,
+    linear-gradient(var(--color-lime), var(--color-lime)) 100% 100% / 34px 4px,
+    linear-gradient(var(--color-lime), var(--color-lime)) 100% 100% / 4px 34px;
+  background-repeat: no-repeat;
 }
-[dir="rtl"] .route-paint {
-  transform-origin: right center;
-}
-.route-paint-y {
-  transform-origin: center top;
-  animation: paint-y 900ms var(--ease-out) both;
-  animation-delay: 250ms;
-}
-@keyframes paint-y {
-  from {
-    transform: scaleY(0);
-  }
-}
-@keyframes paint {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-/* Variable message sign: amber lettering on a black board. */
-.vms {
-  background: #090a09;
-  color: #ffb21a;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 2px #262826, var(--shadow-card);
-}
-.vms-text {
-  font-family: var(--font-overpass-mono), ui-monospace, monospace;
-  text-transform: uppercase;
-}
-
-::selection {
-  background: var(--color-accent);
-  color: #0f1a14;
-}
-:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+.viewfinder::after {
+  transform: scaleX(-1);
 }

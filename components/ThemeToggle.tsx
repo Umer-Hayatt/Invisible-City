@@ -47,7 +47,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       onClick={toggle}
       aria-label={dark ? t("theme.toLight") : t("theme.toDark")}
       title={dark ? t("theme.toLight") : t("theme.toDark")}
-      className={`press relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-ink-2 transition-colors hover:border-ink/30 hover:text-ink ${className}`}
+      className={`press relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] border border-char-line text-on-dark transition-colors hover:border-on-dark-2 hover:text-lime ${className}`}
     >
       <AnimatePresence mode="wait" initial={false}>
         <m.span

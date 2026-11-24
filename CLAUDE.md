@@ -15,7 +15,7 @@ Civic-problem reporting for Islamabad. Hackathon deadline: 28 November 2026.
 
 - Every piece of on-screen text goes through the translation file, so Urdu (right-to-left) can be added without touching screens.
 - Each build step leaves the app working and deployed: deploy to Vercel after each step, never batch.
-- Reporter email and phone are shown only to Authorities and the assigned Office; public pages stay anonymous.
+- Reporter email and phone are shown only to Authorities and the assigned Office. Display names are public.
 
 ## Agent skills
 

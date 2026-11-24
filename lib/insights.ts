@@ -160,7 +160,7 @@ export async function contributors(demo: boolean, authId?: string): Promise<Cont
   for (const r of rows) {
     const c = map.get(r.reporter_id) ?? {
       reporter_id: r.reporter_id,
-      name: r.reporter_name || "Anonymous citizen",
+      name: r.reporter_name ?? "",
       reports: 0,
       corroborated: 0,
       resolved: 0,
@@ -211,10 +211,13 @@ export async function cityOverview(issues: Issue[], demo: boolean) {
   };
 }
 
-/** The public leaderboard: scores only. Names stay with Authorities and the assigned Office (PRD: reporter identity). */
-export type PublicContributor = Omit<Contributor, "reporter_id" | "name">;
-export const anonymousLeaderboard = (list: Contributor[]): PublicContributor[] =>
-  list.map(({ reports, corroborated, resolved, firstReports, score }) => ({ reports, corroborated, resolved, firstReports, score }));
+/** The public list of the ten Citizens who report most: names and counts, no score and no ids. */
+export type PublicContributor = Omit<Contributor, "reporter_id" | "name" | "score"> & { name: string | null };
+export const publicLeaderboard = (list: Contributor[]): PublicContributor[] =>
+  [...list]
+    .sort((a, b) => b.reports - a.reports)
+    .slice(0, 10)
+    .map(({ name, reports, corroborated, resolved, firstReports }) => ({ name: name || null, reports, corroborated, resolved, firstReports }));
 
 export interface OfficeRecord {
   officeId: number;

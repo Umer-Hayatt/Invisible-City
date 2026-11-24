@@ -25,15 +25,15 @@ export default function DemoBanner() {
   }
 
   return (
-    <div className="border-b border-amber-300 bg-amber-100 text-amber-950">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5 text-xs font-semibold sm:px-6">
+    <div className="on-dark bg-char-2 text-on-dark-2">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5 text-sm font-medium sm:px-6">
         <span>{t("demo.banner")}</span>
         <label className="flex items-center gap-2">
           {t("demo.switchTo")}
           <select
             value={me?.demoKey ?? ""}
             onChange={(e) => pick(e.target.value || null)}
-            className="rounded-md border border-amber-400 bg-amber-50 px-2 py-1 text-xs"
+            className="min-h-8 rounded-[4px] border border-on-dark-2 bg-char px-2 text-sm text-on-dark"
           >
             <option value="">{me ? t("demo.leave") : t("demo.none")}</option>
             {demoAccounts.map((a) => (

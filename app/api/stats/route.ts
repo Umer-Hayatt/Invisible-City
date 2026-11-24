@@ -1,16 +1,16 @@
 import { listIssues } from "@/lib/db";
 import {
-  anonymousLeaderboard,
   cityOverview,
   contributors,
   neighborhoodStats,
   officeRecords,
   predictiveInsights,
+  publicLeaderboard,
 } from "@/lib/insights";
 import { dataWorld } from "@/lib/roles";
 
 /**
- * Public: Insights for everyone, with no reporter identity anywhere in the response.
+ * Public: Insights for everyone. Reporter display names are in the response; never an email or a phone.
  * After the Issues are read, the three lookups that need the database run at the same time, so the page waits
  * for the slowest one rather than for all of them in a row.
  */
@@ -22,7 +22,7 @@ export async function GET() {
     overview,
     neighborhoods: neighborhoodStats(issues),
     predictive: predictiveInsights(issues),
-    leaderboard: anonymousLeaderboard(leaders.slice(0, 10)),
+    leaderboard: publicLeaderboard(leaders),
     offices,
   });
 }

@@ -184,29 +184,35 @@ describe("The Demo seed tells the workflow story", () => {
   });
 });
 
-describe("Public pages name no reporter", () => {
-  const secrets = ["Name-hina", "hina@gmail.com", "Name-omar", "omar@gmail.com", "0300 7654321", "+923007654321"];
-  const leaks = (body: string) => secrets.filter((s) => body.includes(s));
+describe("Reporter names are public, contact details are for officials", () => {
+  const names = ["Name-hina", "Name-omar"];
+  const contacts = ["hina@gmail.com", "omar@gmail.com", "0300 7654321", "+923007654321"];
+  const leaks = (body: string, secrets: string[]) => secrets.filter((s) => body.includes(s));
 
-  it("the map, Issue pages and Insights carry no reporter name, email or phone", async () => {
-    for (const viewer of [() => signInAs("watcher@gmail.com"), () => signInAs("omar@gmail.com")]) {
+  it("visitors and Citizens see names but no email or phone", async () => {
+    const demoMode = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = "false"; // signed-out visitors see real data only when Demo mode is off
+    for (const viewer of [() => setSession(null), () => signInAs("watcher@gmail.com")]) {
       viewer();
       const map = JSON.stringify(await read(await listIssues(new Request("http://test/api/issues"))));
-      expect(leaks(map)).toEqual([]);
+      expect(leaks(map, contacts)).toEqual([]);
       const ids: number[] = JSON.parse(map).issues.map((i: { id: number }) => i.id);
       expect(ids.length).toBeGreaterThan(0);
-      for (const n of ids) expect(leaks(JSON.stringify(await read(await getIssue(new Request("http://test/x"), id(n)))))).toEqual([]);
-      expect(leaks(JSON.stringify(await read(await stats())))).toEqual([]);
+      const pages: string[] = [];
+      for (const n of ids) pages.push(JSON.stringify(await read(await getIssue(new Request("http://test/x"), id(n)))));
+      pages.push(JSON.stringify(await read(await stats())));
+      expect(leaks(pages.join(), contacts)).toEqual([]);
+      expect(leaks(pages.join(), names)).toEqual(names);
     }
+    process.env.DEMO_MODE = demoMode;
   });
 
-  it("the leaderboard has scores but no names or ids", async () => {
+  it("the list of Citizens who report most has no scores and no ids", async () => {
     const s = await realStats();
     expect(s.leaderboard.length).toBeGreaterThan(0);
     for (const row of s.leaderboard) {
-      expect(row).not.toHaveProperty("name");
+      expect(row).not.toHaveProperty("score");
       expect(row).not.toHaveProperty("reporter_id");
-      expect(row).toHaveProperty("score");
     }
   });
 

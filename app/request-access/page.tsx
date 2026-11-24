@@ -33,19 +33,19 @@ export default function RequestAccessPage() {
     return (
       <Card className="mx-auto mt-10 max-w-md p-8 text-center">
         <CircleCheck className="mx-auto text-brand" size={32} />
-        <p className="mt-4 text-sm">{t("access.sent")}</p>
+        <p className="mt-4 text-base">{t("access.sent")}</p>
       </Card>
     );
 
   return (
-    <form onSubmit={send} className="mx-auto max-w-md">
+    <form onSubmit={send} className="mx-auto max-w-xl">
       <PageHeader title={t("access.title")} sub={t("access.sub")} />
-      <Card className="space-y-4 p-6">
-        <label className="block text-xs font-semibold text-ink-2">
+      <Card className="space-y-5 p-6">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("access.name")}
           <input value={form.name} onChange={set("name")} maxLength={80} className={`${field} mt-1.5`} />
         </label>
-        <label className="block text-xs font-semibold text-ink-2">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("access.department")}
           <select value={form.department} onChange={set("department")} className={`${field} mt-1.5`}>
             <option value="">{t("access.pickDepartment")}</option>
@@ -54,15 +54,15 @@ export default function RequestAccessPage() {
             ))}
           </select>
         </label>
-        <label className="block text-xs font-semibold text-ink-2">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("access.email")}
           <input type="email" value={form.officialEmail} onChange={set("officialEmail")} className={`${field} mt-1.5`} />
         </label>
-        <label className="block text-xs font-semibold text-ink-2">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("access.phone")}
           <input value={form.phone} onChange={set("phone")} placeholder={t("profile.phonePlaceholder")} inputMode="tel" className={`${field} mt-1.5`} />
         </label>
-        {error && <div className="text-sm font-medium text-red-600">{error}</div>}
+        {error && <div className="rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
         <button disabled={busy} className={`${btn.primary} w-full py-3`}>
           {t("access.send")}
         </button>

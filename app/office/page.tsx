@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
-import { Card, Empty, IssueThumb, ListSkeleton, PageHeader, SeverityBadge, StatusBadge, btn, field } from "@/components/ui";
+import { Card, CriticalTag, Empty, IssueThumb, ListSkeleton, PageHeader, StatusBadge, btn, field } from "@/components/ui";
 import { api, prepareImage } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
 import type { Category, Severity, Status } from "@/lib/types";
@@ -34,7 +34,7 @@ function Jobs() {
   }, []);
   useEffect(load, [load]);
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <PageHeader title={t("office.title")} sub={t("office.sub")} />
       {jobs === null ? (
         <ListSkeleton />
@@ -42,7 +42,7 @@ function Jobs() {
         <Empty icon={Inbox} title={t("office.empty")} />
       ) : (
         // Jobs re-sort as they move on (In progress first); `layout` glides each card to its new place.
-        <div className="space-y-4">
+        <div className="grid items-start gap-5 lg:grid-cols-2">
           <AnimatePresence initial={false}>
             {jobs.map((j) => (
               <m.div key={j.id} layout exit={{ opacity: 0, scale: 0.97 }}>
@@ -86,19 +86,19 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
   }
 
   return (
-    <Card className="rise overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="flex gap-4 p-4">
-        <IssueThumb src={imageUrl(job.cover_image)} category={job.category} className="h-24 w-32 shrink-0 rounded-xl" />
+        <IssueThumb src={imageUrl(job.cover_image)} category={job.category} className="h-24 w-24 shrink-0 rounded-[6px] sm:w-32" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="truncate font-bold">{job.title}</div>
-              <div className="text-sm text-muted">
-                #{job.id} · {job.neighborhood} · {t("office.reports", { n: job.report_count })}
+              <div className="text-lg font-semibold leading-snug">{job.title}</div>
+              <div className="mt-0.5 text-[15px] text-muted">
+                #{job.id}, {job.neighborhood}, {t("office.reports", { n: job.report_count })}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <SeverityBadge severity={job.severity} />
+              <CriticalTag severity={job.severity} status={job.status} />
               <StatusBadge status={job.status} />
             </div>
           </div>
@@ -109,7 +109,7 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
       </div>
 
       {job.rejection && (
-        <div className="mx-4 mb-3 flex gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">
+        <div className="mx-4 mb-3 flex gap-2 rounded-[6px] bg-danger-50 px-3 py-2 text-[15px] text-danger-ink">
           <MessageSquareWarning size={16} className="mt-0.5 shrink-0" />
           <div>
             <div className="font-semibold">{t("office.rejected")}</div>
@@ -118,7 +118,7 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
         </div>
       )}
 
-      <div className="space-y-3 border-t border-line bg-sunken/40 px-4 py-3">
+      <div className="space-y-3 border-t border-line px-4 py-3">
         {job.status === "assigned" && mode === "idle" && (
           <div className="flex flex-wrap gap-2">
             <button disabled={busy} onClick={() => send("start", jsonBody({}))} className={btn.primary}>
@@ -150,12 +150,12 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
         )}
         {mode === "fix" && (
           <div className="space-y-2">
-            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line bg-surface p-2.5 transition hover:border-brand">
+            <label className="flex cursor-pointer items-center gap-3 rounded-[6px] border border-dashed border-muted bg-surface p-2.5 transition-colors hover:border-brand focus-within:border-brand">
               {after ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={after.preview} alt="" className="h-14 w-20 rounded-lg object-cover" />
+                <img src={after.preview} alt="" className="h-14 w-20 rounded-[4px] object-cover" />
               ) : (
-                <span className="flex h-14 w-20 items-center justify-center rounded-lg bg-brand-50 text-brand">
+                <span className="flex h-14 w-20 items-center justify-center rounded-[4px] bg-brand-50 text-brand">
                   <ImagePlus size={20} />
                 </span>
               )}
@@ -184,7 +184,7 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
         )}
 
         {job.status === "fixed" && (
-          <p className="flex items-center gap-2 text-sm text-ink-2">
+          <p className="flex items-center gap-2 text-[15px] text-ink-2">
             <Clock size={15} /> {t("office.waiting")}
           </p>
         )}
@@ -194,7 +194,7 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
           </p>
         )}
         {job.status === "closed_unconfirmed" && <p className="text-sm text-muted">{t("office.closedUnconfirmed")}</p>}
-        {err && <p className="text-sm font-medium text-red-600">{err}</p>}
+        {err && <p className="text-sm font-medium text-danger-ink">{err}</p>}
       </div>
     </Card>
   );

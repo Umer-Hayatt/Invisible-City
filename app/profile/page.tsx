@@ -39,23 +39,23 @@ function ProfileForm({ me }: { me: Me }) {
   }
 
   return (
-    <form onSubmit={save} className="mx-auto max-w-md">
+    <form onSubmit={save} className="mx-auto max-w-xl">
       <PageHeader title={t("profile.title")} sub={t("profile.sub")} />
-      <Card className="space-y-4 p-6">
-        <label className="block text-xs font-semibold text-ink-2">
+      <Card className="space-y-5 p-6">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("profile.email")}
           <input value={me.email ?? ""} readOnly className={`${field} mt-1.5 bg-sunken`} />
         </label>
-        <label className="block text-xs font-semibold text-ink-2">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("profile.name")}
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("profile.namePlaceholder")} maxLength={80} className={`${field} mt-1.5`} />
         </label>
-        <label className="block text-xs font-semibold text-ink-2">
+        <label className="block text-[15px] font-semibold text-ink-2">
           {t("profile.phone")}
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("profile.phonePlaceholder")} inputMode="tel" className={`${field} mt-1.5`} />
-          <span className="mt-1 block font-normal text-muted">{t("profile.phoneHint")}</span>
+          <span className="mt-1 block text-sm font-normal text-muted">{t("profile.phoneHint")}</span>
         </label>
-        {error && <div className="text-sm font-medium text-red-600">{error}</div>}
+        {error && <div className="rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
         {saved && !next && <div className="text-sm font-medium text-brand">{t("profile.saved")}</div>}
         <button disabled={busy} className={`${btn.primary} w-full py-3`}>
           {t("profile.save")}
