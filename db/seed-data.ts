@@ -112,6 +112,7 @@ export async function clearDemoData(q: Sql) {
   await q.query("DELETE FROM events WHERE issue_id IN (SELECT id FROM issues WHERE is_demo)");
   await q.query("DELETE FROM reports WHERE issue_id IN (SELECT id FROM issues WHERE is_demo)");
   await q.query("DELETE FROM issues WHERE is_demo");
+  await q.query("DELETE FROM office_registrations WHERE is_demo");
   await q.query("DELETE FROM offices WHERE is_demo"); // office_staff goes with them
   await q.query("DELETE FROM access_requests WHERE is_demo");
   await q.query("DELETE FROM people WHERE is_demo");

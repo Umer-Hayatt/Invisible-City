@@ -5,7 +5,7 @@ import { GET as getStats } from "../app/api/stats/route";
 import { POST as submitReport } from "../app/api/reports/route";
 import { FAKE_PHOTO_URL } from "../lib/photo-store";
 import { PUT as saveProfile } from "../app/api/me/profile/route";
-import { ctx, signInAs, startTestApp } from "./helpers";
+import { ctx, signInAs, signInDemo, startTestApp } from "./helpers";
 
 let app: Awaited<ReturnType<typeof startTestApp>>;
 beforeAll(async () => {
@@ -47,6 +47,7 @@ describe("the public map and Issue pages", () => {
   });
 
   it("keeps the neglect story: I-10, G-11 and I-9 resolve the least, and G-9 has a recurrence", async () => {
+    signInDemo("authority");
     const { neighborhoods, predictive } = await json(await getStats());
     const neglected = neighborhoods.filter((n: { neglected: boolean }) => n.neglected).map((n: { name: string }) => n.name);
     expect(neglected).toEqual(expect.arrayContaining(["I-10", "G-11", "I-9"]));

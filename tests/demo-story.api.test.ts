@@ -4,7 +4,7 @@ import { POST as fix } from "../app/api/issues/[id]/fix/route";
 import { POST as start } from "../app/api/issues/[id]/start/route";
 import { GET as jobs } from "../app/api/office/jobs/route";
 import { GET as myReports } from "../app/api/reports/route";
-import { GET as stats } from "../app/api/stats/route";
+import { GET as city } from "../app/api/city/route";
 import { setSession } from "../lib/session";
 import { ctx, signInDemo, startTestApp } from "./helpers";
 
@@ -32,15 +32,15 @@ describe("the seeded demo story", () => {
     expect(unfinished.sort()).toEqual(["assigned", "fixed", "in_progress"]);
   });
 
-  it("lets the Demo Citizen confirm the Fix they reported, and the Insights move", async () => {
+  it("lets the Demo Citizen confirm the Fix they reported, and the city figures move", async () => {
     signInDemo("citizen");
     const { reports } = await (await myReports()).json();
     const waiting = reports.find((r: { issue_status: string }) => r.issue_status === "fixed");
     expect(waiting).toBeTruthy();
-    const before = (await (await stats()).json()).overview.resolved;
+    const before = (await (await city()).json()).figures.resolved;
 
     expect((await confirm(post(), id(waiting.issue_id))).status).toBe(200);
-    expect((await (await stats()).json()).overview.resolved).toBe(before + 1);
+    expect((await (await city()).json()).figures.resolved).toBe(before + 1);
     expect(app.mail.sent).toHaveLength(0); // Demo Issues never send real email
   });
 

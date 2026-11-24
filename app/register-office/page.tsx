@@ -1,7 +1,6 @@
 "use client";
 
-import { CircleCheck, Clock, XCircle } from "lucide-react";
-import Link from "next/link";
+import { Clock, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
 import { Card, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
@@ -68,22 +67,18 @@ function RegisterOffice() {
 
   const r = data.registration;
   if (r && !again) {
-    const Icon = r.decision === "approved" ? CircleCheck : r.decision === "pending" ? Clock : XCircle;
+    // Only Citizens get here, so an approved registration means this account no longer signs in as that Business.
+    const Icon = r.decision === "pending" ? Clock : XCircle;
     return (
       <Card className="mx-auto mt-10 max-w-md p-8 text-center">
-        <Icon className={`mx-auto ${r.decision === "declined" ? "text-danger-ink" : "text-brand"}`} size={32} aria-hidden />
+        <Icon className={`mx-auto ${r.decision === "pending" ? "text-brand" : "text-danger-ink"}`} size={32} aria-hidden />
         <h1 className="mt-4 text-2xl font-bold tracking-tight">{r.name}</h1>
         <p className="mt-1 text-base text-ink-2">
           {r.department} · {r.sector}
         </p>
         <p className="mt-4 text-base">{t(`register.${r.decision}`)}</p>
         <p className="mt-2 text-sm text-muted">{t("register.sentOn", { when: timeAgo(r.created_at) })}</p>
-        {r.decision === "approved" && (
-          <Link href="/office" className={`${btn.primary} mt-6`}>
-            {t("register.openOffice")}
-          </Link>
-        )}
-        {r.decision === "declined" && (
+        {r.decision !== "pending" && (
           <button type="button" onClick={() => setAgain(true)} className={`${btn.ghost} mt-6`}>
             {t("register.again")}
           </button>

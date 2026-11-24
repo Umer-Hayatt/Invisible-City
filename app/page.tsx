@@ -2,10 +2,11 @@
 
 import { Flame, MapPin } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import CityMap, { MapLayer, pinColor } from "@/components/CityMap";
-import { ClosingCall, Figures, Hero, HowItWorks, Overview, wrap } from "@/components/home/Landing";
+import { ClosingCall, Figures, Hero, HowItWorks, wrap } from "@/components/home/Landing";
 import { CriticalTag, Segmented, StatusBadge, categoryLabel } from "@/components/ui";
+import type { CityFigures } from "@/lib/city";
 import { api, timeAgo } from "@/lib/client";
 import { t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
@@ -13,7 +14,8 @@ import { CATEGORIES, Issue, isActive } from "@/lib/types";
 
 export default function Home() {
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [overview, setOverview] = useState<Overview | null>(null);
+  const [figures, setFigures] = useState<CityFigures | null>(null);
+  const [examples, setExamples] = useState(0);
   const [layer, setLayer] = useState<MapLayer>("issues");
   const [category, setCategory] = useState("");
   const [showResolved, setShowResolved] = useState(true);
@@ -21,23 +23,24 @@ export default function Home() {
   const { me } = useMe();
 
   useEffect(() => {
-    api<{ issues: Issue[] }>("/api/issues")
-      .then((d) => setIssues(d.issues))
+    api<{ issues: Issue[]; figures: CityFigures; examples: number }>("/api/city")
+      .then((d) => {
+        setIssues(d.issues);
+        setFigures(d.figures);
+        setExamples(d.examples);
+      })
       .catch(() => {})
       .finally(() => setLoaded(true));
-    api<{ overview: Overview }>("/api/stats")
-      .then((d) => setOverview(d.overview))
-      .catch(() => {});
   }, []);
 
   const inCategory = useMemo(() => issues.filter((i) => !category || i.category === category), [issues, category]);
   const visible = useMemo(() => inCategory.filter((i) => showResolved || isActive(i.status)), [inCategory, showResolved]);
   const active = inCategory.filter((i) => isActive(i.status));
-  // The newest confirmed Fix, with an after-photo when there is one.
+  // The newest confirmed Fix, with an after-photo when there is one. An Example Issue proves nothing.
   const proof = useMemo(
     () =>
       issues
-        .filter((i) => i.status === "resolved" && i.resolved_at)
+        .filter((i) => !i.example && i.status === "resolved" && i.resolved_at)
         .sort((a, b) => Number(!!b.after_image) - Number(!!a.after_image) || (b.resolved_at ?? "").localeCompare(a.resolved_at ?? ""))[0],
     [issues],
   );
@@ -52,6 +55,7 @@ export default function Home() {
           <h2 id="map-title" className="text-center text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
             {t("home.mapTitle")}
           </h2>
+          {examples > 0 && <p className="mx-auto mt-4 max-w-[60ch] text-center text-base text-on-dark-2">{t("home.examplesNote")}</p>}
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -102,12 +106,12 @@ export default function Home() {
                   {loaded && active.length === 0 && <li className="rounded-[8px] border border-navy-line p-5 text-on-dark-2">{t("home.noActive")}</li>}
                   {active.map((i) => (
                     <li key={i.id}>
-                      <Link
-                        href={`/issues/${i.id}`}
-                        className="block rounded-[8px] border border-navy-line bg-navy-2 px-4 py-3.5 transition-colors hover:border-on-dark-2"
-                      >
+                      <Row issue={i}>
                         <span className="flex items-start justify-between gap-3">
-                          <span className="min-w-0 text-[17px] font-semibold leading-snug">{i.title}</span>
+                          <span className="min-w-0 text-[17px] font-semibold leading-snug">
+                            {i.title}
+                            {i.example && <span className="ms-2 rounded-[4px] border border-on-dark-2 px-1.5 py-0.5 text-xs font-medium text-on-dark-2">{t("home.example")}</span>}
+                          </span>
                           <span className="shrink-0">
                             <StatusBadge status={i.status} />
                           </span>
@@ -116,7 +120,7 @@ export default function Home() {
                           {t(i.report_count === 1 ? "home.reportedOnce" : "home.reportedBy", { n: i.report_count, place: i.neighborhood, when: timeAgo(i.created_at) })}
                           <CriticalTag severity={i.severity} status={i.status} />
                         </span>
-                      </Link>
+                      </Row>
                     </li>
                   ))}
                 </ul>
@@ -131,9 +135,20 @@ export default function Home() {
         </div>
       </section>
 
-      <Figures overview={overview} proofId={proof?.id ?? null} />
+      <Figures figures={figures} proofId={proof?.id ?? null} />
       <ClosingCall />
     </>
+  );
+}
+
+/** A real Issue opens its page; an Example Issue has none. */
+function Row({ issue, children }: { issue: Issue; children: ReactNode }) {
+  const look = "block rounded-[8px] border border-navy-line bg-navy-2 px-4 py-3.5";
+  if (issue.example) return <div className={look}>{children}</div>;
+  return (
+    <Link href={`/issues/${issue.id}`} className={`${look} transition-colors hover:border-on-dark-2`}>
+      {children}
+    </Link>
   );
 }
 

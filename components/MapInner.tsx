@@ -119,9 +119,13 @@ function IssueDot({ i, still, faint }: { i: Issue; still: boolean; faint: boolea
               <CriticalTag severity={i.severity} status={i.status} />
             </div>
             <div className="my-2 text-sm text-muted">{t(i.report_count === 1 ? "map.reportedOnce" : "map.reportedBy", { n: i.report_count, place: i.neighborhood })}</div>
-            <Link href={`/issues/${i.id}`} className="!text-brand text-sm font-semibold hover:underline">
-              {t("map.openIssue", { id: i.id })}
-            </Link>
+            {i.example ? (
+              <span className="text-sm font-semibold text-muted">{t("home.example")}</span>
+            ) : (
+              <Link href={`/issues/${i.id}`} className="!text-brand text-sm font-semibold hover:underline">
+                {t("map.openIssue", { id: i.id })}
+              </Link>
+            )}
           </div>
         </Popup>
       )}

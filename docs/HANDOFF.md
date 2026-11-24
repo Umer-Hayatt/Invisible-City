@@ -1,4 +1,4 @@
-# HANDOFF (24 November 2026, evening). Read this first.
+# HANDOFF (25 November 2026). Read this first.
 
 Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invisible-City. Never push to `main`; one branch and one pull request per piece of work. The owner (Umer) reviews, merges, deploys and applies database migrations to the live Supabase.
 
@@ -7,13 +7,14 @@ Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invis
 | PR | Branch | What it is | Action |
 |---|---|---|---|
 | #12 | `fixes-authority-dashboard` | Authority dashboard and sidebar, previous map back, Insights evidence | **Merged** 24 November |
-| #13 | `fixes-registration` | Office registration, Authority areas, worker counts and new neglect rule, one email per Office | Apply migration **0003**, then merge |
-| #14 | `business-workspace` | Office renamed Business on screen, Business and Super Admin sidebars, revoke access, Citizens without Insights | Apply migration **0004**, then merge |
-| #15 | `business-jobs` | Available jobs, Job requests, chat per job, Call buttons, Business phone | Apply migration **0005**, then merge |
+| #13 | `fixes-registration` | Office registration, Authority areas, worker counts and new neglect rule, one email per Office | **Merged**; migration 0003 applied 25 November |
+| #14 | `business-workspace` | Office renamed Business on screen, Business and Super Admin sidebars, revoke access, Citizens without Insights | **Merged**; migration 0004 applied 25 November |
+| #15 | `business-jobs` | Available jobs, Job requests, chat per job, Call buttons, Business phone | **Merged**; migration 0005 applied 25 November |
 | #11 | `official-signup` | Old Office staff sign-up | **Close without merging.** #13 replaces it and its migration also uses the number 0003 |
 
-Each PR is built on the one above it. Merge in order; GitHub then shows only each PR's own commit.
-After deploying: reseed the Demo data (workers and phones for the Demo Businesses).
+Migrations 0001 to 0005 are applied to the live Supabase and the Demo data was reseeded on 25 November. **Always apply a migration before merging the code that needs it**: #13 to #15 were merged first, and sign-in and the Demo accounts failed on the live site until it was done.
+Never change a session setting (`SET ...`) through `DATABASE_URL`: it is the transaction pooler, and the setting stays on a shared connection the live site uses. Use `SET LOCAL` inside a transaction.
+Branch `fixes-live-review` (25 November, no migration): contact details by Area, Insights API for officials only, restoring a Business, Example Issues on the city map. Details in `docs/PLAN.md`.
 Security: the Supabase database password, the Cloudinary secret and the Gemini key were pasted in a chat on 24 November. **Rotate all three.**
 
 ## Decisions already made by the user (do not ask again)

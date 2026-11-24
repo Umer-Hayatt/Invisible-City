@@ -36,6 +36,9 @@ _Avoid_: Thread, DM
 The Super Admin taking away an Authority's or a Business's access. A revoked Authority is a Citizen again; a revoked Business cannot sign in or be assigned, and its unfinished jobs go back to Open.
 _Avoid_: Ban, suspension (that is for Citizens)
 
+**Restore**:
+The Super Admin giving a revoked Business its access back. Its old jobs stay Open.
+
 **Area**:
 The one Islamabad sector an Authority works for, such as G-9. An Authority with no Area works for the whole city.
 _Avoid_: Zone, region, jurisdiction
@@ -108,6 +111,10 @@ A Business (government or private) asking to join, with its Department, sector a
 
 **Demo account**:
 A made-up Citizen, Authority or Office login with seeded data, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.
+
+**Example Issue**:
+A Demo Issue shown, marked "Example", on the home page of real Citizens and visitors while there are few real Issues. It cannot be opened and appears nowhere else.
+_Avoid_: Sample, fake Issue
 
 **Spam flag**:
 An Authority marking a Report as abusive or not a real civic problem. Repeated Spam flags lead to Suspension.

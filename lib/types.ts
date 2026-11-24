@@ -93,6 +93,8 @@ export interface Issue {
   resolved_at: string | null;
   /** When an unanswered Fix closed as unconfirmed. */
   closed_at: string | null;
+  /** An Example Issue: a Demo Issue shown on a nearly empty city map. Never set on a real Issue. */
+  example?: boolean;
 }
 
 export interface Report {

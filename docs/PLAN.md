@@ -114,6 +114,13 @@ See PRD section 10.
 - [ ] PDF emailed to both sides on Send and on Accept (mailer attachments).
 - [ ] Payment recorded: the Authority marks it Paid after the Fix is confirmed.
 
+## Review of 25 November 2026
+
+- [x] Reporter email and phone only for an Authority of the Issue's Area (or of the whole city).
+- [x] Insights API (`/api/stats`) refuses everyone but Authorities and the Super Admin; the home page uses `/api/city`.
+- [x] A revoked Business can be restored by the Super Admin, or register again.
+- [x] City map for Citizens: Example Issues and figures while there are fewer than 20 real Issues.
+
 ## Still open from earlier notes
 
 - [ ] Real photos (Demo Issues use placeholders; home photos are Wikimedia stand-ins).

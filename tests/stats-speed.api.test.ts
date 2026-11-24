@@ -29,8 +29,13 @@ describe("Insights after the speed-up", () => {
   });
 
   it("still returns every part of the Insights response", async () => {
+    for (const who of ["citizen", "office"] as const) {
+      signInDemo(who);
+      expect((await stats()).status).toBe(403);
+    }
     setSession(null);
-    signInDemo("citizen");
+    expect((await stats()).status).toBe(401);
+    signInDemo("authority");
     const body = await (await stats()).json();
     expect(body.overview.totalIssues).toBeGreaterThan(0);
     expect(body.neighborhoods.length).toBeGreaterThan(0);

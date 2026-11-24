@@ -10,12 +10,13 @@ import { PUT as saveProfile } from "../app/api/me/profile/route";
 import { GET as listOffices, POST as addOffice } from "../app/api/offices/route";
 import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { POST as submitReport } from "../app/api/reports/route";
+import { GET as city } from "../app/api/city/route";
 import { GET as stats } from "../app/api/stats/route";
 import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
 import { NEIGHBORHOODS } from "../lib/geo";
 import { setSession } from "../lib/session";
-import { ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
+import { ctx, NOW, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
 
 /**
  * Ticket 07: Insights follow the real workflow. A Resolution moves the neighbourhood numbers, an
@@ -69,9 +70,9 @@ interface Stats {
   offices: Office[];
   leaderboard: Record<string, unknown>[];
 }
-/** Insights as a real signed-in Citizen sees them (the real world, not the Demo one). */
+/** Insights as a real Super Admin sees them (the real world, not the Demo one). */
 async function realStats(): Promise<Stats> {
-  signInAs("watcher@gmail.com");
+  signInAs(SUPER_ADMIN);
   return read(await stats());
 }
 const f7 = (s: Stats) => s.neighborhoods.find((n) => n.name === "F-7")!;
@@ -159,7 +160,7 @@ describe("Insights follow the workflow (real world)", () => {
 
 describe("The Demo seed tells the workflow story", () => {
   it("has Offices with Fixes, Rejections and Unconfirmed closures, and keeps closures out of Resolutions", async () => {
-    signInDemo("citizen");
+    signInDemo("authority");
     const s: Stats = await read(await stats());
     const sum = (k: keyof Office) => s.offices.reduce((a, o) => a + Number(o[k] ?? 0), 0);
     expect(s.offices.length).toBeGreaterThan(3);
@@ -200,7 +201,8 @@ describe("Reporter names are public, contact details are for officials", () => {
       expect(ids.length).toBeGreaterThan(0);
       const pages: string[] = [];
       for (const n of ids) pages.push(JSON.stringify(await read(await getIssue(new Request("http://test/x"), id(n)))));
-      pages.push(JSON.stringify(await read(await stats())));
+      expect([401, 403]).toContain((await stats()).status); // Insights are for officials
+      pages.push(JSON.stringify(await read(await city())));
       expect(leaks(pages.join(), contacts)).toEqual([]);
       expect(leaks(pages.join(), names)).toEqual(names);
     }

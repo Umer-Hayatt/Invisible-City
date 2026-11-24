@@ -24,7 +24,7 @@ The demo story: a Citizen reports a pothole in F-10 → the AI recognises road d
 
 Every screen calls an Office a **Business** (government or private); the code keeps the name Office. Authorities, Businesses and the Super Admin each work in a sidebar workspace with no top bar and no site footer: Businesses have Jobs and My Business (details and workers); the Super Admin has Access requests, Authorities, Businesses and Insights. Citizens and visitors see only the map (home), Report and My reports; Insights is for Authorities and the Super Admin only (24 November 2026).
 
-The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or assigned, and its Assigned and In progress Issues go back to Open with a note on the timeline. Both are told by email.
+The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or assigned, and its Assigned and In progress Issues go back to Open with a note on the timeline. Both are told by email. A revoked Business can come back two ways (25 November 2026): the Super Admin **restores** it, or its people register again with the same email; the Authority deciding sees "Revoked before", and approval moves the email to the new Business. A revoked Authority sends a new Access request.
 
 **Jobs between Authorities and Businesses** (24 November 2026). A Business sees **Available jobs**: the Open Issues of its Department in its own sector. It can ask for one with a note (a **Job request**); the Authorities of that area are emailed. An Authority sees the Job requests of its area and assigns the Issue as before, or declines the request; assigning accepts that Business's request and declines the others, and a declined Business may ask again. A Business and the Authorities of the Issue's area talk in a **chat** per Issue and Business, open to nobody else, and each sees the other's phone and email to call or write. A Business records its phone (from its registration, editable). Next: contracts with a PDF, accepted in the app, and payment recorded.
 
@@ -33,7 +33,7 @@ Everyone signs in with Google. Signing in alone only ever makes someone a Citize
 ## 4. Rules
 
 ### Citizens and Reports
-- Signing in is required to submit a Report. Viewing the map, Issue pages and Insights is public.
+- Signing in is required to submit a Report. Viewing the map and Issue pages is public; Insights, screen and API, is for Authorities and the Super Admin only.
 - On first sign-in a Citizen enters a display name and a phone number in `+92 3xx xxxxxxx` format. The phone is required but not verified by SMS. Email comes from Google.
 - A Report is a photo (required; photos only, no video), a location (phone GPS, adjustable by moving a map pin), an optional description, and the AI's reading.
 - The AI suggests the **Category** and severity. The Citizen can change the Category before submitting.
@@ -52,7 +52,7 @@ Everyone signs in with Google. Signing in alone only ever makes someone a Citize
 4. An Authority can put a **Spam flag** on a Report. A flagged Report is hidden; if it was the Issue's only Report, the Issue is removed. Three Spam flags cause a **Suspension**.
 
 ### Privacy
-- A reporter's display name is visible to everyone. Email and phone are visible only to Authorities and to the Office the Issue is assigned to. (Changed 24 November 2026: names were hidden before.)
+- A reporter's display name is visible to everyone. Email and phone are visible only to an Authority of the Issue's Area (or of the whole city) and to the Office the Issue is assigned to. (Changed 24 November 2026: names were hidden before.)
 - Citizens are not shown severity levels, priority numbers or neglected sectors. Only "Critical" is shown, and only for an immediate danger that is still waiting. Authorities also see the priority number and the neglected list.
 
 ### Issue workflow
@@ -98,7 +98,7 @@ The same updates show in the app on the Citizen's **My reports** page.
 
 | Who | Screens |
 |---|---|
-| Public | City map (Issues and heatmap layers), Issue page (reporter names, before/after photos, timeline), Insights |
+| Public | City map (Issues and heatmap layers), Issue page (reporter names, before/after photos, timeline) |
 | Citizen | Profile setup, Report a problem (phone-first: camera, GPS, map pin), My reports (with confirm/reject on Fixed Issues) |
 | Authority | A sidebar workspace instead of the top bar: Dashboard (overview: counts, problems by category, what needs attention, busiest areas, Offices), Reports (priority queue with filters; Issue review with each Report's reporter email and phone, Spam flag, suggested Offices, Assign), Offices and staff management, Insights. No map. |
 | Office | My jobs (Start work, Mark fixed with after-photo, Send back) |
@@ -129,6 +129,7 @@ The public site has **Demo accounts** (a Citizen, an Authority, an Office, a Sup
 **Which data a visitor sees** (the Demo world and the real world never mix):
 - Signed in as a Demo account: Demo data only. Signed in with a real Google account: real data only, and no Demo banner.
 - Not signed in: Demo data while Demo mode is on (so judges land on a full map), real data when it is off.
+- One exception (25 November 2026): while the real world has fewer than 20 Issues, the home page shows real Citizens and visitors the Demo Issues as **Example Issues** beside the real ones. Each is marked "Example", a note says they are made up and counted in the figures, and they cannot be opened. They appear nowhere else and never to officials.
 - A Report, Issue or Access request takes the world of whoever creates it, except that an Access request from a visitor who is not signed in as a Demo account is always real. A real Report never merges into a Demo Issue.
 - Super Admins only see and decide Access requests of their own world, so the Demo Super Admin can never grant a real Authority role. A real sign-in never receives a role from Demo rows, even with a matching email.
 - The Demo account is chosen with the role switcher in the banner; the choice is a server-checked cookie that only works while Demo mode is on.

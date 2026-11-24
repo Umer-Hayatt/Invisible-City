@@ -5,7 +5,7 @@ import { Sql, sql } from "./sql";
 
 /**
  * The Super Admin's directory: every Authority and every Business (an Office) of one world, with their details,
- * and revoking either at any time.
+ * revoking either at any time, and restoring a Business.
  */
 export interface AuthorityEntry {
   email: string;
@@ -103,4 +103,22 @@ export async function revokeBusiness(officeId: number, by: string | null, demo: 
       body: `The Invisible City team has revoked ${out.name}'s access as a Business. Jobs not yet fixed have gone back to the city.`,
     });
   return out;
+}
+
+/** Gives a revoked Business its access back. Jobs that went back to Open stay Open; it asks for or is given new ones. */
+export async function restoreBusiness(officeId: number, demo: boolean) {
+  const [office] = await sql().query<{ name: string }>(
+    "UPDATE offices SET revoked_at = NULL, revoked_by = NULL WHERE id = $1 AND is_demo = $2 AND revoked_at IS NOT NULL RETURNING name",
+    [officeId, demo],
+  );
+  if (!office) return null;
+  if (!demo) {
+    const emails = await sql().query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [officeId]);
+    await sendQuietly({
+      to: emails.map((e) => e.email),
+      subject: `${office.name}: access to Invisible City was restored`,
+      body: `The Invisible City team has given ${office.name} its access back. Sign in with this Google account to see its jobs.`,
+    });
+  }
+  return office;
 }

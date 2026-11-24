@@ -54,6 +54,18 @@ function Businesses() {
     load();
   }
 
+  async function restore(b: Business) {
+    setError("");
+    setNote("");
+    try {
+      await api(`/api/super-admin/businesses/${b.id}`, { method: "POST" });
+      setNote(t("superadmin.businessRestored", { name: b.name }));
+    } catch (e) {
+      setError(errorText((e as Error).message));
+    }
+    load();
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("nav.offices")} sub={t("superadmin.businessesSub")} />
@@ -66,8 +78,8 @@ function Businesses() {
       ) : (
         <div className="space-y-3">
           {rows.map((b) => (
-            <Card key={b.id} className={`flex flex-wrap items-center justify-between gap-4 p-4 ${b.revoked_at ? "opacity-60" : ""}`}>
-              <div className="min-w-0">
+            <Card key={b.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
+              <div className={`min-w-0 ${b.revoked_at ? "opacity-60" : ""}`}>
                 <div className="text-lg font-semibold">
                   {b.name}
                   <span className="ms-2 rounded-[4px] bg-sunken px-2 py-0.5 text-sm font-medium text-ink-2">
@@ -82,11 +94,9 @@ function Businesses() {
                   {b.revoked_at && <> · {t("superadmin.revokedOn", { when: timeAgo(b.revoked_at) })}</>}
                 </div>
               </div>
-              {!b.revoked_at && (
-                <button type="button" onClick={() => revoke(b)} className={btn.ghost}>
-                  {t("superadmin.revoke")}
-                </button>
-              )}
+              <button type="button" onClick={() => (b.revoked_at ? restore(b) : revoke(b))} className={btn.ghost}>
+                {t(b.revoked_at ? "superadmin.restore" : "superadmin.revoke")}
+              </button>
             </Card>
           ))}
         </div>

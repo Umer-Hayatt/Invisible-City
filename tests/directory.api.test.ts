@@ -6,7 +6,10 @@ import { POST as addOffice } from "../app/api/offices/route";
 import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { DELETE as revokeAuthority, GET as authorities } from "../app/api/super-admin/authorities/route";
 import { GET as businesses } from "../app/api/super-admin/businesses/route";
-import { DELETE as revokeBusiness } from "../app/api/super-admin/businesses/[id]/route";
+import { POST as decide } from "../app/api/offices/registrations/[id]/route";
+import { GET as registrations } from "../app/api/offices/registrations/route";
+import { POST as register } from "../app/api/register-office/route";
+import { DELETE as revokeBusiness, POST as restoreBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setSession } from "../lib/session";
 import { ctx, SUPER_ADMIN, signInAs, startTestApp } from "./helpers";
 
@@ -93,5 +96,37 @@ describe("the Super Admin directory", () => {
     const offers = (await (await suggested(new Request("http://test/x"), ctx({ id: String(issue.id) }))).json()).offices;
     expect(offers.map((o: { id: number }) => o.id)).not.toContain(officeId);
     expect((await assign(json({ officeId }), ctx({ id: String(issue.id) }))).status).toBe(400);
+  });
+
+  it("restores a revoked Business, which signs in again", async () => {
+    const [{ id: officeId }] = await app.sql.query<{ id: number }>("SELECT id FROM offices WHERE name = 'Revoke Roads'");
+    signInAs("omar@gov.pk");
+    expect((await restoreBusiness(json({}), ctx({ id: String(officeId) }))).status).toBe(403);
+    signInAs(SUPER_ADMIN);
+    expect((await restoreBusiness(json({}), ctx({ id: String(officeId) }))).status).toBe(200);
+    expect(app.mail.sent.at(-1)?.to).toEqual(["revoke-crew@gov.pk"]);
+    expect((await restoreBusiness(json({}), ctx({ id: String(officeId) }))).status).toBe(404);
+    expect(await roleOf("revoke-crew@gov.pk")).toBe("office");
+  });
+
+  it("lets a revoked Business register again; the Authority sees it was revoked, and approval moves its email", async () => {
+    const [{ id: officeId, department_id }] = await app.sql.query<{ id: number; department_id: number }>(
+      "SELECT id, department_id FROM offices WHERE name = 'Revoke Roads'",
+    );
+    signInAs(SUPER_ADMIN);
+    expect((await revokeBusiness(del(), ctx({ id: String(officeId) }))).status).toBe(200);
+    signInAs("revoke-crew@gov.pk");
+    const form = { name: "Roads Again", departmentId: department_id, sector: "F-7", isPrivate: true, workers: 3, contactName: "Crew Lead", phone: "0300 7654321" };
+    expect((await register(json(form))).status).toBe(201);
+    signInAs("omar@gov.pk");
+    const { registrations: list } = await (await registrations()).json();
+    const r = list.find((x: { email: string }) => x.email === "revoke-crew@gov.pk");
+    expect(r.revoked_before).toBe(true);
+    expect((await decide(json({ decision: "approved" }), ctx({ id: String(r.id) }))).status).toBe(200);
+    expect(await roleOf("revoke-crew@gov.pk")).toBe("office");
+    const staff = await app.sql.query<{ name: string }>(
+      "SELECT o.name FROM office_staff s JOIN offices o ON o.id = s.office_id WHERE s.email = 'revoke-crew@gov.pk'",
+    );
+    expect(staff).toEqual([{ name: "Roads Again" }]);
   });
 });

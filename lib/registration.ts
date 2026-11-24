@@ -26,10 +26,14 @@ export interface OfficeRegistration {
   office_id: number | null;
   created_at: string;
   decided_at: string | null;
+  /** This email signed in as a Business the Super Admin revoked, so the Authority can weigh that. */
+  revoked_before: boolean;
 }
 
 const SELECT = `SELECT r.id, r.name, d.name AS department, r.department_id, r.sector, r.is_private, r.workers, r.contact_name,
-       r.email, r.phone, r.decision, r.decided_by, r.office_id, r.created_at, r.decided_at
+       r.email, r.phone, r.decision, r.decided_by, r.office_id, r.created_at, r.decided_at,
+       EXISTS (SELECT 1 FROM office_staff s JOIN offices o ON o.id = s.office_id
+               WHERE lower(s.email) = lower(r.email) AND o.revoked_at IS NOT NULL) AS revoked_before
   FROM office_registrations r JOIN departments d ON d.id = r.department_id`;
 
 export const MAX_WORKERS = 10_000;
@@ -66,14 +70,20 @@ export async function checkRegistration(b: RegisterInput) {
 
 export type RegisterOutcome = { ok: true; id: number } | { ok: false; error: "email_taken" | "already_requested" };
 
-/** Files a registration under the signed-in email. An email already on an Office, or already waiting, is refused. */
+/**
+ * Files a registration under the signed-in email. An email already on an Office, or already waiting, is refused;
+ * the email of a revoked Office may register again.
+ */
 export async function registerOffice(
   v: { name: string; contactName: string; sector: string; departmentId: number; workers: number; phone: string; isPrivate: boolean },
   email: string,
   demo: boolean,
 ): Promise<RegisterOutcome> {
   const q = sql();
-  const [staff] = await q.query("SELECT 1 FROM office_staff WHERE lower(email) = lower($1)", [email]);
+  const [staff] = await q.query(
+    "SELECT 1 FROM office_staff s JOIN offices o ON o.id = s.office_id WHERE lower(s.email) = lower($1) AND o.revoked_at IS NULL",
+    [email],
+  );
   if (staff) return { ok: false, error: "email_taken" };
   const [pending] = await q.query(
     "SELECT 1 FROM office_registrations WHERE lower(email) = lower($1) AND is_demo = $2 AND decision = 'pending'",
@@ -132,6 +142,11 @@ export async function decideRegistration(
         q,
       );
       if (!officeId) return "not_found";
+      // A revoked Office gives up its email, so the same people can come back as a new Business.
+      await q.query(
+        "DELETE FROM office_staff s USING offices o WHERE o.id = s.office_id AND o.revoked_at IS NOT NULL AND o.is_demo = $2 AND lower(s.email) = lower($1)",
+        [r.email, demo],
+      );
       const staff = await addStaff(officeId, r.email, demo, q);
       if (staff !== "added") throw new EmailTaken();
     }

@@ -29,6 +29,7 @@ interface Registration {
   email: string;
   phone: string | null;
   decision: "pending" | "approved" | "declined";
+  revoked_before: boolean;
   created_at: string;
 }
 
@@ -199,6 +200,7 @@ function Registrations({ rows, onDecide }: { rows: Registration[]; onDecide: (id
               <div className="text-lg font-semibold">
                 {r.name}
                 {r.is_private && <span className="ms-2 rounded-[4px] bg-sunken px-2 py-0.5 text-sm font-medium text-ink-2">{t("offices.private")}</span>}
+                {r.revoked_before && <span className="ms-2 rounded-[4px] bg-danger-50 px-2 py-0.5 text-sm font-medium text-danger-ink">{t("offices.revokedBefore")}</span>}
               </div>
               <div className="text-base text-ink-2">
                 {[r.department, r.sector, t("offices.workers", { n: r.workers })].join(" · ")}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import CityMap from "@/components/CityMap";
 import { CountUp } from "@/components/Motion";
 import { btn } from "@/components/ui";
+import type { CityFigures } from "@/lib/city";
 import { t } from "@/lib/i18n";
 import type { Issue } from "@/lib/types";
 
@@ -141,18 +142,12 @@ function Arrow() {
   );
 }
 
-export interface Overview {
-  totalReports: number;
-  resolved: number;
-  avgResolutionDays: number | null;
-}
-
 /** Three live figures on a strip that bridges the navy map band and the lime band. */
-export function Figures({ overview, proofId }: { overview: Overview | null; proofId: number | null }) {
+export function Figures({ figures, proofId }: { figures: CityFigures | null; proofId: number | null }) {
   const cells = [
-    { value: overview?.resolved ?? null, label: t("home.figFixed") },
-    { value: overview?.avgResolutionDays ?? null, label: t("home.figDays") },
-    { value: overview?.totalReports ?? null, label: t("home.figReports") },
+    { value: figures?.resolved ?? null, label: t("home.figFixed") },
+    { value: figures?.avgResolutionDays ?? null, label: t("home.figDays") },
+    { value: figures?.totalReports ?? null, label: t("home.figReports") },
   ];
   return (
     <section aria-label={t("home.figLabel")} className="bg-[linear-gradient(to_bottom,var(--color-navy)_88px,var(--color-lime)_88px)] text-on-lime">

@@ -222,6 +222,7 @@ describe("Demo data and real data stay apart", () => {
     process.env.DEMO_MODE = "false";
     const { issues } = await body(await listIssues(new Request("http://test/api/issues")));
     expect(issues.length).toBe(0);
+    signInAs(SUPER_ADMIN);
     expect((await body(await getStats())).overview.totalIssues).toBe(0);
   });
 
