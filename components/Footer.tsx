@@ -28,8 +28,8 @@ export default function Footer() {
       </ul>
     </nav>
   );
-  // The Authority workspace is a tool, not a page to browse: no site footer there.
-  if (me?.role === "authority") return null;
+  // The staff workspaces are tools, not pages to browse: no site footer there.
+  if (me && me.role !== "citizen") return null;
   return (
     <footer className="on-dark bg-char text-on-dark">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-10 pt-14 sm:px-6 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)]">
@@ -43,9 +43,9 @@ export default function Footer() {
           { href: "/report", label: t("nav.reportLong") },
           { href: "/", label: t("nav.map") },
           { href: "/track", label: t("nav.myReports") },
-          { href: "/insights", label: t("nav.insights") },
         ])}
         {col(t("footer.officials"), [
+          { href: "/register-office", label: t("register.title") },
           { href: "/request-access", label: t("nav.requestAccess") },
           { href: "/signin", label: t("nav.signIn") },
         ])}

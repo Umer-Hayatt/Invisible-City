@@ -154,13 +154,13 @@ export async function decideRegistration(
       outcome === "approved"
         ? {
             to: [r.email],
-            subject: `${r.name} is now an Office on Invisible City`,
-            body: `Your Office registration was approved. Sign in to Invisible City with this Google account (${r.email}) to see the Issues assigned to ${r.name}.`,
+            subject: `${r.name} is now a Business on Invisible City`,
+            body: `Your Business registration was approved. Sign in to Invisible City with this Google account (${r.email}) to see the Issues assigned to ${r.name}.`,
           }
         : {
             to: [r.email],
-            subject: `Your Office registration for ${r.name}`,
-            body: `Your Office registration was not approved. You can contact the city Authority of your area, or register again with corrected details.`,
+            subject: `Your Business registration for ${r.name}`,
+            body: `Your Business registration was not approved. You can contact the city Authority of your area, or register again with corrected details.`,
           },
     );
   }

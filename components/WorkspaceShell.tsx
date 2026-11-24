@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Building2, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
+import { BarChart3, Briefcase, Building2, ClipboardList, Inbox, LayoutDashboard, ListChecks, LogOut, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,22 +11,37 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { api } from "@/lib/client";
 import { t, type MessageKey } from "@/lib/i18n";
 import { sessionChanged, useMe } from "@/lib/me";
+import type { Role } from "@/lib/roles-list";
 
 /**
- * The Authority's workspace. Instead of the site's top bar, a sidebar holds the four places they work in:
- * the Dashboard (an overview), Reports (the queue where Issues are reviewed and assigned), Offices and Insights.
+ * The workspace of everyone who works for or with the city: Authorities, Businesses and the Super Admin.
+ * Instead of the site's top bar, a sidebar holds the places their role works in. Citizens never see it.
  * On phones the sidebar becomes a row of tabs under a slim header.
  */
-const ITEMS: { href: string; label: MessageKey; icon: LucideIcon }[] = [
-  { href: "/admin", label: "authority.dashboard", icon: LayoutDashboard },
-  { href: "/admin/reports", label: "authority.reports", icon: ListChecks },
-  { href: "/admin/offices", label: "nav.offices", icon: Building2 },
-  { href: "/insights", label: "nav.insights", icon: BarChart3 },
-];
+type Item = { href: string; label: MessageKey; icon: LucideIcon };
+export const WORKSPACE: Partial<Record<Role, Item[]>> = {
+  authority: [
+    { href: "/admin", label: "authority.dashboard", icon: LayoutDashboard },
+    { href: "/admin/reports", label: "authority.reports", icon: ListChecks },
+    { href: "/admin/offices", label: "nav.offices", icon: Building2 },
+    { href: "/insights", label: "nav.insights", icon: BarChart3 },
+  ],
+  office: [
+    { href: "/office", label: "business.jobs", icon: ClipboardList },
+    { href: "/office/business", label: "business.mine", icon: Briefcase },
+  ],
+  super_admin: [
+    { href: "/super-admin", label: "nav.superAdmin", icon: Inbox },
+    { href: "/super-admin/authorities", label: "superadmin.authorities", icon: ShieldCheck },
+    { href: "/super-admin/businesses", label: "nav.offices", icon: Building2 },
+    { href: "/insights", label: "nav.insights", icon: BarChart3 },
+  ],
+};
 
-export default function AuthorityShell({ children }: { children: ReactNode }) {
+export default function WorkspaceShell({ role, children }: { role: Role; children: ReactNode }) {
   const path = usePathname();
   const { me } = useMe();
+  const ITEMS = WORKSPACE[role] ?? [];
   // The longest matching link is the active one, so /admin/reports does not also light up /admin.
   const active = ITEMS.filter((i) => path === i.href || path.startsWith(i.href + "/")).sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
@@ -86,7 +101,7 @@ export default function AuthorityShell({ children }: { children: ReactNode }) {
           {me && (
             <div className="px-2 text-sm">
               <div className="truncate font-semibold">{me.displayName || me.email}</div>
-              <div className="text-on-dark-2">{t("role.authority")}</div>
+              <div className="text-on-dark-2">{t(`role.${role}`)}</div>
             </div>
           )}
           <div className="flex items-center gap-2 px-2">

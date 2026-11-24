@@ -22,6 +22,10 @@ The demo story: a Citizen reports a pothole in F-10 → the AI recognises road d
 | **Super Admin** | The Invisible City team | Their Gmail is listed in the server setting `SUPER_ADMIN_EMAILS` |
 | **MNA** | Elected representative of a **Constituency** | Later release |
 
+Every screen calls an Office a **Business** (government or private); the code keeps the name Office. Authorities, Businesses and the Super Admin each work in a sidebar workspace with no top bar and no site footer: Businesses have Jobs and My Business (details and workers); the Super Admin has Access requests, Authorities, Businesses and Insights. Citizens and visitors see only the map (home), Report and My reports; Insights is for Authorities and the Super Admin only (24 November 2026).
+
+The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or assigned, and its Assigned and In progress Issues go back to Open with a note on the timeline. Both are told by email.
+
 Everyone signs in with Google. Signing in alone only ever makes someone a Citizen. An Office has exactly one email, and an email belongs to at most one Office: setting a new email replaces the old one (24 November 2026). An Authority approved for an Area sees, assigns, flags spam and manages Offices in that Area only; an Authority approved for the whole city (every Authority approved before 24 November 2026, and the Demo Authority) sees everything. Approving an Office registration creates the Office at its sector and makes the registering email its sign-in; the Office is told by email.
 
 ## 4. Rules

@@ -40,7 +40,7 @@ export async function suggestedOffices(issueId: number, demo: boolean) {
     `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng
      FROM offices o JOIN departments d ON d.id = o.department_id
      JOIN categories c ON c.department_id = d.id
-     WHERE c.key = $1 AND o.is_demo = $2`,
+     WHERE c.key = $1 AND o.is_demo = $2 AND o.revoked_at IS NULL`,
     [issue.category, demo],
   );
   return offices
@@ -128,7 +128,7 @@ export async function listOffices(demo: boolean, area: string | null = null) {
   const offices = await q.query<OfficeRow & { workers: number; is_private: boolean }>(
     `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.workers, o.is_private
      FROM offices o JOIN departments d ON d.id = o.department_id
-     WHERE o.is_demo = $1 AND ($2::text IS NULL OR o.sector = $2) ORDER BY d.name, o.name`,
+     WHERE o.is_demo = $1 AND o.revoked_at IS NULL AND ($2::text IS NULL OR o.sector = $2) ORDER BY d.name, o.name`,
     [demo, area],
   );
   const staff = await q.query<{ id: number; office_id: number; email: string }>(

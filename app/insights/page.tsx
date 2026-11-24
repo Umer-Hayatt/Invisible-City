@@ -4,6 +4,7 @@ import { Building2, Clock, Repeat } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
+import Gate from "@/components/Gate";
 import { Card, CategoryIcon, PageHeader, PageSkeleton, SectionTitle, categoryLabel } from "@/components/ui";
 import { api } from "@/lib/client";
 import { MessageKey, t } from "@/lib/i18n";
@@ -25,7 +26,16 @@ interface Stats {
   offices: OfficeRecord[];
 }
 
+/** Insights are for the people who run the city: Authorities and the Super Admin. Citizens do not see them. */
 export default function InsightsPage() {
+  return (
+    <Gate roles={["authority", "super_admin"]} next="/insights">
+      <Insights />
+    </Gate>
+  );
+}
+
+function Insights() {
   const [s, setS] = useState<Stats | null>(null);
   const { me } = useMe();
   useEffect(() => {

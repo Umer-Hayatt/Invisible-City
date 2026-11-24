@@ -90,3 +90,12 @@ See PRD section 10.
 - [x] Authority Area: the Access request names a sector or the whole city; an Area Authority sees and acts on that Area only (Issues, Assignments, spam, Offices, registrations, Dashboard).
 - [x] Workers: Offices record their workers on My Office; the neglected-sector rule uses spare workers and Issues waiting more than 7 days, with the evidence on Insights.
 - [x] One email per Office, enforced by the API (a new email replaces the old; an email on another Office is refused).
+
+## Businesses and Super Admin directory (24 November 2026, third note), part 1
+
+- [x] Offices are called Businesses on every screen (English and Urdu); the code and database keep "office".
+- [x] Business workspace with a sidebar: Jobs, My Business (details and workers).
+- [x] Super Admin workspace with a sidebar: Access requests, Authorities, Businesses, Insights; revoke any Authority or Business. Migration `0004_revoke_access.sql`.
+- [x] Citizens see only the map, Report and My reports; Insights is for Authorities and the Super Admin.
+- [ ] Part 2: Businesses see the open Issues of their Department in their sector and ask for the job; chat per job between Authority and Business; Call buttons.
+- [ ] Part 3: contract form, contract PDF, Business accepts in the app, emailed to both; accepting assigns the job; payment recorded (agreed, paid).

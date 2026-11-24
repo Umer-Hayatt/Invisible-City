@@ -259,7 +259,7 @@ export function recordReport(r: NewReport, outer?: Sql) {
 /** Nearest Office of a Department to a point, or null if the Department has none. */
 export async function nearestOffice(department: string, lat: number, lng: number, demo: boolean, q: Sql = sql()) {
   const offices = await q.query<{ id: number; name: string; lat: number; lng: number }>(
-    `SELECT o.id, o.name, o.lat, o.lng FROM offices o JOIN departments d ON d.id = o.department_id WHERE d.name = $1 AND o.is_demo = $2`,
+    `SELECT o.id, o.name, o.lat, o.lng FROM offices o JOIN departments d ON d.id = o.department_id WHERE d.name = $1 AND o.is_demo = $2 AND o.revoked_at IS NULL`,
     [department, demo],
   );
   offices.sort((a, b) => haversineMeters(lat, lng, a.lat, a.lng) - haversineMeters(lat, lng, b.lat, b.lng));

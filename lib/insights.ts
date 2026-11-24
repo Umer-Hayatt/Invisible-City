@@ -48,7 +48,7 @@ export async function officeCapacity(demo: boolean): Promise<OfficeCapacity[]> {
     `SELECT o.sector, o.workers,
             (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
                AND i.status IN ('assigned', 'in_progress'))::int AS active
-     FROM offices o WHERE o.is_demo = $1`,
+     FROM offices o WHERE o.is_demo = $1 AND o.revoked_at IS NULL`,
     [demo],
   );
 }
