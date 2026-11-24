@@ -107,8 +107,10 @@ export default function Home() {
                   {neglected.map((n) => (
                     <li key={n.name} className="flex items-center justify-between py-2.5">
                       <span className="text-lg font-extrabold">{n.name}</span>
-                      <span className="text-sm">
-                        <Figures text={`${t("home.fixedOf", { fixed: n.resolved, total: n.total })} · ${Math.round(n.resolutionRate * 100)}%`} />
+                      <span className="flex items-center gap-2 text-sm">
+                        <Figures text={t("home.fixedOf", { fixed: n.resolved, total: n.total })} />
+                        <span aria-hidden>·</span>
+                        <span className="figure">{Math.round(n.resolutionRate * 100)}%</span>
                       </span>
                     </li>
                   ))}

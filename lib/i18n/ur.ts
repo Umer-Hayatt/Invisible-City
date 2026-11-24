@@ -118,7 +118,7 @@ export const ur: Record<MessageKey, string> = {
   "home.ctaTitle": "اپنی گلی میں کچھ ٹوٹا ہوا دیکھا؟",
   "home.ctaBody": "تصویر اور مقام بھیجیں۔ اتھارٹی اسے اس دفتر کو دیتی ہے جو اسے ٹھیک کر سکتا ہے، اور مرمت تب ہی گنی جاتی ہے جب آپ کہیں کہ یہ واقعی ہوئی ہے۔",
   "home.stageAfter": "بعد کی تصویر",
-  "home.exitLabel": "راستہ · رپورٹ",
+  "home.exitWord": "راستہ",
 
   "map.layerIssues": "مسائل",
   "map.layerHeat": "ہیٹ میپ",

@@ -113,7 +113,7 @@ export const en = {
   "home.ctaTitle": "Seen something broken on your street?",
   "home.ctaBody": "Send a photo and a location. An Authority passes it to the Office that can fix it, and the Fix only counts when you say it is real.",
   "home.stageAfter": "After-photo",
-  "home.exitLabel": "Exit · Report",
+  "home.exitWord": "Exit",
 
   "map.layerIssues": "Issues",
   "map.layerHeat": "Heatmap",

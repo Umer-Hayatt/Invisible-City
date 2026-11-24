@@ -54,8 +54,8 @@ export function Gantry({ hoods }: { hoods: NeighborhoodStat[] | null }) {
       <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
         <div>
           <h1 className="text-[clamp(3rem,5.6vw,5rem)] font-black leading-[0.92] tracking-[-0.03em]">
-            <span className="block lg:whitespace-nowrap">{t("home.signLine1")}</span>
-            <span className="block text-sign-soft lg:whitespace-nowrap">{t("home.signLine2")}</span>
+            <span className="block text-balance lg:whitespace-nowrap">{t("home.signLine1")}</span>
+            <span className="block text-balance text-sign-soft lg:whitespace-nowrap">{t("home.signLine2")}</span>
           </h1>
           <p className="mt-5 max-w-[50ch] text-lg leading-relaxed text-sign-ink/90">{t("home.signSub")}</p>
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
@@ -124,7 +124,7 @@ export function RouteLine({ issues, loaded }: { issues: Issue[]; loaded: boolean
 
   return (
     <section aria-labelledby="route-title" className="px-1">
-      <h2 id="route-title" className="text-lg font-black tracking-[-0.01em]">
+      <h2 id="route-title" className="text-lg font-black tracking-[-0.01em] text-balance">
         {t("home.routeTitle")}
       </h2>
       <ol className="relative mt-5 grid gap-y-5 sm:grid-cols-5 sm:gap-y-0">
@@ -268,7 +268,11 @@ export function ProofFix({ issues }: { issues: Issue[] }) {
 export function ClosingSign() {
   return (
     <section className="sign relative px-6 pb-10 pt-14 sm:px-12 sm:pb-12 sm:pt-16">
-      <span className="exit-tab absolute start-8 top-0 px-4 py-1 text-sm font-black sm:start-12">{t("home.exitLabel")}</span>
+      <span className="exit-tab absolute start-8 top-0 flex items-center gap-2 px-4 py-1 text-sm font-black sm:start-12">
+        {t("home.exitWord")}
+        <span aria-hidden>·</span>
+        {t("nav.report")}
+      </span>
       <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-12">
         <div>
           <h2 className="max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.02em] text-balance sm:text-5xl">{t("home.ctaTitle")}</h2>
