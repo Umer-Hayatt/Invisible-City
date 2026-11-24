@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMe } from "@/lib/me";
 import { Logo } from "@/components/Nav";
 import { t } from "@/lib/i18n";
 
@@ -12,6 +13,7 @@ const CREDITS = [
 ];
 
 export default function Footer() {
+  const { me } = useMe();
   const col = (title: string, links: { href: string; label: string }[]) => (
     <nav aria-label={title}>
       <h2 className="text-lg font-semibold">{title}</h2>
@@ -26,6 +28,8 @@ export default function Footer() {
       </ul>
     </nav>
   );
+  // The Authority workspace is a tool, not a page to browse: no site footer there.
+  if (me?.role === "authority") return null;
   return (
     <footer className="on-dark bg-char text-on-dark">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-10 pt-14 sm:px-6 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)]">

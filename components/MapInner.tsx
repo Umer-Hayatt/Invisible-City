@@ -4,8 +4,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useMemo } from "react";
-import { Circle, MapContainer, Marker, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { useEffect } from "react";
+import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import { CITY_CENTER } from "@/lib/geo";
 import type { NeighborhoodStat } from "@/lib/insights";
 import { dirOf, getLocale, t } from "@/lib/i18n";
@@ -31,8 +31,6 @@ export interface MapProps {
   onPick?: (lat: number, lng: number) => void;
   focus?: [number, number] | null;
   zoom?: number;
-  /** Always the dark tiles, whatever the theme. */
-  night?: boolean;
   /** A picture of the map: no zooming, dragging or popups. */
   still?: boolean;
   className?: string;
@@ -88,33 +86,26 @@ function Recenter({ focus, zoom }: { focus: [number, number]; zoom?: number }) {
   return null;
 }
 
-/** A teardrop pin. The colour is the status, or red for a critical Issue that is still waiting. */
-function pinIcon(color: string, size: number) {
-  return L.divIcon({
-    className: "pin",
-    iconSize: [size, size * 1.34],
-    iconAnchor: [size / 2, size * 1.34],
-    popupAnchor: [0, -size],
-    html: `<svg aria-hidden="true" viewBox="0 0 24 32" style="color:${color}"><path d="M12 1A11 11 0 0 0 1 12c0 8 11 19 11 19s11-11 11-19A11 11 0 0 0 12 1Z" fill="currentColor" stroke="var(--color-char)" stroke-width="1.5"/><circle cx="12" cy="12" r="4.2" fill="var(--color-char)"/></svg>`,
-  });
-}
-
-const PICKED = pinIcon("var(--color-lime)", 32);
-
-function IssuePin({ i, still, faint }: { i: Issue; still: boolean; faint: boolean }) {
+/**
+ * An Issue as a round dot with a white ring, as before the lime redesign: a bigger dot means more Reports. The fill is
+ * the stage it is at; only a critical Issue still waiting stands out, in red with a slow pulse. Finished Issues fade.
+ */
+function IssueDot({ i, still, faint }: { i: Issue; still: boolean; faint: boolean }) {
   const critical = i.severity === "critical" && isActive(i.status);
-  const icon = useMemo(() => pinIcon(pinColor(i.status, critical), critical ? 30 : 24), [i.status, critical]);
   const done = !isActive(i.status);
+  const color = pinColor(i.status, critical);
   return (
-    <Marker
-      position={[i.lat, i.lng]}
-      icon={icon}
-      title={i.title}
-      alt={i.title}
+    <CircleMarker
+      center={[i.lat, i.lng]}
+      radius={5 + Math.min(10, Math.sqrt(i.report_count) * 2.5)}
       interactive={!still}
-      keyboard={!still}
-      opacity={faint ? 0.5 : done ? 0.75 : 1}
-      zIndexOffset={critical ? 500 : done ? -500 : 0}
+      pathOptions={{
+        color: critical ? color : done ? color : "#ffffff",
+        weight: done ? 1.5 : 2,
+        fillColor: color,
+        fillOpacity: done ? 0.25 : faint ? 0.45 : 0.92,
+        className: critical ? "pulse-critical" : undefined,
+      }}
     >
       {!still && (
         <Popup>
@@ -134,7 +125,7 @@ function IssuePin({ i, still, faint }: { i: Issue; still: boolean; faint: boolea
           </div>
         </Popup>
       )}
-    </Marker>
+    </CircleMarker>
   );
 }
 
@@ -146,12 +137,10 @@ export default function MapInner({
   onPick,
   focus,
   zoom = 12,
-  night = false,
   still = false,
   className = "h-[480px]",
 }: MapProps) {
-  const themeDark = useTheme().resolvedTheme === "dark";
-  const dark = night || themeDark;
+  const dark = useTheme().resolvedTheme === "dark";
   return (
     <MapContainer
       center={focus ?? CITY_CENTER}
@@ -201,14 +190,14 @@ export default function MapInner({
             );
           })}
 
-      {layer !== "sectors" && issues.map((i) => <IssuePin key={i.id} i={i} still={still} faint={layer === "heat"} />)}
+      {layer !== "sectors" && issues.map((i) => <IssueDot key={i.id} i={i} still={still} faint={layer === "heat"} />)}
 
       {picked && (
-        <Marker position={picked} icon={PICKED}>
-          <Tooltip permanent direction="top" offset={[0, -38]}>
+        <CircleMarker center={picked} radius={10} pathOptions={{ color: "#ffffff", weight: 4, fillColor: "var(--color-brand)", fillOpacity: 1 }}>
+          <Tooltip permanent direction="top" offset={[0, -12]}>
             {t("map.pickedLabel")}
           </Tooltip>
-        </Marker>
+        </CircleMarker>
       )}
     </MapContainer>
   );

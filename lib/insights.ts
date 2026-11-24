@@ -20,7 +20,28 @@ export interface NeighborhoodStat {
   /** The city-wide resolution rate the neglect test compares against. */
   cityRate: number;
   neglectReason: string | null;
+  /** Every Report made in the sector (an Issue reported by five Citizens counts five). */
+  reports: number;
+  /** Evidence: the Issues in the sector that have waited longest without being fixed. */
+  waiting: EvidenceIssue[];
 }
+
+/** An Issue cited as evidence on Insights, with how long it has waited. */
+export interface EvidenceIssue {
+  id: number;
+  title: string;
+  status: Issue["status"];
+  days: number;
+  recurrenceOf: number | null;
+}
+
+const evidence = (i: Issue): EvidenceIssue => ({
+  id: i.id,
+  title: i.title,
+  status: i.status,
+  days: Math.max(0, Math.floor(days(i.created_at, new Date(nowMs()).toISOString()))),
+  recurrenceOf: i.recurrence_of ?? null,
+});
 
 function days(a: string, b: string) {
   return (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000;
@@ -63,6 +84,12 @@ export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
       neglected,
       cityRate: Math.round(cityRate * 100) / 100,
       // English summary for API readers; screens build their own sentence from the numbers in the chosen language.
+      reports: mine.reduce((sum, i) => sum + i.report_count, 0),
+      waiting: open
+        .filter((i) => i.status === "open" || i.status === "assigned")
+        .sort((a, b) => a.created_at.localeCompare(b.created_at))
+        .slice(0, 3)
+        .map(evidence),
       neglectReason: neglected
         ? `Only ${resolved.length} of ${mine.length} complaints resolved (${Math.round(
             resolutionRate * 100,
@@ -80,6 +107,8 @@ export interface PredictiveInsight {
   open: number;
   /** How many of them came back after a repair. */
   recurring: number;
+  /** Evidence: the Issues in the cluster, the ones that came back after a repair first. */
+  issues: EvidenceIssue[];
   /** English summary for API readers; screens build their own sentence from the fields above. */
   message: string;
 }
@@ -112,6 +141,10 @@ export function predictiveInsights(issues: Issue[]): PredictiveInsight[] {
       count: list.length,
       open: list.filter((i) => isActive(i.status)).length,
       recurring,
+      issues: [...list]
+        .sort((a, b) => Number(!!b.recurrence_of) - Number(!!a.recurrence_of) || b.created_at.localeCompare(a.created_at))
+        .slice(0, 4)
+        .map(evidence),
       message: `${list.length} ${label} reports in ${neighborhood} in 120 days${
         recurring ? ` (${recurring} recurred after repair)` : ""
       }. ${advice[category] ?? "Investigate the root cause."}`,

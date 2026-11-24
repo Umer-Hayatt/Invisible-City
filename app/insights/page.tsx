@@ -1,13 +1,14 @@
 "use client";
 
-import { Building2 } from "lucide-react";
+import { Building2, Clock, Repeat } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { Card, CategoryIcon, PageHeader, PageSkeleton, SectionTitle, categoryLabel } from "@/components/ui";
 import { api } from "@/lib/client";
 import { MessageKey, t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
-import type { NeighborhoodStat, OfficeRecord, PredictiveInsight, PublicContributor } from "@/lib/insights";
+import type { EvidenceIssue, NeighborhoodStat, OfficeRecord, PredictiveInsight } from "@/lib/insights";
 import { Category } from "@/lib/types";
 
 const ADVICE: Partial<Record<Category, MessageKey>> = {
@@ -21,9 +22,7 @@ const ADVICE: Partial<Record<Category, MessageKey>> = {
 interface Stats {
   neighborhoods: NeighborhoodStat[];
   predictive: PredictiveInsight[];
-  leaderboard: PublicContributor[];
   offices: OfficeRecord[];
-  overview: { unconfirmed: number; byCategory: { category: Category; open: number; resolved: number }[] };
 }
 
 export default function InsightsPage() {
@@ -38,10 +37,9 @@ export default function InsightsPage() {
   const neglected = hoods.filter((n) => n.neglected);
   // Citizens see percentages only; which sectors count as neglected is for officials.
   const official = me?.role === "authority" || me?.role === "super_admin";
-  // Citizens who have not set a display name are left out.
-  const named = s.leaderboard.filter((c) => c.name);
-  const columns = 1 + Number(official) + Number(named.length > 0);
-  const maxCat = Math.max(1, ...s.overview.byCategory.map((c) => c.open + c.resolved));
+  // Where the city hears the most: sectors by how many Reports were made there.
+  const busiest = [...hoods].sort((a, b) => b.reports - a.reports || b.total - a.total).slice(0, 8);
+  const columns = 2 + Number(official);
 
   return (
     <div className="space-y-16">
@@ -50,8 +48,8 @@ export default function InsightsPage() {
       <section>
         <SectionTitle title={t("insights.sectorsTitle")} sub={t("insights.sectorsSub")} />
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="map-night overflow-hidden rounded-[8px]">
-            <CityMap neighborhoods={s.neighborhoods} layer="sectors" night className="h-[520px]" />
+          <div className="overflow-hidden rounded-[8px]">
+            <CityMap neighborhoods={s.neighborhoods} layer="sectors" className="h-[520px]" />
           </div>
           <Card className="overflow-hidden">
             <div className="max-h-[520px] overflow-y-auto">
@@ -85,7 +83,7 @@ export default function InsightsPage() {
           <InsightList title={t("insights.neglectTitle")} sub={t("insights.neglectSub")}>
             {neglected.length === 0 && <li className="py-3 text-muted">{t("insights.neglectNone")}</li>}
             {neglected.map((n) => (
-              <li key={n.name} className="flex items-baseline justify-between gap-4 py-3">
+              <li key={n.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 py-3">
                 <div>
                   <div className="text-lg font-semibold">{n.name}</div>
                   <div className="text-sm text-ink-2">
@@ -98,6 +96,7 @@ export default function InsightsPage() {
                   </div>
                 </div>
                 <span className="text-2xl font-bold tabular-nums text-danger-ink">{Math.round(n.resolutionRate * 100)}%</span>
+                {n.waiting.length > 0 && <Evidence label={t("insights.evidenceWaiting")} issues={n.waiting} />}
               </li>
             ))}
           </InsightList>
@@ -108,24 +107,29 @@ export default function InsightsPage() {
           {s.predictive.map((p) => (
             <li key={p.neighborhood + p.category} className="flex gap-3 py-3">
               <CategoryIcon category={p.category} size={20} className="mt-0.5 shrink-0 text-muted" />
-              <div className="text-base leading-snug text-ink-2">
+              <div className="min-w-0 text-base leading-snug text-ink-2">
                 {t("insights.predictCluster", { n: p.count, category: categoryLabel(p.category), place: p.neighborhood })}
                 {p.recurring > 0 && ` ${t("insights.predictRecurred", { n: p.recurring })}`} {t(ADVICE[p.category] ?? "insights.advice.other")}
+                <Evidence label={t("insights.evidenceReports")} issues={p.issues} />
               </div>
             </li>
           ))}
         </InsightList>
 
-        {named.length > 0 && (
-          <InsightList title={t("insights.leaderTitle")} sub={t("insights.leaderSub")}>
-            {named.map((c, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-3">
-                <span className="font-semibold">{c.name}</span>
-                <span className="tabular-nums text-ink-2">{t("office.reports", { n: c.reports })}</span>
-              </li>
-            ))}
-          </InsightList>
-        )}
+        <InsightList title={t("insights.areasTitle")} sub={t("insights.areasSub")}>
+          {busiest.map((n, i) => (
+            <li key={n.name} className="flex items-center justify-between gap-3 py-3">
+              <span className="flex items-baseline gap-3">
+                <span className="w-5 text-sm tabular-nums text-muted">{i + 1}</span>
+                <span className="text-lg font-semibold">{n.name}</span>
+              </span>
+              <span className="text-end text-sm text-ink-2">
+                <span className="block font-semibold tabular-nums text-ink">{t("insights.areaReports", { n: n.reports })}</span>
+                {t("insights.areaDetail", { issues: n.total, open: n.open, pct: Math.round(n.resolutionRate * 100) })}
+              </span>
+            </li>
+          ))}
+        </InsightList>
       </section>
 
       <section>
@@ -134,7 +138,25 @@ export default function InsightsPage() {
           {s.offices.length === 0 ? (
             <p className="p-6 text-sm text-muted">{t("insights.officesEmpty")}</p>
           ) : (
-            <div className="max-h-[520px] overflow-auto">
+            <>
+            <ul className="divide-y divide-line sm:hidden">
+              {s.offices.map((o) => (
+                <li key={o.officeId} className="p-4">
+                  <div className="font-semibold">{o.name}</div>
+                  <div className="text-sm text-muted">
+                    {o.department}, {o.sector}
+                  </div>
+                  <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                    <MiniStat label={t("insights.colAssigned")} value={o.assigned} />
+                    <MiniStat label={t("insights.colFixes")} value={o.fixes} />
+                    <MiniStat label={t("insights.colRejections")} value={o.rejections} />
+                    <MiniStat label={t("insights.colUnconfirmed")} value={o.unconfirmed} />
+                    <MiniStat label={t("insights.colAvgDays")} value={o.avgDaysToFix !== null ? t("insights.days", { n: o.avgDaysToFix }) : "-"} />
+                  </dl>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden max-h-[520px] overflow-auto sm:block">
               <table className="w-full min-w-[680px] text-base">
                 <thead className="sticky top-0 bg-surface text-sm font-semibold text-muted">
                   <tr className="border-b border-line">
@@ -169,43 +191,11 @@ export default function InsightsPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
       </section>
 
-      <section>
-        <SectionTitle title={t("insights.byCategoryTitle")} sub={t("insights.byCategorySub")} />
-        <Card className="space-y-4 p-6">
-          {s.overview.byCategory
-            .filter((c) => c.open + c.resolved > 0)
-            .sort((a, b) => b.open + b.resolved - (a.open + a.resolved))
-            .map((c) => (
-              <div key={c.category} className="grid items-center gap-x-4 gap-y-2 text-base sm:grid-cols-[240px_minmax(0,1fr)_auto]">
-                <span className="flex items-center gap-2 font-semibold">
-                  <CategoryIcon category={c.category} size={16} className="text-muted" />
-                  {categoryLabel(c.category)}
-                </span>
-                <div className="flex h-3 gap-0.5 overflow-hidden rounded-[3px] bg-sunken">
-                  <div className="bg-chart-open" style={{ width: `${(c.open / maxCat) * 100}%` }} title={t("insights.openN", { n: c.open })} />
-                  <div className="bg-lime-600" style={{ width: `${(c.resolved / maxCat) * 100}%` }} title={t("insights.fixedN", { n: c.resolved })} />
-                </div>
-                <span className="text-sm tabular-nums text-ink-2 sm:w-36 sm:text-end">
-                  {t("insights.openFixed", { open: c.open, fixed: c.resolved })}
-                </span>
-              </div>
-            ))}
-          <div className="flex gap-5 border-t border-line pt-4 text-sm font-medium text-ink-2">
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-[2px] bg-chart-open" />
-              {t("status.open")}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-[2px] bg-lime-600" />
-              {t("home.statFixed")}
-            </span>
-          </div>
-        </Card>
-      </section>
     </div>
   );
 }
@@ -216,6 +206,37 @@ function InsightList({ title, sub, children }: { title: string; sub: string; chi
       <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
       <p className="mt-2 text-base text-ink-2">{sub}</p>
       <ul className="mt-4 divide-y divide-line border-y border-line">{children}</ul>
+    </div>
+  );
+}
+
+/** The Issues behind a finding, each linking to its page, so the claim can be checked. */
+function Evidence({ label, issues }: { label: string; issues: EvidenceIssue[] }) {
+  return (
+    <div className="col-span-2 mt-2">
+      <div className="text-xs font-semibold text-muted">{label}</div>
+      <ul className="mt-1 space-y-1">
+        {issues.map((i) => (
+          <li key={i.id} className="flex items-center gap-2 text-sm">
+            {i.recurrenceOf ? <Repeat size={13} className="shrink-0 text-danger-ink" aria-hidden /> : <Clock size={13} className="shrink-0 text-muted" aria-hidden />}
+            <Link href={`/issues/${i.id}`} className="min-w-0 truncate font-medium text-ink underline decoration-line underline-offset-4 hover:decoration-ink">
+              {i.title}
+            </Link>
+            <span className="shrink-0 tabular-nums text-muted">
+              {i.recurrenceOf ? t("insights.cameBack", { id: i.recurrenceOf }) : t("insights.waitingDays", { n: i.days })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="font-semibold tabular-nums">{value}</dd>
     </div>
   );
 }

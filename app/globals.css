@@ -200,29 +200,25 @@ html .leaflet-container .leaflet-control-attribution a {
 .leaflet-tooltip.area-label::before {
   display: none;
 }
-/* Day tiles are calmed so the pins carry the colour. */
-html:not(.dark) .leaflet-tile-pane {
-  filter: saturate(0.4) contrast(0.95);
+/* Critical Issues still waiting pulse a red ring (held still for reduced motion). */
+.pulse-critical {
+  animation: pulse-critical 2.2s ease-out infinite;
 }
-/* The home map is always the night map, tinted by the navy behind it. */
-html .map-night .leaflet-container {
-  background: var(--color-navy);
+@keyframes pulse-critical {
+  0%,
+  100% {
+    stroke-width: 2;
+    stroke-opacity: 1;
+  }
+  50% {
+    stroke-width: 9;
+    stroke-opacity: 0.25;
+  }
 }
-.dark .leaflet-tile-pane,
-html .map-night .leaflet-tile-pane.leaflet-tile-pane {
-  filter: sepia(0.75) hue-rotate(185deg) saturate(1.15) brightness(0.86);
-}
-/* Map pins: a teardrop in the status colour. */
-.pin {
-  background: none;
-  border: 0;
-  color: var(--pin);
-}
-.pin svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+@media (prefers-reduced-motion: reduce) {
+  .pulse-critical {
+    animation: none;
+  }
 }
 
 /* Urdu: a Naskh face for Arabic script (Latin falls back to Google Sans) and a little more line height for its marks. */

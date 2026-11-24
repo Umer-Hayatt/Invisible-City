@@ -68,6 +68,8 @@ export default function Nav() {
       .filter((l) => (l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/")))
       .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
   const isActive = (href: string) => href === activeHref;
+  // Authorities work in their own sidebar workspace (components/AuthorityShell.tsx), without this top bar.
+  if (me?.role === "authority") return null;
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="on-dark sticky top-0 z-[1000] bg-char text-on-dark">

@@ -45,7 +45,7 @@ The team's reference picture (`fixes.docx`, 24 November 2026) sets this look. It
 - **Lime** is a fill with `on-lime` lettering: the primary button, the figures band, the current choice, step numbers, the Fixed badge. It is never text on a light ground.
 - **Brand** is the lime family where it must be read: dark olive by day, lime by night. Links and small icons.
 - **Charcoal** holds the nav, the footer and the dark cell of the figures. **Navy** holds the map section and every working page's header. Both are the same day and night.
-- **Status** colours are solid tags with white lettering (Fixed is lime). Map pins use the brighter `pin-*` tokens.
+- **Status** colours are solid tags with white lettering (Fixed is lime). Map dots use the brighter `pin-*` tokens.
 - **Danger** red means Critical, a Rejection or an error, and nothing else.
 
 ## Type
@@ -54,7 +54,7 @@ Google Sans throughout, 400 prose, 500 to 600 labels and actions, 700 heads. Sen
 
 ## Layout
 
-Home is full-width bands: photo hero, How it works, the navy map with its list, the figures strip over lime, a closing photo. Content is capped at 1280px. Every other page sits in that column and opens with `PageHeader`, a navy band to both screen edges.
+Home is full-width bands: photo hero, How it works, the navy map with its list, the figures strip over lime, a closing photo. Content is capped at 1280px. Every other page sits in that column and opens with `PageHeader`, a navy band to both screen edges. Authorities get a charcoal sidebar (Dashboard, Reports, Offices, Insights) instead of the top bar, and the navy band runs only across the content beside it.
 
 ## Components
 
@@ -62,7 +62,7 @@ Home is full-width bands: photo hero, How it works, the navy map with its list, 
 - **Cards**: 8px corners, 1px line, no nested cards.
 - **StatusBadge** and **CriticalTag**: 4px solid tags. Severity is never shown except Critical, and only while the Issue is still waiting.
 - **Issue list item**: headline, status, one sentence (who reported, where, when). No thumbnails, meters or scores.
-- **Map**: teardrop pins by stage, red for Critical. The home and Insights maps are always the night map.
+- **Map**: round dots with a white ring, sized by how many Reports an Issue has, filled by stage (`pin-*`); only a Critical Issue still waiting stands out, in red with a slow pulse; finished Issues fade. Tiles follow the theme: Esri street map by day, dark grey by night. No severity colours or legend for Citizens. Authorities work without a map (sidebar workspace).
 - **Offices**: one row and one email per Office.
 
 ## Don'ts
