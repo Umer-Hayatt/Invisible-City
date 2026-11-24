@@ -11,6 +11,7 @@ interface Req {
   id: number;
   name: string;
   department: string | null;
+  area: string | null;
   official_email: string;
   phone: string | null;
   decision: "pending" | "approved" | "declined";
@@ -47,7 +48,7 @@ function Requests() {
       <div className="min-w-0">
         <div className="text-lg font-semibold">{r.name}</div>
         <div className="text-base text-ink-2">
-          {[r.department, r.official_email, r.phone].filter(Boolean).join(", ")}
+          {[r.department, r.area ?? t("access.wholeCity"), r.official_email, r.phone].filter(Boolean).join(", ")}
         </div>
         <div className="text-sm text-muted">{t("superadmin.requestedOn", { when: timeAgo(r.created_at) })}</div>
       </div>

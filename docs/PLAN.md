@@ -83,3 +83,10 @@ See PRD section 10.
 - [x] "Problems by category" moved from Insights to the Dashboard.
 - [x] Insights: "Areas with the most Reports" replaces the Citizen leaderboard; Neglected sectors and Problems that keep coming back show their evidence (the Issues waiting longest, the Reports behind each cluster). Idle-worker evidence comes with the worker counts below.
 - [x] Office track record on Insights is a list of cards on phones (no sideways scrolling).
+
+## Fixes of 24 November 2026, backend (HANDOFF items 1 to 4)
+
+- [x] Office registration: `/register-office` (Department, sector, private business, workers); any Authority of that Area or of the whole city approves on the Offices screen; approval creates the Office and its one email. Migration `0003_registration_areas_workers.sql`.
+- [x] Authority Area: the Access request names a sector or the whole city; an Area Authority sees and acts on that Area only (Issues, Assignments, spam, Offices, registrations, Dashboard).
+- [x] Workers: Offices record their workers on My Office; the neglected-sector rule uses spare workers and Issues waiting more than 7 days, with the evidence on Insights.
+- [x] One email per Office, enforced by the API (a new email replaces the old; an email on another Office is refused).

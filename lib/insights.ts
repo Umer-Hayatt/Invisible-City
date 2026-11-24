@@ -24,6 +24,33 @@ export interface NeighborhoodStat {
   reports: number;
   /** Evidence: the Issues in the sector that have waited longest without being fixed. */
   waiting: EvidenceIssue[];
+  /** Workers the sector's Offices recorded; null when none recorded a number. */
+  workers: number | null;
+  /** Workers with no active job (Assigned or In progress); null when no Office recorded workers. */
+  spareWorkers: number | null;
+  /** Open or Assigned Issues older than a week. */
+  stale: number;
+}
+
+/** How many workers an Office has and how many jobs it is on now. */
+export interface OfficeCapacity {
+  sector: string;
+  workers: number;
+  active: number;
+}
+
+/** An Issue that has waited this long without a Fix counts as left waiting. */
+export const STALE_DAYS = 7;
+
+/** Every Office's workers and active jobs (Assigned + In progress), for the neglect rule. */
+export async function officeCapacity(demo: boolean): Promise<OfficeCapacity[]> {
+  return sql().query<OfficeCapacity>(
+    `SELECT o.sector, o.workers,
+            (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
+               AND i.status IN ('assigned', 'in_progress'))::int AS active
+     FROM offices o WHERE o.is_demo = $1`,
+    [demo],
+  );
 }
 
 /** An Issue cited as evidence on Insights, with how long it has waited. */
@@ -47,7 +74,12 @@ function days(a: string, b: string) {
   return (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000;
 }
 
-export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
+/**
+ * Neglect: a sector is neglected when its Offices have spare workers (workers minus active jobs) while its Issues
+ * wait Open or Assigned for more than a week. A sector whose Offices recorded no workers falls back to the old
+ * test: few Issues resolved against the city average.
+ */
+export function neighborhoodStats(issues: Issue[], capacity: OfficeCapacity[] = []): NeighborhoodStat[] {
   const total = issues.length || 1;
   const cityRate = issues.filter((i) => i.status === "resolved").length / total;
 
@@ -68,7 +100,15 @@ export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
     const healthScore = Math.round(
       0.55 * Math.max(0, 100 - openSeverityLoad * 4) + 0.45 * resolutionRate * 100,
     );
-    const neglected = mine.length >= 3 && resolutionRate < 0.35 && resolutionRate < cityRate * 0.6;
+    const offices = capacity.filter((c) => c.sector === n.name && c.workers > 0);
+    const workers = offices.length ? offices.reduce((s, c) => s + c.workers, 0) : null;
+    const spareWorkers = offices.length ? offices.reduce((s, c) => s + Math.max(0, c.workers - c.active), 0) : null;
+    const nowIso = new Date(nowMs()).toISOString();
+    const stale = open.filter((i) => (i.status === "open" || i.status === "assigned") && days(i.created_at, nowIso) > STALE_DAYS).length;
+    const byWorkers = spareWorkers !== null;
+    const neglected = byWorkers
+      ? spareWorkers > 0 && stale > 0
+      : mine.length >= 3 && resolutionRate < 0.35 && resolutionRate < cityRate * 0.6;
     return {
       name: n.name,
       lat: n.lat,
@@ -90,11 +130,16 @@ export function neighborhoodStats(issues: Issue[]): NeighborhoodStat[] {
         .sort((a, b) => a.created_at.localeCompare(b.created_at))
         .slice(0, 3)
         .map(evidence),
-      neglectReason: neglected
-        ? `Only ${resolved.length} of ${mine.length} complaints resolved (${Math.round(
-            resolutionRate * 100,
-          )}% vs city average ${Math.round(cityRate * 100)}%)`
-        : null,
+      workers,
+      spareWorkers,
+      stale,
+      neglectReason: !neglected
+        ? null
+        : byWorkers
+          ? `${spareWorkers} of ${workers} workers have no job while ${stale} Issues wait more than ${STALE_DAYS} days`
+          : `Only ${resolved.length} of ${mine.length} complaints resolved (${Math.round(
+              resolutionRate * 100,
+            )}% vs city average ${Math.round(cityRate * 100)}%)`,
     };
   });
   return stats.sort((a, b) => a.healthScore - b.healthScore);
@@ -210,11 +255,11 @@ export async function contributors(demo: boolean, authId?: string): Promise<Cont
   return [...map.values()].sort((a, b) => b.score - a.score);
 }
 
-export async function cityOverview(issues: Issue[], demo: boolean) {
+export async function cityOverview(issues: Issue[], demo: boolean, capacity: OfficeCapacity[] = []) {
   const resolved = issues.filter((i) => i.status === "resolved");
   const open = issues.filter((i) => isActive(i.status));
   const unconfirmed = issues.filter((i) => i.status === "closed_unconfirmed").length;
-  const hoods = neighborhoodStats(issues).filter((n) => n.total > 0);
+  const hoods = neighborhoodStats(issues, capacity).filter((n) => n.total > 0);
   const [{ n: reportCount }] = await sql().query<{ n: number }>(
     "SELECT COUNT(*)::int AS n FROM reports r JOIN issues i ON i.id = r.issue_id WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL AND i.is_demo = $1",
     [demo],

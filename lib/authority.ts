@@ -3,7 +3,7 @@ import { addEvent, setAssignment } from "./db";
 import { haversineMeters } from "./geo";
 import { sendQuietly } from "./mailer";
 import { recountIssue } from "./reporting";
-import { sql } from "./sql";
+import { Sql, sql } from "./sql";
 
 export interface OfficeRow {
   id: number;
@@ -15,6 +15,20 @@ export interface OfficeRow {
 }
 
 /** Offices of the Department that handles this Issue's Category, nearest first, with distance in metres. */
+/** Whether an Issue lies in an Authority's area. An Authority with no area covers the whole city. */
+export async function issueInArea(issueId: number, area: string | null) {
+  if (!area) return true;
+  const [issue] = await sql().query<{ neighborhood: string }>("SELECT neighborhood FROM issues WHERE id = $1", [issueId]);
+  return !issue || issue.neighborhood === area;
+}
+
+/** Whether an Office lies in an Authority's area. */
+export async function officeInArea(officeId: number, area: string | null) {
+  if (!area) return true;
+  const [office] = await sql().query<{ sector: string }>("SELECT sector FROM offices WHERE id = $1", [officeId]);
+  return !office || office.sector === area;
+}
+
 export async function suggestedOffices(issueId: number, demo: boolean) {
   const q = sql();
   const [issue] = await q.query<{ category: string; lat: number; lng: number }>(
@@ -34,12 +48,16 @@ export async function suggestedOffices(issueId: number, demo: boolean) {
     .sort((a, b) => a.distance - b.distance);
 }
 
-export type AssignOutcome = "assigned" | "not_found" | "conflict" | "invalid_office";
+export type AssignOutcome = "assigned" | "not_found" | "conflict" | "invalid_office" | "out_of_area";
 
 /** Open Issue to Assigned, only to one of the suggested Offices; the Office's staff are emailed. */
-export async function assignIssue(issueId: number, officeId: number, demo: boolean): Promise<AssignOutcome> {
+export async function assignIssue(issueId: number, officeId: number, demo: boolean, area: string | null = null): Promise<AssignOutcome> {
   const offices = await suggestedOffices(issueId, demo);
   if (!offices) return "not_found";
+  if (area) {
+    const [issue] = await sql().query<{ neighborhood: string }>("SELECT neighborhood FROM issues WHERE id = $1", [issueId]);
+    if (issue?.neighborhood !== area) return "out_of_area";
+  }
   const office = offices.find((o) => o.id === officeId);
   if (!office) return "invalid_office";
   const result = await sql().tx(async (q) => {
@@ -104,12 +122,14 @@ export function flagSpam(issueId: number, reportId: number, authorityId: string,
 // Offices and their staff
 // ---------------------------------------------------------------------------
 
-export async function listOffices(demo: boolean) {
+/** Offices of a world, with their one email. An Authority registered for one area sees only that area's Offices. */
+export async function listOffices(demo: boolean, area: string | null = null) {
   const q = sql();
-  const offices = await q.query<OfficeRow>(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng
-     FROM offices o JOIN departments d ON d.id = o.department_id WHERE o.is_demo = $1 ORDER BY d.name, o.name`,
-    [demo],
+  const offices = await q.query<OfficeRow & { workers: number; is_private: boolean }>(
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.workers, o.is_private
+     FROM offices o JOIN departments d ON d.id = o.department_id
+     WHERE o.is_demo = $1 AND ($2::text IS NULL OR o.sector = $2) ORDER BY d.name, o.name`,
+    [demo, area],
   );
   const staff = await q.query<{ id: number; office_id: number; email: string }>(
     "SELECT s.id, s.office_id, s.email FROM office_staff s JOIN offices o ON o.id = s.office_id WHERE o.is_demo = $1 ORDER BY s.email",
@@ -122,27 +142,43 @@ export async function listDepartments() {
   return sql().query<{ id: number; name: string }>("SELECT id, name FROM departments ORDER BY name");
 }
 
-export async function addOffice(o: { name: string; departmentId: number; sector: string; lat: number; lng: number }, demo: boolean) {
-  const [dept] = await sql().query("SELECT 1 FROM departments WHERE id = $1", [o.departmentId]);
+export async function addOffice(
+  o: { name: string; departmentId: number; sector: string; lat: number; lng: number; workers?: number; isPrivate?: boolean },
+  demo: boolean,
+  q: Sql = sql(),
+) {
+  const [dept] = await q.query("SELECT 1 FROM departments WHERE id = $1", [o.departmentId]);
   if (!dept) return null;
-  const [row] = await sql().query<{ id: number }>(
-    "INSERT INTO offices (name, department_id, sector, lat, lng, is_demo) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-    [o.name, o.departmentId, o.sector, o.lat, o.lng, demo],
+  const [row] = await q.query<{ id: number }>(
+    "INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, is_private) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+    [o.name, o.departmentId, o.sector, o.lat, o.lng, demo, o.workers ?? 0, o.isPrivate ?? false],
   );
   return row.id;
 }
 
+/** How many workers an Office has; it uses this to say when it has spare hands. */
+export async function setWorkers(officeId: number, workers: number, q: Sql = sql()) {
+  await q.query("UPDATE offices SET workers = $1 WHERE id = $2", [workers, officeId]);
+}
+
 export type StaffOutcome = "added" | "not_found" | "email_taken";
 
-/** One Office per email: an email already on any Office's staff is refused. */
-export async function addStaff(officeId: number, email: string, demo: boolean): Promise<StaffOutcome> {
-  const [office] = await sql().query("SELECT 1 FROM offices WHERE id = $1 AND is_demo = $2", [officeId, demo]);
-  if (!office) return "not_found";
-  const rows = await sql().query(
-    "INSERT INTO office_staff (office_id, email) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING RETURNING id",
-    [officeId, email],
-  );
-  return rows.length ? "added" : "email_taken";
+/**
+ * Sets an Office's one email: it signs in with it and gets the Assignments. The email replaces whatever the Office had;
+ * an email that already belongs to a different Office is refused. Runs in one transaction.
+ */
+export async function addStaff(officeId: number, email: string, demo: boolean, outer?: Sql): Promise<StaffOutcome> {
+  const run = async (q: Sql): Promise<StaffOutcome> => {
+    const [office] = await q.query("SELECT 1 FROM offices WHERE id = $1 AND is_demo = $2", [officeId, demo]);
+    if (!office) return "not_found";
+    const [taken] = await q.query<{ office_id: number }>("SELECT office_id FROM office_staff WHERE lower(email) = lower($1)", [email]);
+    if (taken && taken.office_id !== officeId) return "email_taken";
+    if (taken) return "added";
+    await q.query("DELETE FROM office_staff WHERE office_id = $1", [officeId]);
+    await q.query("INSERT INTO office_staff (office_id, email) VALUES ($1, $2)", [officeId, email]);
+    return "added";
+  };
+  return outer ? run(outer) : sql().tx(run);
 }
 
 export async function removeStaff(officeId: number, staffId: number, demo: boolean) {

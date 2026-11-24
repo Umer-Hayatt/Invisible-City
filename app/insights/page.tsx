@@ -87,12 +87,14 @@ export default function InsightsPage() {
                 <div>
                   <div className="text-lg font-semibold">{n.name}</div>
                   <div className="text-sm text-ink-2">
-                    {t("insights.neglectReason", {
-                      resolved: n.resolved,
-                      total: n.total,
-                      rate: Math.round(n.resolutionRate * 100),
-                      city: Math.round(n.cityRate * 100),
-                    })}
+                    {n.spareWorkers !== null
+                      ? t("insights.idleReason", { spare: n.spareWorkers, workers: n.workers ?? 0, stale: n.stale })
+                      : t("insights.neglectReason", {
+                          resolved: n.resolved,
+                          total: n.total,
+                          rate: Math.round(n.resolutionRate * 100),
+                          city: Math.round(n.cityRate * 100),
+                        })}
                   </div>
                 </div>
                 <span className="text-2xl font-bold tabular-nums text-danger-ink">{Math.round(n.resolutionRate * 100)}%</span>

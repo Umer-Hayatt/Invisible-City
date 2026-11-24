@@ -17,12 +17,12 @@ The demo story: a Citizen reports a pothole in F-10 → the AI recognises road d
 | Role | Who | How they get the role |
 |---|---|---|
 | **Citizen** | Any member of the public | Signs in with Google and completes their profile |
-| **Authority** | A city official who reviews, flags spam and assigns | Submits an **Access request**; a **Super Admin** approves it |
-| **Office** staff | People working at one Office of a **Department** | An Authority adds their email and picks their Office |
+| **Authority** | A city official who reviews, flags spam and assigns, for one **Area** or the whole city | Submits an **Access request** naming the Area (or the whole city); a **Super Admin** approves it |
+| **Office** | One Office of a **Department**, or a private business doing that Department's work, signing in with one email | Files an **Office registration** with the Google account it will use; an Authority of that Area (or of the whole city) approves it. An Authority can also add an Office and set its email |
 | **Super Admin** | The Invisible City team | Their Gmail is listed in the server setting `SUPER_ADMIN_EMAILS` |
 | **MNA** | Elected representative of a **Constituency** | Later release |
 
-Everyone signs in with Google. Signing in alone only ever makes someone a Citizen. A staff member belongs to exactly one Office; all staff of an Office see the same jobs. Every Authority can see and assign every Issue in the city.
+Everyone signs in with Google. Signing in alone only ever makes someone a Citizen. An Office has exactly one email, and an email belongs to at most one Office: setting a new email replaces the old one (24 November 2026). An Authority approved for an Area sees, assigns, flags spam and manages Offices in that Area only; an Authority approved for the whole city (every Authority approved before 24 November 2026, and the Demo Authority) sees everything. Approving an Office registration creates the Office at its sector and makes the registering email its sign-in; the Office is told by email.
 
 ## 4. Rules
 
@@ -109,7 +109,7 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 ## 7. Insights (existing, kept)
 - Invisible-problems heatmap.
 - Sectors: the percentage of reported problems fixed, and average days to fix. The neighbourhood health score is still computed by the API but shown nowhere (24 November 2026).
-- Neglected neighbourhood: ≥ 3 complaints, resolution rate < 35% and below 60% of the city rate. Shown to Authorities and Super Admins only. To be replaced by a rule based on Offices' spare workers (agreed 24 November 2026, not built).
+- Neglected sector (24 November 2026): the Offices in the sector have **spare workers** (recorded workers minus their Assigned and In progress Issues) while at least one Issue there has waited Open or Assigned for more than 7 days. A sector whose Offices recorded no workers falls back to the old test: ≥ 3 complaints, resolution rate < 35% and below 60% of the city rate. Each neglected sector shows its evidence (spare workers and the Issues waiting longest). Shown to Authorities and Super Admins only.
 - Predictive maintenance from recurring problems.
 - Before vs after photos.
 - **Office track record** (new): per Office, Issues assigned, Fixes, Rejections, Unconfirmed closures, and average days to fix.
@@ -136,4 +136,3 @@ English first. Every on-screen text goes through a translation file from day one
 - SMS phone verification; email-and-password sign-in.
 - Optional gender ("Prefer not to say") and other profile conveniences.
 - Video Reports.
-- Authorities limited to particular areas.

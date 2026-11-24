@@ -4,12 +4,13 @@ import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import { Card, PageHeader, btn, field } from "@/components/ui";
 import { api } from "@/lib/client";
+import { NEIGHBORHOODS } from "@/lib/geo";
 import { errorText, t } from "@/lib/i18n";
 
 const DEPARTMENTS = ["Roads", "Sanitation", "Electrical", "Water & Sewerage", "Accessibility", "Building Control", "General Maintenance"];
 
 export default function RequestAccessPage() {
-  const [form, setForm] = useState({ name: "", department: "", officialEmail: "", phone: "" });
+  const [form, setForm] = useState({ name: "", department: "", area: "", officialEmail: "", phone: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -53,6 +54,18 @@ export default function RequestAccessPage() {
               <option key={d}>{d}</option>
             ))}
           </select>
+        </label>
+        <label className="block text-[15px] font-semibold text-ink-2">
+          {t("access.area")}
+          <select value={form.area} onChange={set("area")} className={`${field} mt-1.5`}>
+            <option value="">{t("access.wholeCity")}</option>
+            {NEIGHBORHOODS.map((n) => (
+              <option key={n.name} value={n.name}>
+                {n.name}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-sm font-normal text-muted">{t("access.areaHint")}</span>
         </label>
         <label className="block text-[15px] font-semibold text-ink-2">
           {t("access.email")}

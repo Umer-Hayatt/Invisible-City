@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/roles";
 export async function GET() {
   const actor = await requireRole("authority");
   if (actor instanceof Response) return actor;
-  return Response.json({ offices: await listOffices(actor.isDemo), departments: await listDepartments() });
+  return Response.json({ offices: await listOffices(actor.isDemo, actor.area), departments: await listDepartments() });
 }
 
 /** Authority: add an Office. */
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
   const departmentId = Number(b.departmentId);
   if (name.length < 2 || name.length > 120) return Response.json({ error: "invalid_office_name" }, { status: 400 });
   if (!sector || sector.length > 40) return Response.json({ error: "invalid_sector" }, { status: 400 });
+  if (actor.area && sector !== actor.area) return Response.json({ error: "out_of_area" }, { status: 403 });
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180)
     return Response.json({ error: "invalid_location" }, { status: 400 });
   const id = Number.isInteger(departmentId) ? await addOffice({ name, departmentId, sector, lat, lng }, actor.isDemo) : null;
