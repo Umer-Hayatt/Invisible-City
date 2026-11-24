@@ -1,6 +1,7 @@
 import { nowIso } from "./clock";
 import { addEvent, setAssignment } from "./db";
 import { haversineMeters } from "./geo";
+import { settleJobRequests } from "./jobs";
 import { sendQuietly } from "./mailer";
 import { recountIssue } from "./reporting";
 import { Sql, sql } from "./sql";
@@ -68,6 +69,7 @@ export async function assignIssue(issueId: number, officeId: number, demo: boole
     if (issue.status !== "open") return null;
     await setAssignment(issueId, officeId, "assigned", q);
     await addEvent(issueId, "assigned", `Assigned to ${office.name}`, nowIso(), q);
+    await settleJobRequests(issueId, officeId, q);
     return issue;
   });
   if (!result) return "conflict";
@@ -126,7 +128,7 @@ export function flagSpam(issueId: number, reportId: number, authorityId: string,
 export async function listOffices(demo: boolean, area: string | null = null) {
   const q = sql();
   const offices = await q.query<OfficeRow & { workers: number; is_private: boolean }>(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.workers, o.is_private
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.workers, o.is_private, o.phone
      FROM offices o JOIN departments d ON d.id = o.department_id
      WHERE o.is_demo = $1 AND o.revoked_at IS NULL AND ($2::text IS NULL OR o.sector = $2) ORDER BY d.name, o.name`,
     [demo, area],
@@ -143,15 +145,15 @@ export async function listDepartments() {
 }
 
 export async function addOffice(
-  o: { name: string; departmentId: number; sector: string; lat: number; lng: number; workers?: number; isPrivate?: boolean },
+  o: { name: string; departmentId: number; sector: string; lat: number; lng: number; workers?: number; isPrivate?: boolean; phone?: string | null },
   demo: boolean,
   q: Sql = sql(),
 ) {
   const [dept] = await q.query("SELECT 1 FROM departments WHERE id = $1", [o.departmentId]);
   if (!dept) return null;
   const [row] = await q.query<{ id: number }>(
-    "INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, is_private) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
-    [o.name, o.departmentId, o.sector, o.lat, o.lng, demo, o.workers ?? 0, o.isPrivate ?? false],
+    "INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, is_private, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
+    [o.name, o.departmentId, o.sector, o.lat, o.lng, demo, o.workers ?? 0, o.isPrivate ?? false, o.phone ?? null],
   );
   return row.id;
 }
@@ -159,6 +161,11 @@ export async function addOffice(
 /** How many workers an Office has; it uses this to say when it has spare hands. */
 export async function setWorkers(officeId: number, workers: number, q: Sql = sql()) {
   await q.query("UPDATE offices SET workers = $1 WHERE id = $2", [workers, officeId]);
+}
+
+/** The Business's phone, which the Authorities of its area can call. */
+export async function setOfficePhone(officeId: number, phone: string, q: Sql = sql()) {
+  await q.query("UPDATE offices SET phone = $1 WHERE id = $2", [phone, officeId]);
 }
 
 export type StaffOutcome = "added" | "not_found" | "email_taken";

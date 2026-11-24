@@ -14,6 +14,7 @@ interface Business {
   workers: number;
   is_private: boolean;
   active: number;
+  phone: string | null;
 }
 
 export default function BusinessPage() {
@@ -35,11 +36,14 @@ function MyBusiness() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [saved, setSaved] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [phoneMsg, setPhoneMsg] = useState("");
   useEffect(() => {
     api<{ office: Business }>("/api/office")
       .then((d) => {
         setB(d.office);
         setValue(String(d.office.workers));
+        setPhone(d.office.phone ?? "");
       })
       .catch((e) => setMsg(errorText((e as Error).message)));
   }, []);
@@ -69,6 +73,43 @@ function MyBusiness() {
           )}
           {row(t("business.activeJobs"), b.active)}
         </dl>
+      </Card>
+
+      <Card className="flex flex-wrap items-end justify-between gap-4 p-6">
+        <div>
+          <h2 className="text-lg font-semibold">{t("business.phone")}</h2>
+          <p className="text-base text-ink-2">{t("business.phoneHint")}</p>
+        </div>
+        <form
+          className="flex flex-wrap items-center gap-2"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setPhoneMsg("");
+            try {
+              const d = await api<{ phone: string }>("/api/office", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone }),
+              });
+              setPhone(d.phone);
+              setPhoneMsg(t("business.saved"));
+            } catch (err) {
+              setPhoneMsg(errorText((err as Error).message));
+            }
+          }}
+        >
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            inputMode="tel"
+            dir="ltr"
+            placeholder={t("profile.phonePlaceholder")}
+            aria-label={t("business.phone")}
+            className={`${field} w-52`}
+          />
+          <button className={btn.dark}>{t("offices.save")}</button>
+          {phoneMsg && <span className="text-sm text-ink-2">{phoneMsg}</span>}
+        </form>
       </Card>
 
       <Card className="flex flex-wrap items-end justify-between gap-4 p-6">

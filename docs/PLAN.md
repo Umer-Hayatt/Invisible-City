@@ -97,5 +97,27 @@ See PRD section 10.
 - [x] Business workspace with a sidebar: Jobs, My Business (details and workers).
 - [x] Super Admin workspace with a sidebar: Access requests, Authorities, Businesses, Insights; revoke any Authority or Business. Migration `0004_revoke_access.sql`.
 - [x] Citizens see only the map, Report and My reports; Insights is for Authorities and the Super Admin.
-- [ ] Part 2: Businesses see the open Issues of their Department in their sector and ask for the job; chat per job between Authority and Business; Call buttons.
-- [ ] Part 3: contract form, contract PDF, Business accepts in the app, emailed to both; accepting assigns the job; payment recorded (agreed, paid).
+
+## Businesses, part 2: jobs, chat and calls
+
+- [x] Available jobs: a Business sees the Open Issues of its Department in its sector and asks for one, with a note. The area's Authorities are emailed.
+- [x] Job requests tab for Authorities (their area only): assign, decline, chat, call. Assigning accepts that request and declines the others.
+- [x] Chat per Issue and Business, between that Business and the area's Authorities (refreshes every 5 seconds); also on the Business's assigned jobs.
+- [x] Call and Email buttons; a Business phone (from its registration, editable on My Business). Migration `0005_job_requests_chat.sql`.
+
+## Businesses, part 3: contracts (not started)
+
+- [ ] Migration 0006: contracts (Issue, Business, Authority, scope, price in PKR, dates, payment terms, status, acceptance, payment status, number).
+- [ ] Authority drafts and sends a contract from a Job request or the chat.
+- [ ] Business accepts or declines in the app; accepting assigns the Issue.
+- [ ] Contract PDF on the server (A4, both parties, Issue with photo, terms, price, dates, acceptance record, signature lines; "not legally binding by itself").
+- [ ] PDF emailed to both sides on Send and on Accept (mailer attachments).
+- [ ] Payment recorded: the Authority marks it Paid after the Fix is confirmed.
+
+## Still open from earlier notes
+
+- [ ] Real photos (Demo Issues use placeholders; home photos are Wikimedia stand-ins).
+- [ ] Live test of Speak and of Business emails on the deployed site (owner).
+- [ ] Hallmark checker flags 73, 56, 72 (likely false alarms).
+- [ ] Refresh `.impeccable/` (still the old road-signage design).
+- [ ] Show an Issue's Job requests on the Authority's Reports page too.

@@ -27,7 +27,9 @@ describe("the seeded demo story", () => {
   it("gives the Demo Office an Assigned, an In progress and a Fixed job", async () => {
     signInDemo("office");
     const { jobs: list } = (await (await jobs()).json()) as { jobs: Job[] };
-    expect(list.map((j) => j.status).sort()).toEqual(["assigned", "fixed", "in_progress"]);
+    // Its unfinished work; it may also have Resolved jobs from before (the Demo Business is a busy office).
+    const unfinished = list.map((j) => j.status).filter((s) => s !== "resolved" && s !== "closed_unconfirmed");
+    expect(unfinished.sort()).toEqual(["assigned", "fixed", "in_progress"]);
   });
 
   it("lets the Demo Citizen confirm the Fix they reported, and the Insights move", async () => {

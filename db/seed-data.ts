@@ -14,8 +14,9 @@ export { DEMO_ACCOUNTS };
 
 /** [name, department, sector]: positions come from the sector centre. */
 const OFFICES: [string, string, string][] = [
-  ["Roads Sub-division F-7", "Roads", "F-7"],
+  // The first Office is the Demo Business: G-9 has Open road Issues, so its Available jobs are never empty.
   ["Roads Sub-division G-9", "Roads", "G-9"],
+  ["Roads Sub-division F-7", "Roads", "F-7"],
   ["Roads Sub-division I-9", "Roads", "I-9"],
   ["Sanitation Depot F-6", "Sanitation", "F-6"],
   ["Sanitation Depot G-8", "Sanitation", "G-8"],
@@ -151,9 +152,9 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
     const lng = hood.lng - 0.0015;
     const workers = IDLE_SECTORS.includes(sector) ? 6 : 0;
     const [o] = await q.query<{ id: number }>(
-      `INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers)
-       VALUES ($1, (SELECT id FROM departments WHERE name = $2), $3, $4, $5, true, $6) RETURNING id`,
-      [name, department, sector, lat, lng, workers],
+      `INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, phone)
+       VALUES ($1, (SELECT id FROM departments WHERE name = $2), $3, $4, $5, true, $6, $7) RETURNING id`,
+      [name, department, sector, lat, lng, workers, `+92 51 ${String(9100000 + offices.length * 1111).slice(0, 7)}`],
     );
     offices.push({ id: o.id, name, department, lat, lng });
   }

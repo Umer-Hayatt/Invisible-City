@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Clock, ImagePlus, Inbox, MessageSquareWarning, Undo2, Wrench } from "lucide-react";
+import { ArrowUpRight, CircleCheck, Clock, ImagePlus, Inbox, MessageSquareWarning, MessagesSquare, Undo2, Wrench } from "lucide-react";
 import Link from "next/link";
 import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
+import JobChat from "@/components/JobChat";
 import { Card, CriticalTag, Empty, IssueThumb, ListSkeleton, PageHeader, StatusBadge, btn, field } from "@/components/ui";
 import { api, prepareImage } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
@@ -58,6 +59,7 @@ function Jobs() {
 
 function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
   const [mode, setMode] = useState<"idle" | "sendBack" | "fix">("idle");
+  const [chat, setChat] = useState(false);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [after, setAfter] = useState<{ file: File; preview: string } | null>(null);
@@ -195,6 +197,10 @@ function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
         )}
         {job.status === "closed_unconfirmed" && <p className="text-sm text-muted">{t("office.closedUnconfirmed")}</p>}
         {err && <p className="text-sm font-medium text-danger-ink">{err}</p>}
+        <button type="button" onClick={() => setChat(!chat)} aria-expanded={chat} className="flex min-h-11 items-center gap-2 text-[15px] font-semibold text-brand hover:underline">
+          <MessagesSquare size={16} aria-hidden /> {chat ? t("chat.hide") : t("chat.withAuthority")}
+        </button>
+        {chat && <JobChat issueId={job.id} />}
       </div>
     </Card>
   );

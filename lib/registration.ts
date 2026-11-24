@@ -127,7 +127,7 @@ export async function decideRegistration(
     if (decision === "approved") {
       const hood = NEIGHBORHOODS.find((n) => n.name === r.sector)!;
       officeId = await addOffice(
-        { name: r.name, departmentId: r.department_id, sector: r.sector, lat: hood.lat, lng: hood.lng, workers: r.workers, isPrivate: r.is_private },
+        { name: r.name, departmentId: r.department_id, sector: r.sector, lat: hood.lat, lng: hood.lng, workers: r.workers, isPrivate: r.is_private, phone: r.phone },
         demo,
         q,
       );
