@@ -1,55 +1,58 @@
-# HANDOFF (24 November 2026). Read this first.
+# HANDOFF (24 November 2026, evening). Read this first.
 
-Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invisible-City, branch main. A teammate works in the same repo: fetch before starting.
+Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invisible-City. Never push to `main`; one branch and one pull request per piece of work. The owner (Umer) reviews, merges, deploys and applies database migrations to the live Supabase.
 
-## State
+## Pull requests and what to do with each (in this order)
 
-- The frontend half of `fixes.docx` (the team's notes with pictures) is DONE: committed as 69047be and pushed to main on 24 November 2026 at the user's request. Pushing main deploys to Vercel; push again only when asked.
-- tsc, eslint and all 169 tests pass. `npm run build` passes.
-- The Demo data in the shared Supabase database was reseeded on 24 November (69 Issues, one active Critical).
-- `fixes.docx` and `~$fixes.docx` are untracked; keep them out of commits.
+| PR | Branch | What it is | Action |
+|---|---|---|---|
+| #12 | `fixes-authority-dashboard` | Authority dashboard and sidebar, previous map back, Insights evidence | **Merged** 24 November |
+| #13 | `fixes-registration` | Office registration, Authority areas, worker counts and new neglect rule, one email per Office | Apply migration **0003**, then merge |
+| #14 | `business-workspace` | Office renamed Business on screen, Business and Super Admin sidebars, revoke access, Citizens without Insights | Apply migration **0004**, then merge |
+| #15 | `business-jobs` | Available jobs, Job requests, chat per job, Call buttons, Business phone | Apply migration **0005**, then merge |
+| #11 | `official-signup` | Old Office staff sign-up | **Close without merging.** #13 replaces it and its migration also uses the number 0003 |
+
+Each PR is built on the one above it. Merge in order; GitHub then shows only each PR's own commit.
+After deploying: reseed the Demo data (workers and phones for the Demo Businesses).
+Security: the Supabase database password, the Cloudinary secret and the Gemini key were pasted in a chat on 24 November. **Rotate all three.**
 
 ## Decisions already made by the user (do not ask again)
 
-- Theme comes from the first picture in fixes.docx: lime, charcoal, navy. Rules are in `DESIGN.md`.
-- Reporter display names are public to everyone. Email and phone only for Authorities and the assigned Office.
-- Citizens see no severity except Critical, no priority number, no neglected sectors, no health score. Authorities keep the priority number and the neglected list.
-- "Criminal score" in the notes was read as the Citizen Impact score: computed, hidden, names and counts shown instead. The user has not objected.
-- One email per Office; that email signs in and gets the Assignments.
+- Theme: lime, charcoal, navy (`DESIGN.md`).
+- Reporter display names are public; email and phone only for Authorities and the assigned Business.
+- **Office is called Business on every screen** (government or private). The code and database keep `office`/`offices`.
+- An Authority is approved by the Super Admin for **one area** (a sector) or the whole city, and sees and acts only on that area.
+- Businesses register themselves (`/register-office`); **any Authority of that area** (or a whole-city one) approves. Private firms pick a Department like any Business.
+- **Spare workers** = workers minus Assigned and In progress jobs. A sector is neglected when its Businesses have spare workers while Issues wait more than 7 days.
+- One email per Business, enforced by the API.
+- The Super Admin sees every Authority and Business and can **revoke** either at any time.
+- **Citizens see only the map (home), Report and My reports.** Insights is for Authorities and the Super Admin.
+- Authorities, Businesses and the Super Admin each work in a **sidebar workspace** (no top bar, no footer).
+- Contracts: the app makes a formatted PDF the Business accepts in the app; payment is **recorded** (agreed, paid), never moved. The PDF does not claim to be legally binding by itself.
+- Calls are `tel:` links (the phone's dialer), not in-app calling.
 
-## Remaining: bring back the previous map (asked for by the user on 24 November, do this first)
+## Remaining work
 
-The user does not like the new map and wants the previous map design back. Not started.
+### Part 3: contracts (next, about 1.5 days)
+1. Migration `0006`: a `contracts` table (Issue, Business, Authority, scope of work, price in PKR, start and finish dates, payment terms, status draft / sent / accepted / declined, accepted by and at, payment status agreed / paid and paid at, contract number).
+2. Authority: on a Job request or in the chat, **Draft a contract** (form), then **Send** to the Business.
+3. Business: sees the contract, **Accept** or **Decline** (with a reason). Accepting assigns the Issue to that Business (reuse `assignIssue`, which already settles Job requests).
+4. PDF: generated on the server (for example with `pdf-lib`), A4, the Invisible City header, contract number, both parties (Business name, type, Department, sector, email, phone; Authority name, area, email, phone), the Issue (title, category, location, photo, Report count), scope, price, dates, payment terms, acceptance record, and signature lines. Footer: "Generated by Invisible City; not legally binding by itself."
+5. Email the PDF to both sides on Send and on Accept (`lib/mailer.ts` needs attachment support).
+6. Payment: the Authority marks a contract **Paid** after the Fix is confirmed; shown on both sides and to the Super Admin.
+7. Tests, PRD, GLOSSARY (Contract), Urdu text.
 
-- The old map is in commit 580fea6: `git show 580fea6:components/MapInner.tsx` and `git show 580fea6:app/page.tsx` (map block and legend). It used the colourful Esri street tiles by day, dark grey tiles at night, and round dots with a white ring (bigger dot = more Reports).
-- The new map: night tiles forced with the `night` prop, teardrop pins (`components/pin.ts`, `IssuePin` and `pinIcon` in `MapInner.tsx`), a blue tint and desaturated day tiles (`.map-night` and `.leaflet-tile-pane` rules in `app/globals.css`). Used on the home page (also inside step 2 of How it works), Insights, Issue, Report and Authority pages.
-- Keep when going back: only Critical may stand out (no low, medium or high colours or legend for Citizens), no health layer, the sector percentages on Insights, the heatmap fix for leaflet.heat 1.x (the old code crashes), and no severity badges in popups except Critical.
-- Update the map lines in `DESIGN.md`.
-
-## Remaining: backend (the user said they will do this next)
-
-1. **Office self-registration.** An Office asks for access as a Department with an area; private businesses may register too. Someone approves it (like Access requests).
-2. **Authority registration by area.** An Authority registers for one area. PRD says every Authority sees every Issue, and "Authorities limited to areas" is under Later, so ask whether area also limits what they see.
-3. **New neglected rule.** Offices record how many workers they have. A sector is neglected when the Offices (or Authority) responsible keep having spare workers and the work is still not done. Then show it on Insights. Today `lib/insights.ts` still uses the old rule and only officials see the list. Ask how "spare" is measured (for example workers minus In progress Issues).
-4. **One email per Office on the server.** The screen (`app/admin/offices/page.tsx`) replaces the email by adding the new one then deleting the old ones; the API still accepts several.
-
-Where: `lib/authority.ts`, `lib/roles.ts`, `app/api/access-requests`, `app/api/offices`, `db/migrations` (add 0003), `app/request-access`, `app/super-admin`. Rule changes must also go into `docs/PRD.md`, new words into `GLOSSARY.md`, every string into both `lib/i18n/en.ts` and `ur.ts`.
-
-## Remaining: frontend
-
-1. Registration forms for items 1 and 2 above, plus the worker count field, built with the backend.
-2. Real photos: demo Issues show checkered placeholders (`scripts/placeholder-photos.ts`); the home photos in `public/photos` are Wikimedia stand-ins, credited in `components/Footer.tsx` (the hero is a railway crew).
-3. Live test of "Speak" in English and Urdu, and of saving an Office email (neither was tried, to avoid changing live data).
-4. Phones: the Office track record table on Insights scrolls sideways.
-5. Hallmark checker still flags 73 (Home, Insights), 56 and 72 (Insights). They looked like false alarms from inner scrolling lists; left alone.
-6. `.impeccable/` still describes the old road-signage design.
+### Other items still open
+- Real photos: Demo Issues use placeholders (`scripts/placeholder-photos.ts`); home photos are Wikimedia stand-ins credited in `components/Footer.tsx`.
+- Live test of Speak (English and Urdu) and of Business emails on the deployed site (Umer).
+- Hallmark checker flags 73 (Home), 56 and 72 (Insights): looked like false alarms from inner scrolling lists.
+- `.impeccable/` still describes the old road-signage design; refresh it with the impeccable document command.
+- The Authority Reports page does not yet show Job requests for the selected Issue; they are on the separate Job requests tab.
+- Chat refreshes every 5 seconds (polling). Real-time (Supabase Realtime) would be nicer but is not needed for the demo.
 
 ## Useful
 
-- Run: PowerShell `$env:Path = "E:\Node;" + $env:Path; npm run dev`, then http://localhost:3000. The "Signed in as" box at the top switches Demo accounts.
-- New files: `components/home/Landing.tsx`, `components/Footer.tsx`, `components/PageShell.tsx`, `components/pin.ts`, `public/photos/`. Removed: `components/home/Signage.tsx`, `components/ScrollProgress.tsx`.
-- In auto mode, `cat` and `grep` through Bash get rewritten by the rtk hook and blocked; use the Read and Grep tools.
-
-## ALSO READ: branch origin/official-signup
-
-A branch (commit 3296bcb, 24 November) adds Office staff sign-up with Authority approval (/join-office). It overlaps with backend items 1 and 4. Look at it before building Office self-registration. It was started before the lime redesign, so its screens need the new theme.
+- Local checks before every PR: `npx tsc --noEmit`, `node node_modules/eslint/bin/eslint.js app lib components tests`, `npm test`.
+- Run: PowerShell `$env:Path = "E:\Node;" + $env:Path; npm run dev`, then http://localhost:3000. The "Signed in as" box switches Demo accounts (Citizen, Authority, Business, Super Admin).
+- Keep `dev.log`, the root `HANDOFF.md`, `fixes.docx` and `.env*` out of commits. Never paste secrets.
+- Main files: `lib/roles.ts` (roles and area), `lib/authority.ts` (Offices, staff, Assignment), `lib/registration.ts`, `lib/directory.ts` (Super Admin lists and revoke), `lib/jobs.ts` (available jobs, Job requests, chat), `lib/insights.ts` (neglect rule), `components/WorkspaceShell.tsx` (sidebars).

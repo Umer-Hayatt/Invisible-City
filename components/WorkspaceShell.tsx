@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Briefcase, Building2, ClipboardList, Inbox, LayoutDashboard, ListChecks, LogOut, ShieldCheck } from "lucide-react";
+import { BarChart3, Briefcase, Building2, ClipboardList, Hand, Inbox, LayoutDashboard, ListChecks, LogOut, SearchCheck, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,11 +23,13 @@ export const WORKSPACE: Partial<Record<Role, Item[]>> = {
   authority: [
     { href: "/admin", label: "authority.dashboard", icon: LayoutDashboard },
     { href: "/admin/reports", label: "authority.reports", icon: ListChecks },
+    { href: "/admin/requests", label: "requests.title", icon: Hand },
     { href: "/admin/offices", label: "nav.offices", icon: Building2 },
     { href: "/insights", label: "nav.insights", icon: BarChart3 },
   ],
   office: [
     { href: "/office", label: "business.jobs", icon: ClipboardList },
+    { href: "/office/available", label: "available.title", icon: SearchCheck },
     { href: "/office/business", label: "business.mine", icon: Briefcase },
   ],
   super_admin: [

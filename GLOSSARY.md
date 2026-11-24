@@ -24,6 +24,14 @@ _Avoid_: Team, agency
 Whoever carries out repairs for a Department in one sector: a government office (such as a CDA depot) or a private firm. A Business signs in with one email. Called "Office" in the code and database (`offices`, role `office`); every screen says Business (renamed 24 November 2026).
 _Avoid_: Office (on screen), team, crew, contractor, field unit
 
+**Job request**:
+A Business asking an Authority to be given an Open Issue of its Department in its sector. Assigning the Issue to that Business accepts it.
+_Avoid_: Bid, application
+
+**Job chat**:
+The conversation about one Issue between one Business and the Authorities of the Issue's area.
+_Avoid_: Thread, DM
+
 **Revocation**:
 The Super Admin taking away an Authority's or a Business's access. A revoked Authority is a Citizen again; a revoked Business cannot sign in or be assigned, and its unfinished jobs go back to Open.
 _Avoid_: Ban, suspension (that is for Citizens)

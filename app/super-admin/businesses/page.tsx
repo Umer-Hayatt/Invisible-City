@@ -14,6 +14,7 @@ interface Business {
   sector: string;
   is_private: boolean;
   workers: number;
+  phone: string | null;
   email: string | null;
   active: number;
   fixes: number;
@@ -77,7 +78,7 @@ function Businesses() {
                   {[b.department, b.sector, b.workers ? t("offices.workers", { n: b.workers }) : t("offices.noWorkers")].join(" · ")}
                 </div>
                 <div className="text-sm text-muted" dir="auto">
-                  {[b.email ?? t("superadmin.noEmail"), t("superadmin.businessWork", { active: b.active, fixes: b.fixes })].join(" · ")}
+                  {[b.email ?? t("superadmin.noEmail"), b.phone, t("superadmin.businessWork", { active: b.active, fixes: b.fixes })].filter(Boolean).join(" · ")}
                   {b.revoked_at && <> · {t("superadmin.revokedOn", { when: timeAgo(b.revoked_at) })}</>}
                 </div>
               </div>
