@@ -111,7 +111,9 @@ export const en = {
   "home.scrollHint": "Scroll",
   "home.storyMerged": "2 Reports merged into one Issue",
   "home.ctaTitle": "Seen something broken on your street?",
-  "home.ctaBody": "It takes 30 seconds. Your Report goes straight to the Office that can fix it, and you will see the proof when it is done.",
+  "home.ctaBody": "Send a photo and a location. An Authority passes it to the Office that can fix it, and the Fix only counts when you say it is real.",
+  "home.stageAfter": "After-photo",
+  "home.exitLabel": "Exit · Report",
 
   "map.layerIssues": "Issues",
   "map.layerHeat": "Heatmap",

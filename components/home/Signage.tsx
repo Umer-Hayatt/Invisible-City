@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Camera, CircleCheck, Tria
 import type { LucideIcon } from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { IssueThumb, statusLabel } from "@/components/ui";
 import { formatDate, MessageKey, t } from "@/lib/i18n";
 import type { NeighborhoodStat } from "@/lib/insights";
@@ -13,8 +13,26 @@ import { imageUrl } from "@/lib/uploads-url";
 
 /**
  * The home page's road-sign world (see .impeccable/surfaces): one gantry sign with live sector routes, the
- * route line every Report travels, a variable message sign for the latest Issues, and a real confirmed Fix.
+ * route line every Report travels, a variable message sign for the latest Issues, a real confirmed Fix, and an
+ * exit sign to close.
  */
+
+/** Sets only the digits of a sentence in the figure face, so words stay in the sign's own lettering. */
+export function Figures({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\d+(?:\.\d+)?%?)/).map((part, i) =>
+        /^\d/.test(part) ? (
+          <span key={i} className="figure">
+            {part}
+          </span>
+        ) : (
+          <Fragment key={i}>{part}</Fragment>
+        ),
+      )}
+    </>
+  );
+}
 
 const ARROWS: LucideIcon[] = [ArrowUpRight, ArrowUp, ArrowLeft, ArrowRight];
 
@@ -32,18 +50,15 @@ function routesFrom(hoods: NeighborhoodStat[]) {
 export function Gantry({ hoods }: { hoods: NeighborhoodStat[] | null }) {
   const routes = hoods ? routesFrom(hoods) : [];
   return (
-    <section id="gantry" className="sign relative px-6 pb-8 pt-12 sm:px-10 sm:pb-10 lg:px-14 lg:pb-12 lg:pt-14">
-      <span aria-hidden className="exit-tab absolute start-8 top-0 flex h-7 w-16 items-center justify-center sm:start-14">
-        <ArrowUpRight size={18} strokeWidth={3} className="rtl:-scale-x-100" />
-      </span>
-      <div className="grid items-center gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
+    <section id="gantry" className="sign relative px-6 py-9 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
+      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
         <div>
-          <h1 className="text-[clamp(3rem,7.4vw,6rem)] font-black leading-[0.9] tracking-[-0.03em] text-balance">
-            {t("home.signLine1")}
-            <span className="block text-sign-soft">{t("home.signLine2")}</span>
+          <h1 className="text-[clamp(3rem,5.6vw,5rem)] font-black leading-[0.92] tracking-[-0.03em]">
+            <span className="block lg:whitespace-nowrap">{t("home.signLine1")}</span>
+            <span className="block text-sign-soft lg:whitespace-nowrap">{t("home.signLine2")}</span>
           </h1>
-          <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-sign-ink/90">{t("home.signSub")}</p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <p className="mt-5 max-w-[50ch] text-lg leading-relaxed text-sign-ink/90">{t("home.signSub")}</p>
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
             <Link
               href="/report"
               className="press inline-flex items-center gap-2.5 rounded-[10px] bg-sign-ink px-6 py-3.5 text-base font-black text-sign transition-colors hover:bg-accent hover:text-[#0f1a14]"
@@ -58,24 +73,24 @@ export function Gantry({ hoods }: { hoods: NeighborhoodStat[] | null }) {
 
         <ul className="space-y-3" aria-label={t("home.routesLabel")}>
           {routes.length === 0
-            ? [0, 1, 2, 3].map((i) => <li key={i} className="sign-row h-[58px] opacity-30" />)
+            ? [0, 1, 2, 3].map((i) => <li key={i} className="sign-row h-[60px] opacity-30" />)
             : routes.map((n, i) => {
                 const Arrow = ARROWS[i % ARROWS.length];
                 return (
                   <li key={n.name}>
                     <Link
                       href="/insights"
-                      className={`sign-row flex items-center gap-3 px-4 py-3 transition-colors ${
+                      className={`sign-row flex items-center gap-3 px-4 py-2.5 transition-colors ${
                         n.neglected ? "sign-warn" : "hover:bg-sign-ink hover:text-sign"
                       }`}
                     >
                       <Arrow size={24} strokeWidth={3} className="shrink-0 rtl:-scale-x-100" />
-                      <span className="flex-1 text-xl font-extrabold leading-tight sm:text-2xl">
-                        {n.name}
-                        {n.neglected && <span className="ms-2 text-sm font-bold">· {t("insights.neglected")}</span>}
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xl font-extrabold leading-tight sm:text-2xl">{n.name}</span>
+                        {n.neglected && <span className="block text-xs font-bold leading-tight">{t("insights.neglected")}</span>}
                       </span>
-                      <span className="figure text-sm font-semibold uppercase opacity-90">
-                        {t("home.fixedOf", { fixed: n.resolved, total: n.total })}
+                      <span className="text-sm font-semibold opacity-90">
+                        <Figures text={t("home.fixedOf", { fixed: n.resolved, total: n.total })} />
                       </span>
                     </Link>
                   </li>
@@ -91,11 +106,14 @@ const STAGES: { status: Status; label: MessageKey; desc: MessageKey }[] = [
   { status: "open", label: "track.stepReported", desc: "home.stage1" },
   { status: "assigned", label: "track.stepAssigned", desc: "home.stage2" },
   { status: "in_progress", label: "track.stepWorking", desc: "home.stage3" },
-  { status: "fixed", label: "track.stepFixed", desc: "home.stage4" },
+  { status: "fixed", label: "home.stageAfter", desc: "home.stage4" },
   { status: "resolved", label: "track.stepDone", desc: "home.stage5" },
 ];
 
-/** The road every Report travels: five stages on one ruling line, each with how many Issues stand there now. */
+/**
+ * The road every Report travels: one painted line with five stops and how many Issues stand at each now.
+ * Across the page on wide screens; down the start edge on phones.
+ */
 export function RouteLine({ issues, loaded }: { issues: Issue[]; loaded: boolean }) {
   const counts = useMemo(() => {
     const c: Partial<Record<Status, number>> = {};
@@ -105,33 +123,45 @@ export function RouteLine({ issues, loaded }: { issues: Issue[]; loaded: boolean
   const closed = counts.closed_unconfirmed ?? 0;
 
   return (
-    <section aria-labelledby="route-title">
-      <h2 id="route-title" className="max-w-2xl text-3xl font-black tracking-[-0.02em] text-balance sm:text-4xl">
+    <section aria-labelledby="route-title" className="px-1">
+      <h2 id="route-title" className="text-lg font-black tracking-[-0.01em]">
         {t("home.routeTitle")}
       </h2>
-      <ol className="mt-8 grid gap-x-1 gap-y-8 sm:grid-cols-5">
-        {STAGES.map((s, i) => (
-          <li key={s.status} className="relative">
-            <span aria-hidden className="block h-[6px] bg-line" />
-            <span
-              aria-hidden
-              className={`route-paint absolute inset-x-0 top-0 block h-[6px] ${s.status === "resolved" ? "bg-brand" : "bg-ink"}`}
-              style={{ "--i": i } as React.CSSProperties}
-            />
-            <div className="pe-4 pt-5">
-              <div className="figure text-4xl font-semibold text-ink">{loaded ? (counts[s.status] ?? 0) : "-"}</div>
-              <div className="mt-2 text-lg font-extrabold leading-tight">{t(s.label)}</div>
-              <p className="mt-1 text-sm leading-snug text-muted">{t(s.desc)}</p>
-            </div>
-          </li>
-        ))}
+      <ol className="relative mt-5 grid gap-y-5 sm:grid-cols-5 sm:gap-y-0">
+        {/* the road edge is always there; the ink line paints over it on load (down the start edge on phones, across on wider screens) */}
+        <span aria-hidden className="absolute bottom-3 start-[8px] top-3 w-[5px] bg-line sm:hidden" />
+        <span aria-hidden className="absolute inset-x-0 top-[8px] hidden h-[5px] bg-line sm:block" />
+        <span aria-hidden className="route-paint-y absolute bottom-3 start-[8px] top-3 w-[5px] bg-ink sm:hidden" />
+        <span aria-hidden className="route-paint absolute inset-x-0 top-[8px] hidden h-[5px] bg-ink sm:block" />
+        {STAGES.map((s) => {
+          const done = s.status === "resolved";
+          return (
+            <li key={s.status} className="relative ps-10 sm:pe-4 sm:ps-0 sm:pt-10">
+              <span
+                aria-hidden
+                className={`absolute start-0 top-0 block h-[21px] w-[21px] rounded-full border-[5px] ${
+                  done ? "border-brand bg-brand" : "border-ink bg-canvas"
+                }`}
+              />
+              <div className="flex items-baseline gap-2.5">
+                <span className={`figure text-2xl font-semibold ${done ? "text-brand" : "text-ink"}`}>{loaded ? (counts[s.status] ?? 0) : "-"}</span>
+                <span className="text-base font-extrabold leading-tight">{t(s.label)}</span>
+              </div>
+              <p className="mt-1 max-w-[26ch] text-sm leading-snug text-muted">{t(s.desc)}</p>
+            </li>
+          );
+        })}
       </ol>
-      {closed > 0 && <p className="mt-6 text-sm text-muted">{t("home.closedNote", { n: closed })}</p>}
+      {closed > 0 && (
+        <p className="mt-5 text-sm text-muted">
+          <Figures text={t("home.closedNote", { n: closed })} />
+        </p>
+      )}
     </section>
   );
 }
 
-/** Variable message sign: the latest Issues, one line at a time, in amber lamps. Holds still for reduced motion. */
+/** Variable message sign: the latest Issues, one at a time, in amber on a black board. Holds still for reduced motion. */
 export function MessageSign({ issues }: { issues: Issue[] }) {
   const lines = useMemo(
     () =>
@@ -150,13 +180,10 @@ export function MessageSign({ issues }: { issues: Issue[] }) {
   const line = lines[n % Math.max(1, lines.length)];
 
   return (
-    <section aria-label={t("home.liveStrip")} className="vms relative overflow-hidden px-5 py-4 sm:px-7">
-      <div className="flex items-center gap-4">
-        <span aria-hidden className="relative flex h-2.5 w-2.5 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ffb21a] opacity-60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#ffb21a]" />
-        </span>
-        <div className="relative h-7 flex-1 overflow-hidden sm:h-8" aria-live="polite">
+    <section aria-label={t("home.liveStrip")} className="vms px-5 py-4 sm:px-7">
+      <div className="flex items-start gap-4 sm:items-center">
+        <span aria-hidden className="mt-2 inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffb21a] sm:mt-0" />
+        <div className="relative min-h-[3.25rem] flex-1 overflow-hidden sm:min-h-0 sm:h-8" aria-live="polite">
           <AnimatePresence mode="wait" initial={false}>
             {line && (
               <m.div
@@ -166,7 +193,10 @@ export function MessageSign({ issues }: { issues: Issue[] }) {
                 exit={{ y: "-100%", opacity: 0 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Link href={`/issues/${line.id}`} className="vms-text block truncate text-lg font-semibold tracking-[0.04em] hover:underline sm:text-xl">
+                <Link
+                  href={`/issues/${line.id}`}
+                  className="vms-text line-clamp-2 text-base font-semibold tracking-[0.04em] hover:underline sm:line-clamp-1 sm:text-xl"
+                >
                   {line.text}
                 </Link>
               </m.div>
@@ -174,7 +204,6 @@ export function MessageSign({ issues }: { issues: Issue[] }) {
           </AnimatePresence>
         </div>
       </div>
-      <div aria-hidden className="vms-lamps pointer-events-none absolute inset-0" />
     </section>
   );
 }
@@ -199,7 +228,7 @@ export function ProofFix({ issues }: { issues: Issue[] }) {
             {t("home.proofTitle")}
           </h2>
           <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-ink-2">
-            {t("home.proofBody", { office: fix.assigned_team ?? "-", days })}
+            <Figures text={t("home.proofBody", { office: fix.assigned_team ?? "-", days })} />
           </p>
           <Link href={`/issues/${fix.id}`} className="mt-5 inline-flex items-center gap-2 font-extrabold text-brand underline decoration-2 underline-offset-[6px]">
             {fix.title} <ArrowRight size={17} strokeWidth={2.5} className="rtl:-scale-x-100" />
@@ -235,18 +264,24 @@ export function ProofFix({ issues }: { issues: Issue[] }) {
   );
 }
 
-/** The last sign on the road: one question, one action. */
+/** The last sign on the road: an exit sign whose destination is reporting a problem. */
 export function ClosingSign() {
   return (
-    <section className="sign relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-16">
-      <h2 className="mx-auto max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.02em] text-balance sm:text-6xl">{t("home.ctaTitle")}</h2>
-      <p className="mx-auto mt-5 max-w-[52ch] text-lg text-sign-ink/85">{t("home.ctaBody")}</p>
-      <Link
-        href="/report"
-        className="press mt-9 inline-flex items-center gap-2.5 rounded-[10px] bg-sign-ink px-7 py-4 text-lg font-black text-sign transition-colors hover:bg-accent hover:text-[#0f1a14]"
-      >
-        <Camera size={20} strokeWidth={2.5} /> {t("nav.reportLong")}
-      </Link>
+    <section className="sign relative px-6 pb-10 pt-14 sm:px-12 sm:pb-12 sm:pt-16">
+      <span className="exit-tab absolute start-8 top-0 px-4 py-1 text-sm font-black sm:start-12">{t("home.exitLabel")}</span>
+      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-12">
+        <div>
+          <h2 className="max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.02em] text-balance sm:text-5xl">{t("home.ctaTitle")}</h2>
+          <p className="mt-4 max-w-[54ch] text-lg text-sign-ink/85">{t("home.ctaBody")}</p>
+        </div>
+        <Link
+          href="/report"
+          className="sign-row press flex items-center gap-4 px-6 py-4 text-2xl font-black transition-colors hover:bg-sign-ink hover:text-sign"
+        >
+          <ArrowUpRight size={30} strokeWidth={3} className="shrink-0 rtl:-scale-x-100" />
+          {t("nav.reportLong")}
+        </Link>
+      </div>
     </section>
   );
 }

@@ -472,13 +472,23 @@ html {
 [dir="rtl"] .route-paint {
   transform-origin: right center;
 }
+.route-paint-y {
+  transform-origin: center top;
+  animation: paint-y 900ms var(--ease-out) both;
+  animation-delay: 250ms;
+}
+@keyframes paint-y {
+  from {
+    transform: scaleY(0);
+  }
+}
 @keyframes paint {
   from {
     transform: scaleX(0);
   }
 }
 
-/* Variable message sign: amber lamps on a black board, with a fine lamp grid over the text. */
+/* Variable message sign: amber lettering on a black board. */
 .vms {
   background: #090a09;
   color: #ffb21a;
@@ -488,11 +498,6 @@ html {
 .vms-text {
   font-family: var(--font-overpass-mono), ui-monospace, monospace;
   text-transform: uppercase;
-  text-shadow: 0 0 10px rgb(255 178 26 / 0.35);
-}
-.vms-lamps {
-  background-image: radial-gradient(circle at center, transparent 0 1.1px, rgb(9 10 9 / 0.55) 1.3px);
-  background-size: 4px 4px;
 }
 
 ::selection {

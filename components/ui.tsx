@@ -211,7 +211,7 @@ export function IssueThumb({ src, category, className = "" }: { src: string | nu
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt="" className={`object-cover ${className}`} />;
   return (
-    <div className={`flex items-center justify-center ${CATEGORY_TINT[category]} ${className}`} aria-hidden>
+    <div className={`flex items-center justify-center bg-sunken text-ink-2 ${className}`} aria-hidden>
       <CategoryIcon category={category} size={26} />
     </div>
   );

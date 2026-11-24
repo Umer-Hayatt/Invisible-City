@@ -4,7 +4,7 @@ import { Activity, Flame, MapPin, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CityMap, { MapLayer } from "@/components/CityMap";
-import { ClosingSign, Gantry, MessageSign, ProofFix, RouteLine } from "@/components/home/Signage";
+import { ClosingSign, Figures, Gantry, MessageSign, ProofFix, RouteLine } from "@/components/home/Signage";
 import { CategoryIcon, IssueThumb, PriorityMeter, Segmented, SeverityBadge, Skeleton, categoryLabel, severityLabel } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import type { NeighborhoodStat } from "@/lib/insights";
@@ -41,12 +41,11 @@ export default function Home() {
 
   return (
     <div className="space-y-16 sm:space-y-20">
-      <div className="space-y-4">
+      <div className="space-y-7">
         <Gantry hoods={stats?.neighborhoods ?? null} />
+        <RouteLine issues={issues} loaded={loaded} />
         {issues.length > 0 && <MessageSign issues={issues} />}
       </div>
-
-      <RouteLine issues={issues} loaded={loaded} />
 
       <section aria-labelledby="map-title" className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -108,8 +107,8 @@ export default function Home() {
                   {neglected.map((n) => (
                     <li key={n.name} className="flex items-center justify-between py-2.5">
                       <span className="text-lg font-extrabold">{n.name}</span>
-                      <span className="figure text-sm">
-                        {t("home.fixedOf", { fixed: n.resolved, total: n.total })} · {Math.round(n.resolutionRate * 100)}%
+                      <span className="text-sm">
+                        <Figures text={`${t("home.fixedOf", { fixed: n.resolved, total: n.total })} · ${Math.round(n.resolutionRate * 100)}%`} />
                       </span>
                     </li>
                   ))}
