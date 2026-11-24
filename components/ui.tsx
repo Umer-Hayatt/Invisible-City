@@ -54,10 +54,14 @@ export function healthColor(score: number) {
 }
 
 /* ---------- primitives ---------- */
-/** `interactive` cards lift on hover and carry a soft light that follows the pointer (see Motion in globals.css). */
+/** A plain panel. `interactive` panels take a green border on hover, like a sign catching the headlights. */
 export function Card({ children, className = "", interactive = false }: { children: React.ReactNode; className?: string; interactive?: boolean }) {
   return (
-    <div className={`rounded-2xl border border-line bg-surface shadow-card ${interactive ? "group lift spotlight hover:border-brand/25" : ""} ${className}`}>
+    <div
+      className={`rounded-[14px] border-[1.5px] border-line bg-surface shadow-card ${
+        interactive ? "group transition-colors duration-200 hover:border-brand" : ""
+      } ${className}`}
+    >
       {children}
     </div>
   );
@@ -117,35 +121,22 @@ export function SectionTitle({ title, sub, right }: { title: string; sub?: strin
   );
 }
 
-export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: string; title: string; sub?: string; right?: React.ReactNode }) {
+/**
+ * The top of a working page: the title at sign scale, one sentence, and the road's edge line under it (ink, with
+ * a painted green segment). `eyebrow` is accepted for older callers but not shown; the heading carries the page.
+ */
+export function PageHeader({ title, sub, right }: { eyebrow?: string; title: string; sub?: string; right?: React.ReactNode }) {
   return (
-    // A banner in the home page's style: soft brand glow, a faint street grid, and a staggered entrance.
-    <div className="relative isolate mb-8 overflow-hidden rounded-3xl border border-line bg-surface px-6 py-9 shadow-card sm:px-10 sm:py-11">
-      <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_0%_0%,var(--color-brand-50),transparent_55%),radial-gradient(ellipse_at_100%_100%,var(--color-accent-50),transparent_50%)]" />
-      <div aria-hidden className="street-grid opacity-70" />
-      <div aria-hidden className="absolute -end-16 -top-20 -z-10 h-56 w-56 rounded-full bg-brand/15 blur-3xl" />
-      <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-        <div className="max-w-2xl">
-          {eyebrow && (
-            <div className="rise mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-brand backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-              {eyebrow}
-            </div>
-          )}
-          <h1 className="rise text-3xl font-extrabold tracking-tight sm:text-5xl" style={{ "--i": 1 } as React.CSSProperties}>
-            {title}
-          </h1>
-          {sub && (
-            <p className="rise mt-3 text-[15px] leading-relaxed text-ink-2 sm:text-base" style={{ "--i": 2 } as React.CSSProperties}>
-              {sub}
-            </p>
-          )}
+    <div className="mb-8">
+      <div className="flex flex-col justify-between gap-5 pb-6 md:flex-row md:items-end">
+        <div className="max-w-3xl">
+          <h1 className="text-4xl font-black leading-[0.95] tracking-[-0.02em] text-balance sm:text-6xl">{title}</h1>
+          {sub && <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">{sub}</p>}
         </div>
-        {right && (
-          <div className="rise shrink-0" style={{ "--i": 3 } as React.CSSProperties}>
-            {right}
-          </div>
-        )}
+        {right && <div className="shrink-0">{right}</div>}
+      </div>
+      <div aria-hidden className="flex h-[5px] gap-0 bg-ink">
+        <span className="route-paint block h-full w-40 bg-brand" />
       </div>
     </div>
   );
@@ -153,13 +144,13 @@ export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: string; t
 
 export const btn = {
   primary:
-    "press shine inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand shadow-sm shadow-brand/20 transition hover:bg-brand-600 hover:shadow-md hover:shadow-brand/25 disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-[10px] bg-brand px-5 py-2.5 text-sm font-extrabold text-on-brand transition-colors hover:bg-brand-600 disabled:opacity-50",
   accent:
-    "press shine inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink shadow-sm transition hover:brightness-95 disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2.5 text-sm font-extrabold text-[#0f1a14] transition-[filter] hover:brightness-95 disabled:opacity-50",
   ghost:
-    "press inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink/30 hover:bg-white disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-[10px] border-2 border-ink/80 bg-surface px-4 py-2 text-sm font-bold text-ink transition-colors hover:bg-sunken disabled:opacity-50",
   dark:
-    "press inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-canvas transition hover:bg-ink/85 disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-[10px] bg-ink px-4 py-2 text-sm font-bold text-canvas transition-colors hover:bg-ink/85 disabled:opacity-50",
 };
 
 export const field =

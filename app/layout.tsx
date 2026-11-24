@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Naskh_Arabic } from "next/font/google";
+import { Noto_Naskh_Arabic, Overpass, Overpass_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "next-themes";
 import DemoBanner from "@/components/DemoBanner";
@@ -11,8 +11,9 @@ import Nav from "@/components/Nav";
 import { dirOf, isLocale, LANG_COOKIE, setLocale, t } from "@/lib/i18n";
 import "./globals.css";
 
-const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// Overpass descends from the highway-gothic lettering on road signs; its mono sets every figure.
+const overpass = Overpass({ variable: "--font-overpass", subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
+const overpassMono = Overpass_Mono({ variable: "--font-overpass-mono", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 // Naskh rather than Nastaliq: it keeps the compact line heights the screens were designed with.
 const urdu = Noto_Naskh_Arabic({ variable: "--font-urdu", subsets: ["arabic"], weight: ["400", "500", "600", "700"] });
 
@@ -26,7 +27,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = isLocale(saved) ? saved : "en";
   setLocale(lang); // for the text this server layout renders itself
   return (
-    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${geist.variable} ${geistMono.variable} ${urdu.variable} h-full antialiased`}>
+    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${overpass.variable} ${overpassMono.variable} ${urdu.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-canvas text-ink">
         <LocaleSync lang={lang} />
         <MotionEffects />
