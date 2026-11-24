@@ -1,5 +1,4 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { POST as assign } from "../app/api/issues/[id]/assign/route";
 import { POST as confirm } from "../app/api/issues/[id]/confirm/route";
 import { POST as fix } from "../app/api/issues/[id]/fix/route";
 import { POST as reject } from "../app/api/issues/[id]/reject/route";
@@ -15,7 +14,7 @@ import { GET as myReports, POST as submitReport } from "../app/api/reports/route
 import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
 import { setSession } from "../lib/session";
-import { ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
+import { assign, ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
 
 /**
  * Ticket 06: the Office's work and the Citizen's answer, row by row through the Issue state machine
@@ -108,7 +107,7 @@ const afterPhoto = (note?: string, withPhoto = true) => {
 const act = {
   assign: (n: number, office = roads) => {
     authority();
-    return assign(json({ officeId: office }), id(n));
+    return assign(n, office);
   },
   start: (n: number) => start(json({}), id(n)),
   sendBack: (n: number, reason = "Not our area") => sendBack(json({ reason }), id(n)),
@@ -402,12 +401,12 @@ describe("illegal commands answer conflict", () => {
 // ---------------------------------------------------------------------------
 describe("Demo data", () => {
   it("the Demo Office runs its own jobs through to Fixed, and sends no real email", async () => {
-    // The Demo Authority assigns an Open Demo road Issue to the Demo Office.
+    // The Demo Authority sends the Demo Office a contract for an Open Demo road Issue, and it accepts.
     signInDemo("authority");
     const offices = (await (await listOffices()).json()).offices as { id: number; staff: { email: string }[] }[];
     const demoOffice = offices.find((o) => o.staff.some((s) => s.email === "demo.office@invisible.city"))!;
     const open = (await (await listIssues(new Request("http://test/api/issues?status=open&category=road_damage"))).json()).issues;
-    expect((await assign(json({ officeId: demoOffice.id }), id(open[0].id))).status).toBe(200);
+    expect((await assign(open[0].id, demoOffice.id)).status).toBe(200);
 
     signInDemo("office");
     const { jobs: list } = await (await jobs()).json();

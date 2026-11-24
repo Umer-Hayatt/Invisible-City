@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { GET as contracts } from "../app/api/contracts/route";
+import { POST as answer } from "../app/api/contracts/[id]/route";
 import { POST as confirm } from "../app/api/issues/[id]/confirm/route";
 import { POST as fix } from "../app/api/issues/[id]/fix/route";
 import { POST as start } from "../app/api/issues/[id]/start/route";
@@ -30,6 +32,18 @@ describe("the seeded demo story", () => {
     // Its unfinished work; it may also have Resolved jobs from before (the Demo Business is a busy office).
     const unfinished = list.map((j) => j.status).filter((s) => s !== "resolved" && s !== "closed_unconfirmed");
     expect(unfinished.sort()).toEqual(["assigned", "fixed", "in_progress"]);
+  });
+
+  it("gives the Demo Office a contract to answer, and accepting it makes the Issue its job", async () => {
+    signInDemo("office");
+    const list = async () => (await (await contracts(new Request("http://test/x"))).json()).contracts as { id: number; issue_id: number; status: string }[];
+    const [waiting] = (await list()).filter((c) => c.status === "sent");
+    expect(waiting).toBeTruthy();
+    const accept = new Request("http://test/x", { method: "POST", body: JSON.stringify({ decision: "accepted" }) });
+    expect((await answer(accept, id(waiting.id))).status).toBe(200);
+    const { jobs: mine } = (await (await jobs()).json()) as { jobs: Job[] };
+    expect(mine.find((j) => j.id === waiting.issue_id)?.status).toBe("assigned");
+    expect(app.mail.sent).toHaveLength(0);
   });
 
   it("lets the Demo Citizen confirm the Fix they reported, and the city figures move", async () => {

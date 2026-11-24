@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Clock, ImagePlus, Inbox, MessageSquareWarning, MessagesSquare, Undo2, Wrench } from "lucide-react";
+import { ArrowUpRight, CircleCheck, Clock, FileSignature, ImagePlus, Inbox, MessageSquareWarning, MessagesSquare, Undo2, Wrench } from "lucide-react";
 import Link from "next/link";
 import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
@@ -28,15 +28,25 @@ interface Job {
 
 function Jobs() {
   const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [offers, setOffers] = useState(0);
   const load = useCallback(() => {
     api<{ jobs: Job[] }>("/api/office/jobs")
       .then((d) => setJobs(d.jobs))
       .catch(() => setJobs([]));
+    api<{ contracts: { status: string }[] }>("/api/contracts")
+      .then((d) => setOffers(d.contracts.filter((c) => c.status === "sent").length))
+      .catch(() => {});
   }, []);
   useEffect(load, [load]);
   return (
     <div>
       <PageHeader title={t("office.title")} sub={t("office.sub")} />
+      {offers > 0 && (
+        <Link href="/office/contracts" className="mb-5 flex items-center gap-3 rounded-[8px] bg-lime px-4 py-3 text-base font-semibold text-on-lime hover:bg-lime-600">
+          <FileSignature size={20} className="shrink-0" aria-hidden />
+          {offers === 1 ? t("contract.oneWaiting") : t("contract.manyWaiting", { n: offers })}
+        </Link>
+      )}
       {jobs === null ? (
         <ListSkeleton />
       ) : jobs.length === 0 ? (

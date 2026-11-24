@@ -1,8 +1,5 @@
 import { nowIso } from "./clock";
-import { addEvent, setAssignment } from "./db";
 import { haversineMeters } from "./geo";
-import { settleJobRequests } from "./jobs";
-import { sendQuietly } from "./mailer";
 import { recountIssue } from "./reporting";
 import { Sql, sql } from "./sql";
 
@@ -15,7 +12,6 @@ export interface OfficeRow {
   lng: number;
 }
 
-/** Offices of the Department that handles this Issue's Category, nearest first, with distance in metres. */
 /** Whether an Issue lies in an Authority's area. An Authority with no area covers the whole city. */
 export async function issueInArea(issueId: number, area: string | null) {
   if (!area) return true;
@@ -30,6 +26,10 @@ export async function officeInArea(officeId: number, area: string | null) {
   return !office || office.sector === area;
 }
 
+/**
+ * Offices of the Department that handles this Issue's Category, nearest first, with distance in metres, and whether
+ * someone can sign in as the Office to answer a contract.
+ */
 export async function suggestedOffices(issueId: number, demo: boolean) {
   const q = sql();
   const [issue] = await q.query<{ category: string; lat: number; lng: number }>(
@@ -37,8 +37,9 @@ export async function suggestedOffices(issueId: number, demo: boolean) {
     [issueId, demo],
   );
   if (!issue) return null;
-  const offices = await q.query<OfficeRow>(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng
+  const offices = await q.query<OfficeRow & { has_email: boolean }>(
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng,
+            EXISTS (SELECT 1 FROM office_staff s WHERE s.office_id = o.id) AS has_email
      FROM offices o JOIN departments d ON d.id = o.department_id
      JOIN categories c ON c.department_id = d.id
      WHERE c.key = $1 AND o.is_demo = $2 AND o.revoked_at IS NULL`,
@@ -47,46 +48,6 @@ export async function suggestedOffices(issueId: number, demo: boolean) {
   return offices
     .map((o) => ({ ...o, distance: Math.round(haversineMeters(issue.lat, issue.lng, o.lat, o.lng)) }))
     .sort((a, b) => a.distance - b.distance);
-}
-
-export type AssignOutcome = "assigned" | "not_found" | "conflict" | "invalid_office" | "out_of_area";
-
-/** Open Issue to Assigned, only to one of the suggested Offices; the Office's staff are emailed. */
-export async function assignIssue(issueId: number, officeId: number, demo: boolean, area: string | null = null): Promise<AssignOutcome> {
-  const offices = await suggestedOffices(issueId, demo);
-  if (!offices) return "not_found";
-  if (area) {
-    const [issue] = await sql().query<{ neighborhood: string }>("SELECT neighborhood FROM issues WHERE id = $1", [issueId]);
-    if (issue?.neighborhood !== area) return "out_of_area";
-  }
-  const office = offices.find((o) => o.id === officeId);
-  if (!office) return "invalid_office";
-  const result = await sql().tx(async (q) => {
-    const [issue] = await q.query<{ status: string; title: string; neighborhood: string; severity: string }>(
-      "SELECT status, title, neighborhood, severity FROM issues WHERE id = $1 FOR UPDATE",
-      [issueId],
-    );
-    if (issue.status !== "open") return null;
-    await setAssignment(issueId, officeId, "assigned", q);
-    await addEvent(issueId, "assigned", `Assigned to ${office.name}`, nowIso(), q);
-    await settleJobRequests(issueId, officeId, q);
-    return issue;
-  });
-  if (!result) return "conflict";
-  if (!demo) {
-    const staff = await sql().query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [officeId]);
-    await sendQuietly({
-      to: staff.map((s) => s.email),
-      subject: `New job for ${office.name}: ${result.title}`,
-      body: [
-        `Invisible City has assigned a new Issue to ${office.name}.`,
-        "",
-        `${result.title} (${result.severity}) in ${result.neighborhood}`,
-        `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/issues/${issueId}`,
-      ].join("\n"),
-    });
-  }
-  return "assigned";
 }
 
 export type FlagOutcome = { status: "not_found" } | { status: "flagged"; issueRemoved: boolean; suspended: boolean };

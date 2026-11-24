@@ -6,7 +6,8 @@ import type { Actor } from "./roles";
 /**
  * Jobs between Authorities and Businesses: a Business sees the Open Issues of its own Department in its own sector,
  * asks for one (a Job request), and talks it over with the Authorities of that area in a chat per Issue. The Authority
- * then assigns the Issue as before; assigning accepts that Business's request and declines the others.
+ * then sends a contract (lib/contracts.ts); when the Business accepts it the Issue is Assigned, which accepts that
+ * Business's request and declines the others.
  */
 
 interface BusinessScope {
@@ -36,10 +37,13 @@ export interface AvailableJob {
   created_at: string;
   /** This Business's latest request for the Issue, if any. */
   request: "pending" | "accepted" | "declined" | null;
+  /** A contract for this Issue is waiting for this Business's answer. */
+  contract: boolean;
 }
 
 const AVAILABLE = `SELECT i.id, i.title, i.category, i.severity, i.neighborhood, i.report_count, i.cover_image, i.created_at,
-         (SELECT r.status FROM job_requests r WHERE r.issue_id = i.id AND r.office_id = $1 ORDER BY r.id DESC LIMIT 1) AS request
+         (SELECT r.status FROM job_requests r WHERE r.issue_id = i.id AND r.office_id = $1 ORDER BY r.id DESC LIMIT 1) AS request,
+         EXISTS (SELECT 1 FROM contracts c WHERE c.issue_id = i.id AND c.office_id = $1 AND c.status = 'sent') AS contract
   FROM issues i JOIN categories c ON c.key = i.category
   WHERE i.status = 'open' AND i.deleted_at IS NULL AND i.is_demo = $2 AND i.neighborhood = $3 AND c.department_id = $4`;
 
@@ -84,7 +88,7 @@ export async function requestJob(officeId: number, issueId: number, note: string
         `${o.name} would like to fix this Issue in ${job.neighborhood}.`,
         ...(note ? [`Their note: ${note}`] : []),
         "",
-        `Open Job requests in Invisible City to assign it, talk to them, or call them.`,
+        `Open Job requests in Invisible City to send them a contract, talk to them, or call them.`,
         `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/admin/requests`,
       ].join("\n"),
     });
@@ -121,6 +125,8 @@ export interface JobRequestRow {
   phone: string | null;
   email: string | null;
   note: string | null;
+  /** The Business a contract for this Issue is waiting on, if any. */
+  contract_office_id: number | null;
   status: "pending" | "accepted" | "declined";
   created_at: string;
 }
@@ -133,6 +139,7 @@ export async function listJobRequests(demo: boolean, area: string | null) {
             (SELECT s.email FROM office_staff s WHERE s.office_id = o.id ORDER BY s.id LIMIT 1) AS email,
             (SELECT COUNT(*) FROM issues x WHERE x.office_id = o.id AND x.deleted_at IS NULL
                AND x.status IN ('assigned', 'in_progress'))::int AS active,
+            (SELECT c.office_id FROM contracts c WHERE c.issue_id = i.id AND c.status = 'sent') AS contract_office_id,
             r.note, r.status, r.created_at
      FROM job_requests r JOIN issues i ON i.id = r.issue_id JOIN offices o ON o.id = r.office_id
      JOIN departments d ON d.id = o.department_id
@@ -142,11 +149,12 @@ export async function listJobRequests(demo: boolean, area: string | null) {
   );
 }
 
-/** An Authority turns a request down. Only a waiting request of their area. */
+/** An Authority turns a request down. Only a waiting request of their area, with no contract waiting on that Business. */
 export async function declineJobRequest(id: number, demo: boolean, area: string | null) {
   const rows = await sql().query(
     `UPDATE job_requests r SET status = 'declined', decided_at = $1 FROM issues i
      WHERE r.id = $2 AND i.id = r.issue_id AND r.status = 'pending' AND i.is_demo = $3 AND ($4::text IS NULL OR i.neighborhood = $4)
+       AND NOT EXISTS (SELECT 1 FROM contracts c WHERE c.issue_id = r.issue_id AND c.office_id = r.office_id AND c.status = 'sent')
      RETURNING r.id`,
     [nowIso(), id, demo, area],
   );
@@ -182,7 +190,7 @@ interface ThreadScope {
 
 /**
  * Who may read and write the chat of an Issue with a Business: an Authority of the Issue's area, or that Business
- * when the Issue is one it could take, asked for, or was given. Returns the thread, or null when not allowed.
+ * when the Issue is one it could take, asked for, was offered a contract for, or was given. Returns the thread, or null when not allowed.
  */
 export async function chatScope(actor: Actor, issueId: number, officeId: number): Promise<ThreadScope | null> {
   if (actor.role === "office" && actor.officeId !== officeId) return null;
@@ -197,7 +205,11 @@ export async function chatScope(actor: Actor, issueId: number, officeId: number)
   if (!i) return null;
   if (actor.role === "authority" && actor.area && i.neighborhood !== actor.area) return null;
   if (actor.role === "office") {
-    const [asked] = await sql().query("SELECT 1 FROM job_requests WHERE issue_id = $1 AND office_id = $2", [issueId, officeId]);
+    const [asked] = await sql().query(
+      `SELECT 1 FROM job_requests WHERE issue_id = $1 AND office_id = $2
+       UNION ALL SELECT 1 FROM contracts WHERE issue_id = $1 AND office_id = $2 LIMIT 1`,
+      [issueId, officeId],
+    );
     const couldTake = i.status === "open" && i.neighborhood === o.sector && i.department_id === o.department_id;
     if (!asked && i.office_id !== officeId && !couldTake) return null;
   }

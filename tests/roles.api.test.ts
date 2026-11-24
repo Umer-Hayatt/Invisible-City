@@ -6,7 +6,8 @@ import { PUT as saveProfile } from "../app/api/me/profile/route";
 import { GET as officeJobs } from "../app/api/office/jobs/route";
 import { GET as listIssues } from "../app/api/issues/route";
 import { GET as getIssue } from "../app/api/issues/[id]/route";
-import { POST as assignIssue } from "../app/api/issues/[id]/assign/route";
+import { GET as listContracts } from "../app/api/contracts/route";
+import { DELETE as withdrawContract, POST as answerContract } from "../app/api/contracts/[id]/route";
 import { POST as startWork } from "../app/api/issues/[id]/start/route";
 import { POST as sendBack } from "../app/api/issues/[id]/send-back/route";
 import { POST as recordFix } from "../app/api/issues/[id]/fix/route";
@@ -16,7 +17,7 @@ import { GET as getStats } from "../app/api/stats/route";
 import { GET as myReports, POST as submitReport } from "../app/api/reports/route";
 import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
 import { setSession } from "../lib/session";
-import { ctx, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
+import { ctx, offer, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
 
 let app: Awaited<ReturnType<typeof startTestApp>>;
 beforeAll(async () => {
@@ -134,7 +135,10 @@ describe("no session: every protected command answers unauthenticated", () => {
     ["submit a Report", () => submitReport(reportForm())],
     ["list my Reports", () => myReports()],
     ["save the profile", () => saveProfile(post("/api/me/profile", { displayName: "A B", phone: "0300 1234567" }, "PUT"))],
-    ["assign an Issue", () => assignIssue(post("/x", { officeId: 1 }), ctx({ id: "1" }))],
+    ["send a contract", () => offer(1, 1)],
+    ["answer a contract", () => answerContract(post("/x", { decision: "accepted" }), ctx({ id: "1" }))],
+    ["withdraw a contract", () => withdrawContract(new Request("http://test/x"), ctx({ id: "1" }))],
+    ["list contracts", () => listContracts(new Request("http://test/x"))],
     ["start work", () => startWork(post("/x", {}), ctx({ id: "1" }))],
     ["send an Issue back", () => sendBack(post("/x", { reason: "Not our area" }), ctx({ id: "1" }))],
     ["record a Fix", () => recordFix(new Request("http://test/x", { method: "POST", body: new FormData() }), ctx({ id: "1" }))],
@@ -157,7 +161,9 @@ describe("another role's commands answer forbidden", () => {
   const commands: Record<string, { allowed: Who; call: () => Promise<Response> }> = {
     "submit a Report": { allowed: "citizen", call: () => submitReport(reportForm()) },
     "list my Reports": { allowed: "citizen", call: () => myReports() },
-    "change an Issue's assignment": { allowed: "authority", call: () => assignIssue(post("/x", { officeId: 1 }), ctx({ id: "1" })) },
+    "send a contract": { allowed: "authority", call: () => offer(1, 1) },
+    "answer a contract": { allowed: "office", call: () => answerContract(post("/x", { decision: "accepted" }), ctx({ id: "1" })) },
+    "withdraw a contract": { allowed: "authority", call: () => withdrawContract(new Request("http://test/x"), ctx({ id: "1" })) },
     "start work": { allowed: "office", call: () => startWork(post("/x", {}), ctx({ id: "1" })) },
     "send an Issue back": { allowed: "office", call: () => sendBack(post("/x", { reason: "Not our area" }), ctx({ id: "1" })) },
     "record a Fix": { allowed: "office", call: () => recordFix(new Request("http://test/x", { method: "POST", body: new FormData() }), ctx({ id: "1" })) },

@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { POST as assign } from "../app/api/issues/[id]/assign/route";
 import { GET as suggested } from "../app/api/issues/[id]/offices/route";
 import { GET as me } from "../app/api/me/route";
 import { POST as addOffice } from "../app/api/offices/route";
@@ -11,7 +10,7 @@ import { GET as registrations } from "../app/api/offices/registrations/route";
 import { POST as register } from "../app/api/register-office/route";
 import { DELETE as revokeBusiness, POST as restoreBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setSession } from "../lib/session";
-import { ctx, SUPER_ADMIN, signInAs, startTestApp } from "./helpers";
+import { assign, ctx, offer, SUPER_ADMIN, signInAs, startTestApp } from "./helpers";
 
 /**
  * The Super Admin's directory: every Authority and Business, and revoking either at any time. A revoked Authority
@@ -77,7 +76,7 @@ describe("the Super Admin directory", () => {
       `INSERT INTO issues (category, severity, title, summary, lat, lng, neighborhood, status, priority, is_demo, report_count, created_at, updated_at)
        VALUES ('road_damage', 'medium', 'Pothole', 'Pothole.', 33.72, 73.05, 'F-7', 'open', 1, false, 1, now(), now()) RETURNING id`,
     );
-    expect((await assign(json({ officeId }), ctx({ id: String(issue.id) }))).status).toBe(200);
+    expect((await assign(issue.id, officeId)).status).toBe(200);
     expect(await roleOf("revoke-crew@gov.pk")).toBe("office");
 
     signInAs(SUPER_ADMIN);
@@ -95,7 +94,7 @@ describe("the Super Admin directory", () => {
     signInAs("omar@gov.pk");
     const offers = (await (await suggested(new Request("http://test/x"), ctx({ id: String(issue.id) }))).json()).offices;
     expect(offers.map((o: { id: number }) => o.id)).not.toContain(officeId);
-    expect((await assign(json({ officeId }), ctx({ id: String(issue.id) }))).status).toBe(400);
+    expect((await offer(issue.id, officeId)).status).toBe(400);
   });
 
   it("restores a revoked Business, which signs in again", async () => {

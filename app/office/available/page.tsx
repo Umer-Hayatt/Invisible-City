@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Clock, Hand, MessagesSquare, SearchCheck, XCircle } from "lucide-react";
+import { ArrowUpRight, CircleCheck, Clock, FileSignature, Hand, MessagesSquare, SearchCheck, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
@@ -21,6 +21,7 @@ interface Job {
   cover_image: string | null;
   created_at: string;
   request: "pending" | "accepted" | "declined" | null;
+  contract: boolean;
 }
 
 export default function AvailablePage() {
@@ -86,7 +87,11 @@ function AvailableCard({ job, onChanged }: { job: Job; onChanged: () => void }) 
   }
 
   const status =
-    job.request === "pending" ? (
+    job.contract ? (
+      <Link href="/office/contracts" className="flex items-center gap-2 text-[15px] font-semibold text-brand hover:underline">
+        <FileSignature size={15} aria-hidden /> {t("contract.offered")}
+      </Link>
+    ) : job.request === "pending" ? (
       <p className="flex items-center gap-2 text-[15px] font-medium text-ink-2">
         <Clock size={15} aria-hidden /> {t("available.pending")}
       </p>
@@ -119,7 +124,7 @@ function AvailableCard({ job, onChanged }: { job: Job; onChanged: () => void }) 
       </div>
       <div className="space-y-3 border-t border-line p-4">
         {status}
-        {job.request !== "pending" && !asking && (
+        {job.request !== "pending" && !job.contract && !asking && (
           <button type="button" disabled={busy} onClick={() => setAsking(true)} className={btn.primary}>
             <Hand size={16} aria-hidden /> {t("available.ask")}
           </button>

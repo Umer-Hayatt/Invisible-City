@@ -1,13 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { PGlite, types } from "@electric-sql/pglite";
+import { POST as answer } from "../app/api/contracts/[id]/route";
+import { POST as sendContract } from "../app/api/issues/[id]/contract/route";
 import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
 import { seedDemoData } from "../db/seed-data";
 import { setClock } from "../lib/clock";
 import { fakeMailer, setMailer } from "../lib/mailer";
 import { fakePhotoStore, setPhotoStore } from "../lib/photo-store";
-import { Identity, setSession } from "../lib/session";
-import { Sql, setSql } from "../lib/sql";
+import { Identity, session, setSession } from "../lib/session";
+import { Sql, setSql, sql as db } from "../lib/sql";
 
 const MIGRATIONS = path.join(__dirname, "..", "db", "migrations");
 
@@ -54,3 +56,29 @@ export const signInAs = (email: string | null, authId = "real-" + email) =>
 /** Sign in as one of the four Demo accounts. */
 export const signInDemo = (key: "citizen" | "authority" | "office" | "superAdmin") =>
   setSession({ authId: "demo-" + key, email: DEMO_ACCOUNTS[key].email, isDemo: true, demoKey: key });
+
+/** Contract terms that are always acceptable. */
+export const TERMS = { scope: "Repair the problem and clean up.", pricePkr: 50_000, startDate: "", finishDate: "2030-01-31", paymentTerms: "" };
+
+const post = (data: unknown) =>
+  new Request("http://test/x", { method: "POST", body: JSON.stringify(data), headers: { "content-type": "application/json" } });
+
+/** The signed-in Authority offers an Issue to an Office as a contract; the answer is the API's. */
+export const offer = (issueId: number, officeId: number, terms: Record<string, unknown> = {}) =>
+  sendContract(post({ officeId, ...TERMS, ...terms }), ctx({ id: String(issueId) }));
+
+/**
+ * The only way to Assigned: the signed-in Authority sends a contract and the Office accepts it. Returns the first answer
+ * that is not a success, or the acceptance. Whoever was signed in stays signed in.
+ */
+export async function assign(issueId: number, officeId: number) {
+  const sent = await offer(issueId, officeId);
+  if (sent.status !== 201) return sent;
+  const before = await session();
+  const [staff] = await db().query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [officeId]);
+  if (before?.isDemo) signInDemo("office");
+  else signInAs(staff.email);
+  const res = await answer(post({ decision: "accepted" }), ctx({ id: String((await sent.json()).id) }));
+  setSession(before);
+  return res;
+}

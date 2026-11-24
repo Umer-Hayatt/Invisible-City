@@ -105,11 +105,14 @@ See PRD section 10.
 - [x] Chat per Issue and Business, between that Business and the area's Authorities (refreshes every 5 seconds); also on the Business's assigned jobs.
 - [x] Call and Email buttons; a Business phone (from its registration, editable on My Business). Migration `0005_job_requests_chat.sql`.
 
-## Businesses, part 3: contracts (not started)
+## Assignment by agreement (25 November 2026)
 
-- [ ] Migration 0006: contracts (Issue, Business, Authority, scope, price in PKR, dates, payment terms, status, acceptance, payment status, number).
-- [ ] Authority drafts and sends a contract from a Job request or the chat.
-- [ ] Business accepts or declines in the app; accepting assigns the Issue.
+- [x] Authorities no longer assign: the Assign API is gone. They send a Contract from Reports or a Job request; the Business accepts (the Issue is then Assigned) or declines with a reason; the Authority can withdraw. Contracts pages for both, emails, a Demo contract waiting for the Demo Business. Migration `0006_contracts.sql` (applied).
+
+## Businesses, part 3: the rest of contracts (not started)
+
+- [ ] Migration 0007: payment status (agreed, paid, paid at) on contracts.
+- [ ] Send a contract from the chat too.
 - [ ] Contract PDF on the server (A4, both parties, Issue with photo, terms, price, dates, acceptance record, signature lines; "not legally binding by itself").
 - [ ] PDF emailed to both sides on Send and on Accept (mailer attachments).
 - [ ] Payment recorded: the Authority marks it Paid after the Fix is confirmed.

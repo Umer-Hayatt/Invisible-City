@@ -9,7 +9,7 @@ A person with a verified Google account and a phone number who reports problems 
 _Avoid_: User, reporter (when meaning the account), complainant
 
 **Authority**:
-A city official who reviews incoming Issues, flags spam, and assigns Issues to Offices.
+A city official who reviews incoming Issues, flags spam, and agrees each Issue with a Business through a Contract.
 _Avoid_: Admin, government, moderator
 
 **Super Admin**:
@@ -25,8 +25,12 @@ Whoever carries out repairs for a Department in one sector: a government office 
 _Avoid_: Office (on screen), team, crew, contractor, field unit
 
 **Job request**:
-A Business asking an Authority to be given an Open Issue of its Department in its sector. Assigning the Issue to that Business accepts it.
+A Business asking an Authority to be given an Open Issue of its Department in its sector. The Authority answers with a Contract; the request is accepted when the Business accepts that Contract.
 _Avoid_: Bid, application
+
+**Contract**:
+An Authority's written offer of one Open Issue to one Business: the work, price, dates and payment terms. The Business accepts or declines it; the Authority can withdraw it while it waits. Accepting makes the Assignment.
+_Avoid_: Work order, tender, agreement (as a noun for the record)
 
 **Job chat**:
 The conversation about one Issue between one Business and the Authorities of the Issue's area.
@@ -78,7 +82,7 @@ _Avoid_: Repeat, relapse
 ## Workflow
 
 **Assignment**:
-An Authority handing an Issue to a specific Office.
+An Issue becoming a specific Business's job, when that Business accepts the Authority's Contract. An Authority never assigns on its own.
 _Avoid_: Dispatch, allocation
 
 **Send back**:

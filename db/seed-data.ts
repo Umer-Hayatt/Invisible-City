@@ -296,7 +296,8 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
  * - one Assigned, for Office staff to Start work or Send back;
  * - one In progress, for Office staff to Mark fixed;
  * - one Fixed, which the Demo Citizen also reported, waiting for the Demo Citizen to confirm or reject.
- * The Demo Authority still has plenty of Open Issues to assign.
+ * A contract for an Open footpath Issue waits for the Demo Office to accept or decline.
+ * The Demo Authority still has plenty of Open Issues to send contracts for.
  */
 async function demoStory(q: Sql, now: Date, office: { id: number; name: string }, photos?: SeedPhotos) {
   const picks = await q.query<{ id: number; created_at: string; neighborhood: string }>(
@@ -353,4 +354,22 @@ async function demoStory(q: Sql, now: Date, office: { id: number; name: string }
       await q.query("UPDATE issues SET report_count = report_count + 1 WHERE id = $1", [issue.id]);
     }
   }
+
+  // A footpath, so the Demo Authority keeps its Open road Issue to offer the Demo Office.
+  const dateIn = (days: number) => at(now.getTime() + days * day).slice(0, 10);
+  await q.query(
+    `INSERT INTO contracts (issue_id, office_id, authority_id, authority_name, scope, price_pkr, start_date, finish_date, payment_terms, sent_at)
+     SELECT i.id, $1, p.id, p.display_name, $2, 85000, $3, $4, $5, $6
+     FROM issues i, people p
+     WHERE i.is_demo AND i.category = 'blocked_footpath' AND i.status = 'open' AND p.auth_id = 'demo-authority'
+     ORDER BY i.id LIMIT 1`,
+    [
+      office.id,
+      "Clear the footpath of everything blocking it, repair the broken paving and leave it safe to walk on.",
+      dateIn(2),
+      dateIn(9),
+      "Paid in full after the Citizens confirm the Fix.",
+      at(now.getTime() - 3 * 3_600_000),
+    ],
+  );
 }

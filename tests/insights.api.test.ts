@@ -1,5 +1,4 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { POST as assign } from "../app/api/issues/[id]/assign/route";
 import { POST as confirm } from "../app/api/issues/[id]/confirm/route";
 import { POST as fix } from "../app/api/issues/[id]/fix/route";
 import { POST as reject } from "../app/api/issues/[id]/reject/route";
@@ -16,7 +15,7 @@ import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
 import { NEIGHBORHOODS } from "../lib/geo";
 import { setSession } from "../lib/session";
-import { ctx, NOW, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
+import { assign, ctx, NOW, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
 
 /**
  * Ticket 07: Insights follow the real workflow. A Resolution moves the neighbourhood numbers, an
@@ -96,7 +95,7 @@ async function report(who: string) {
 const ok = (res: Response) => expect(res.status).toBe(200);
 async function assignAndFix(n: number) {
   signInAs("official@gov.pk");
-  ok(await assign(json({ officeId: roads }), id(n)));
+  ok(await assign(n, roads));
   advanceClock(2 * 86_400_000); // two days after Assignment
   signInAs("crew@gov.pk");
   ok(await start(json({}), id(n)));

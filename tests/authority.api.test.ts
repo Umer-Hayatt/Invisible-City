@@ -1,5 +1,4 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { POST as assign } from "../app/api/issues/[id]/assign/route";
 import { GET as suggested } from "../app/api/issues/[id]/offices/route";
 import { POST as flag } from "../app/api/issues/[id]/reports/[reportId]/spam/route";
 import { GET as getIssue } from "../app/api/issues/[id]/route";
@@ -13,7 +12,7 @@ import { setAnalyzer } from "../lib/ai";
 import { setClock } from "../lib/clock";
 import { setSession } from "../lib/session";
 import { AIAnalysis, Severity } from "../lib/types";
-import { ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
+import { assign, ctx, NOW, offer, signInAs, signInDemo, startTestApp } from "./helpers";
 
 let app: Awaited<ReturnType<typeof startTestApp>>;
 beforeAll(async () => {
@@ -75,7 +74,6 @@ async function newOffice(name: string, department: string, lat: number, lng: num
   return (await res.json()).id as number;
 }
 const staff = (officeId: number, email: string) => addStaff(json({ email }), ctx({ id: String(officeId) }));
-const assignTo = (issueId: number, officeId: number) => assign(json({ officeId }), ctx({ id: String(issueId) }));
 const flagReport = (issueId: number, reportId: number) =>
   flag(json({}), ctx({ id: String(issueId), reportId: String(reportId) }));
 
@@ -107,7 +105,7 @@ describe("reporter contact details", () => {
     const other = await newOffice("Roads Office B", "Roads", 33.7, 73.2);
     await staff(assigned, "crew-a@gov.pk");
     await staff(other, "crew-b@gov.pk");
-    expect((await assignTo(id, assigned)).status).toBe(200);
+    expect((await assign(id, assigned)).status).toBe(200);
 
     const contactOf = async () => (await issue(id)).reports[0];
     authority();
@@ -192,23 +190,23 @@ describe("assigning an Issue", () => {
     expect(offices[0].distance).toBeGreaterThan(0);
   });
 
-  it("moves an Open Issue to Assigned, emails the Office, and refuses a second Assignment", async () => {
+  it("moves an Open Issue to Assigned once the Office accepts its contract, and refuses a second one", async () => {
     await citizen("assignme");
     const id = await report(33.85, 73.85);
     const office = await newOffice("Roads Assign", "Roads", 33.85, 73.85);
     await staff(office, "Lead@Gov.pk");
     app.mail.sent.length = 0;
     authority();
-    expect((await assignTo(id, office)).status).toBe(200);
+    expect((await assign(id, office)).status).toBe(200);
     const after = await issue(id);
     expect(after.issue).toMatchObject({ status: "assigned", assigned_team: "Roads Assign" });
     expect(after.events.some((e: { message: string }) => e.message.includes("Assigned to Roads Assign"))).toBe(true);
-    expect(app.mail.sent).toHaveLength(1);
-    expect(app.mail.sent[0].to).toEqual(["lead@gov.pk"]);
-    const again = await assignTo(id, office);
+    // The contract to the Office, then its acceptance to the Authority.
+    expect(app.mail.sent.map((m) => m.to)).toEqual([["lead@gov.pk"], ["official@gov.pk"]]);
+    const again = await offer(id, office);
     expect(again.status).toBe(409);
     expect((await again.json()).error).toBe("conflict");
-    expect(app.mail.sent).toHaveLength(1);
+    expect(app.mail.sent).toHaveLength(2);
   });
 
   it("refuses an Office of another Department", async () => {
@@ -216,7 +214,7 @@ describe("assigning an Issue", () => {
     const id = await report(33.9, 73.95);
     const sanitation = await newOffice("Sanitation Wrong", "Sanitation", 33.9, 73.95);
     authority();
-    const res = await assignTo(id, sanitation);
+    const res = await offer(id, sanitation);
     expect(res.status).toBe(400);
     expect((await issue(id)).issue.status).toBe("open");
   });
@@ -227,13 +225,13 @@ describe("assigning an Issue", () => {
     const target = issues[0];
     const { offices } = await (await suggested(new Request("http://test/x"), ctx({ id: String(target.id) }))).json();
     app.mail.sent.length = 0;
-    expect((await assignTo(target.id, offices[0].id)).status).toBe(200);
+    expect((await offer(target.id, offices[0].id)).status).toBe(201);
     expect(app.mail.sent).toHaveLength(0);
   });
 
   it("is for Authorities only", async () => {
     await citizen("notauth");
-    expect((await assignTo(1, 1)).status).toBe(403);
+    expect((await offer(1, 1)).status).toBe(403);
   });
 });
 

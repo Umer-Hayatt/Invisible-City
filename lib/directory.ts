@@ -76,7 +76,8 @@ export async function revokeAuthority(email: string, by: string | null, demo: bo
 
 /**
  * Revokes a Business: it can no longer sign in as a Business or be assigned, and every job it had not finished
- * (Assigned or In progress) goes back to Open for the Authority, with a note on the public timeline.
+ * (Assigned or In progress) goes back to Open for the Authority, with a note on the public timeline. Contracts waiting
+ * for its answer are withdrawn.
  */
 export async function revokeBusiness(officeId: number, by: string | null, demo: boolean) {
   const out = await sql().tx(async (q: Sql) => {
@@ -93,6 +94,11 @@ export async function revokeBusiness(officeId: number, by: string | null, demo: 
       await setAssignment(j.id, null, "open", q);
       await addEvent(j.id, "sent_back", `Back to Open: ${office.name} no longer works with the city`, nowIso(), q);
     }
+    await q.query("UPDATE contracts SET status = 'withdrawn', decided_at = $1, decided_by = $2 WHERE office_id = $3 AND status = 'sent'", [
+      nowIso(),
+      by,
+      officeId,
+    ]);
     const emails = await q.query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [officeId]);
     return { name: office.name, reopened: jobs.length, emails: emails.map((e) => e.email) };
   });

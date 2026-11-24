@@ -1,7 +1,7 @@
 import { declineJobRequest } from "@/lib/jobs";
 import { requireRole } from "@/lib/roles";
 
-/** Authority: turn down a waiting Job request. To accept one, assign the Issue to that Business. */
+/** Authority: turn down a waiting Job request. To accept one, send that Business a contract. */
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await requireRole("authority");
   if (actor instanceof Response) return actor;

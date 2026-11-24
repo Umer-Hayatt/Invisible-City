@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Hand, MessagesSquare, Phone, XCircle } from "lucide-react";
+import { ArrowUpRight, CircleCheck, Clock, FileSignature, Hand, MessagesSquare, Phone, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import ContractForm from "@/components/ContractForm";
 import Gate from "@/components/Gate";
 import JobChat from "@/components/JobChat";
 import { Card, CategoryChip, CriticalTag, Empty, ListSkeleton, PageHeader, btn } from "@/components/ui";
@@ -27,6 +28,7 @@ interface JobRequest {
   phone: string | null;
   email: string | null;
   note: string | null;
+  contract_office_id: number | null;
   status: "pending" | "accepted" | "declined";
   created_at: string;
 }
@@ -39,7 +41,7 @@ export default function RequestsPage() {
   );
 }
 
-/** Businesses asking for jobs in the Authority's area: assign, decline, talk it over, or call. */
+/** Businesses asking for jobs in the Authority's area: send a contract, decline, talk it over, or call. */
 function Requests() {
   const [rows, setRows] = useState<JobRequest[] | null>(null);
   const [error, setError] = useState("");
@@ -59,14 +61,6 @@ function Requests() {
     }
     load();
   }
-  const assign = (r: JobRequest) =>
-    run(() =>
-      api(`/api/issues/${r.issue_id}/assign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ officeId: r.office_id }),
-      }),
-    );
   const decline = (r: JobRequest) => run(() => api(`/api/job-requests/${r.id}`, { method: "DELETE" }));
 
   const waiting = rows?.filter((r) => r.status === "pending") ?? [];
@@ -85,7 +79,7 @@ function Requests() {
           <section className="space-y-3">
             {waiting.length === 0 && <p className="text-muted">{t("requests.noneWaiting")}</p>}
             {waiting.map((r) => (
-              <RequestCard key={r.id} r={r} onAssign={() => assign(r)} onDecline={() => decline(r)} />
+              <RequestCard key={r.id} r={r} onSent={load} onDecline={() => decline(r)} />
             ))}
           </section>
           {decided.length > 0 && (
@@ -102,7 +96,8 @@ function Requests() {
   );
 }
 
-function RequestCard({ r, onAssign, onDecline }: { r: JobRequest; onAssign?: () => void; onDecline?: () => void }) {
+function RequestCard({ r, onSent, onDecline }: { r: JobRequest; onSent?: () => void; onDecline?: () => void }) {
+  const [writing, setWriting] = useState(false);
   const [chat, setChat] = useState(false);
   const [busy, setBusy] = useState(false);
   const act = (fn?: () => void) => async () => {
@@ -140,11 +135,17 @@ function RequestCard({ r, onAssign, onDecline }: { r: JobRequest; onAssign?: () 
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          {r.status === "pending" ? (
+          {r.status === "pending" && r.contract_office_id === r.office_id ? (
+            <Link href="/admin/contracts" className="flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:underline">
+              <Clock size={15} className="shrink-0" aria-hidden /> {t("contract.waitingFor", { office: r.office })}
+            </Link>
+          ) : r.status === "pending" ? (
             <>
-              <button type="button" disabled={busy} onClick={act(onAssign)} className={btn.primary}>
-                {t("requests.assign")}
-              </button>
+              {r.contract_office_id === null && (
+                <button type="button" disabled={busy || writing} onClick={() => setWriting(true)} className={btn.primary}>
+                  <FileSignature size={16} aria-hidden /> {t("contract.write")}
+                </button>
+              )}
               <button type="button" disabled={busy} onClick={act(onDecline)} className={btn.ghost}>
                 {t("superadmin.decline")}
               </button>
@@ -160,6 +161,24 @@ function RequestCard({ r, onAssign, onDecline }: { r: JobRequest; onAssign?: () 
           )}
         </div>
       </div>
+      {r.status === "pending" && r.contract_office_id !== null && r.contract_office_id !== r.office_id && (
+        <p className="mt-3 text-sm text-ink-2">{t("contract.waitingElsewhere")}</p>
+      )}
+      {writing && onSent && (
+        <div className="mt-4">
+          <ContractForm
+            issueId={r.issue_id}
+            officeId={r.office_id}
+            office={r.office}
+            title={r.title}
+            onSent={() => {
+              setWriting(false);
+              onSent();
+            }}
+            onCancel={() => setWriting(false)}
+          />
+        </div>
+      )}
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
         <button
           type="button"

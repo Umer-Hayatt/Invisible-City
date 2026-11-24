@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { POST as requestAccess } from "../app/api/access-requests/route";
-import { POST as assign } from "../app/api/issues/[id]/assign/route";
 import { GET as listIssues } from "../app/api/issues/route";
 import { GET as myOffice, PUT as setWorkers } from "../app/api/office/route";
 import { GET as listOffices } from "../app/api/offices/route";
@@ -11,7 +10,7 @@ import { GET as stats } from "../app/api/stats/route";
 import { neighborhoodStats } from "../lib/insights";
 import { setSession } from "../lib/session";
 import type { Issue } from "../lib/types";
-import { ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
+import { ctx, NOW, signInAs, signInDemo, startTestApp, offer } from "./helpers";
 
 /**
  * Fixes of 24 November (backend half): Offices register themselves and an Authority approves; Authorities work for one
@@ -145,12 +144,12 @@ describe("Authority areas", () => {
     expect(new Set(city.issues.map((i: Issue) => i.neighborhood)).size).toBeGreaterThan(1);
   });
 
-  it("refuses an area Authority an Assignment outside the area", async () => {
+  it("refuses an area Authority a contract outside the area", async () => {
     const [outside] = await app.sql.query<{ id: number }>(
       "SELECT id FROM issues WHERE NOT is_demo AND status = 'open' AND neighborhood <> 'G-9' AND deleted_at IS NULL LIMIT 1",
     );
     signInAs("g9@gov.pk");
-    const res = await assign(json({ officeId: 1 }), ctx({ id: String(outside.id) }));
+    const res = await offer(outside.id, 1);
     expect(res.status).toBe(403);
     expect((await res.json()).error).toBe("out_of_area");
   });

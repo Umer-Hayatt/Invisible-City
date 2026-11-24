@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { GET as readChat, POST as writeChat } from "../app/api/issues/[id]/chat/route";
-import { POST as assign } from "../app/api/issues/[id]/assign/route";
 import { GET as listRequests } from "../app/api/job-requests/route";
 import { DELETE as declineRequest } from "../app/api/job-requests/[id]/route";
 import { GET as myOffice, PUT as updateOffice } from "../app/api/office/route";
@@ -9,7 +8,7 @@ import { POST as askFor } from "../app/api/office/available/[id]/route";
 import { POST as addOffice } from "../app/api/offices/route";
 import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { setSession } from "../lib/session";
-import { ctx, signInAs, startTestApp } from "./helpers";
+import { assign, ctx, signInAs, startTestApp } from "./helpers";
 
 /**
  * Part 2 of the Business plan: a Business sees the Open Issues of its Department in its sector, asks for one, talks it
@@ -99,9 +98,9 @@ describe("Job requests for the Authority", () => {
     expect((await askFor(json({ note: "Second try" }), id(potholeF7))).status).toBe(201);
   });
 
-  it("are settled by the Assignment: the chosen Business's request is accepted", async () => {
+  it("are settled when the contract is accepted: the chosen Business's request is accepted", async () => {
     signInAs("f7@gov.pk");
-    expect((await assign(json({ officeId: roadsF7 }), id(potholeF7))).status).toBe(200);
+    expect((await assign(potholeF7, roadsF7)).status).toBe(200);
     const mine = (await (await listRequests()).json()).requests.filter((x: { issue_id: number }) => x.issue_id === potholeF7);
     expect(mine.map((x: { status: string }) => x.status).sort()).toEqual(["accepted", "declined"]);
     signInAs("f7roads@biz.pk");

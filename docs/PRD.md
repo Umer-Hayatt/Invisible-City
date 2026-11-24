@@ -10,25 +10,31 @@ Civic problems in Islamabad (potholes, overflowing garbage, broken streetlights,
 
 A web app that turns individual **Reports** into one record per real-world problem (**Issue**), routes each Issue to the **Office** that can fix it, and closes the loop with the **Citizen** who reported it. City-wide insights show hotspots, neglected neighbourhoods and recurring damage.
 
-The demo story: a Citizen reports a pothole in F-10 → the AI recognises road damage and rates it high → a second Citizen reports the same pothole and it merges → it shows on the map → an **Authority** assigns it to the nearest Roads Office → the Office fixes it and uploads an after-photo → the Citizen confirms → neighbourhood statistics and the Office's record update.
+The demo story: a Citizen reports a pothole in F-10 → the AI recognises road damage and rates it high → a second Citizen reports the same pothole and it merges → it shows on the map → an **Authority** sends the nearest Roads Office a **Contract** → the Office accepts and the Issue is Assigned to it → the Office fixes it and uploads an after-photo → the Citizen confirms → neighbourhood statistics and the Office's record update.
 
 ## 3. Roles
 
 | Role | Who | How they get the role |
 |---|---|---|
 | **Citizen** | Any member of the public | Signs in with Google and completes their profile |
-| **Authority** | A city official who reviews, flags spam and assigns, for one **Area** or the whole city | Submits an **Access request** naming the Area (or the whole city); a **Super Admin** approves it |
+| **Authority** | A city official who reviews, flags spam and sends **Contracts**, for one **Area** or the whole city | Submits an **Access request** naming the Area (or the whole city); a **Super Admin** approves it |
 | **Office** | One Office of a **Department**, or a private business doing that Department's work, signing in with one email | Files an **Office registration** with the Google account it will use; an Authority of that Area (or of the whole city) approves it. An Authority can also add an Office and set its email |
 | **Super Admin** | The Invisible City team | Their Gmail is listed in the server setting `SUPER_ADMIN_EMAILS` |
 | **MNA** | Elected representative of a **Constituency** | Later release |
 
 Every screen calls an Office a **Business** (government or private); the code keeps the name Office. Authorities, Businesses and the Super Admin each work in a sidebar workspace with no top bar and no site footer: Businesses have Jobs and My Business (details and workers); the Super Admin has Access requests, Authorities, Businesses and Insights. Citizens and visitors see only the map (home), Report and My reports; Insights is for Authorities and the Super Admin only (24 November 2026).
 
-The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or assigned, and its Assigned and In progress Issues go back to Open with a note on the timeline. Both are told by email. A revoked Business can come back two ways (25 November 2026): the Super Admin **restores** it, or its people register again with the same email; the Authority deciding sees "Revoked before", and approval moves the email to the new Business. A revoked Authority sends a new Access request.
+The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or offered a Contract, its waiting Contracts are withdrawn, and its Assigned and In progress Issues go back to Open with a note on the timeline. Both are told by email. A revoked Business can come back two ways (25 November 2026): the Super Admin **restores** it, or its people register again with the same email; the Authority deciding sees "Revoked before", and approval moves the email to the new Business. A revoked Authority sends a new Access request.
 
-**Jobs between Authorities and Businesses** (24 November 2026). A Business sees **Available jobs**: the Open Issues of its Department in its own sector. It can ask for one with a note (a **Job request**); the Authorities of that area are emailed. An Authority sees the Job requests of its area and assigns the Issue as before, or declines the request; assigning accepts that Business's request and declines the others, and a declined Business may ask again. A Business and the Authorities of the Issue's area talk in a **chat** per Issue and Business, open to nobody else, and each sees the other's phone and email to call or write. A Business records its phone (from its registration, editable). Next: contracts with a PDF, accepted in the app, and payment recorded.
+**Jobs between Authorities and Businesses** (24 November 2026). A Business sees **Available jobs**: the Open Issues of its Department in its own sector. It can ask for one with a note (a **Job request**); the Authorities of that area are emailed. An Authority sees the Job requests of its area and sends that Business a Contract, or declines the request (not while a Contract waits on that Business). The Assignment accepts that Business's request and declines the others, and a declined Business may ask again. A Business and the Authorities of the Issue's area talk in a **chat** per Issue and Business, open to nobody else, and each sees the other's phone and email to call or write. A Business records its phone (from its registration, editable). 
 
-Everyone signs in with Google. Signing in alone only ever makes someone a Citizen. An Office has exactly one email, and an email belongs to at most one Office: setting a new email replaces the old one (24 November 2026). An Authority approved for an Area sees, assigns, flags spam and manages Offices in that Area only; an Authority approved for the whole city (every Authority approved before 24 November 2026, and the Demo Authority) sees everything. Approving an Office registration creates the Office at its sector and makes the registering email its sign-in; the Office is told by email.
+**Assignment by agreement** (25 November 2026). An Authority never assigns an Issue on its own, whether or not the Business asked for it. It sends one of the suggested Businesses a **Contract**: the work to be done and a finish date (required), and a price in rupees, a start date and payment terms (optional). The Business is emailed and answers on its Contracts page:
+- **Accept** (after ticking that it agrees to the terms): the Issue becomes Assigned to it. The area's Authorities are emailed.
+- **Decline**, with a reason: the Issue stays Open and the area's Authorities are emailed. The Authority may send new terms or offer it to another Business.
+
+The Issue stays Open until a Contract is accepted, and only one Contract may wait per Issue; an Authority of the area can **withdraw** it while it waits, which the Business is told by email. Contracts are seen only by that Business and the Authorities of the Issue's area. The public timeline shows the Assignment, never an offer, its terms or a decline. Reporter email and phone stay hidden from the Business until it accepts. A Business nobody can sign in as (no email) cannot be offered a Contract, except in the Demo, where most Businesses have no account. Issues Assigned before this rule stay as they are. Next: the Contract as a PDF, and payment recorded.
+
+Everyone signs in with Google. Signing in alone only ever makes someone a Citizen. An Office has exactly one email, and an email belongs to at most one Office: setting a new email replaces the old one (24 November 2026). An Authority approved for an Area sees, sends Contracts, flags spam and manages Offices in that Area only; an Authority approved for the whole city (every Authority approved before 24 November 2026, and the Demo Authority) sees everything. Approving an Office registration creates the Office at its sector and makes the registering email its sign-in; the Office is told by email.
 
 ## 4. Rules
 
@@ -62,7 +68,7 @@ Open → Assigned → In progress → Fixed → Resolved
                                    └──→ Closed unconfirmed (7 days, no answer)
 ```
 
-- **Assignment**: the Authority opens an Issue and sees the Offices of the Category's Department, nearest first. The Authority picks one. The suggestion never assigns on its own.
+- **Assignment**: the Authority opens an Issue and sees the Offices of the Category's Department, nearest first. The Authority picks one and sends it a Contract; the Issue is Assigned when the Office accepts (section 3, Assignment by agreement).
 - An Office can **send back** an Assigned Issue with a reason ("not our area", "not our department"). It returns to Open.
 - The Office moves the Issue to In progress, then records a **Fix** with a required after-repair photo. The Issue becomes Fixed.
 - Any one Citizen who reported the Issue can confirm the Fix (**Resolution** → Resolved) or reject it with a comment (**Rejection** → back to In progress).
@@ -88,7 +94,7 @@ The seed data includes 15–25 real Islamabad Offices (CDA, IESCO and others) at
 
 ### Email
 Sent from a project Gmail account (app password):
-1. To the Office's staff when an Issue is assigned to it.
+1. To the Office's staff when it is offered a Contract, or one is withdrawn; to the area's Authorities when it accepts or declines.
 2. To every Citizen who reported an Issue when it is Fixed, asking them to confirm or reject.
 3. To those Citizens when it is Resolved or closed unconfirmed.
 
@@ -100,8 +106,8 @@ The same updates show in the app on the Citizen's **My reports** page.
 |---|---|
 | Public | City map (Issues and heatmap layers), Issue page (reporter names, before/after photos, timeline) |
 | Citizen | Profile setup, Report a problem (phone-first: camera, GPS, map pin), My reports (with confirm/reject on Fixed Issues) |
-| Authority | A sidebar workspace instead of the top bar: Dashboard (overview: counts, problems by category, what needs attention, busiest areas, Offices), Reports (priority queue with filters; Issue review with each Report's reporter email and phone, Spam flag, suggested Offices, Assign), Offices and staff management, Insights. No map. |
-| Office | My jobs (Start work, Mark fixed with after-photo, Send back) |
+| Authority | A sidebar workspace instead of the top bar: Dashboard (overview: counts, problems by category, what needs attention, busiest areas, Offices), Reports (priority queue with filters; Issue review with each Report's reporter email and phone, Spam flag, suggested Offices, Contract), Job requests, Contracts, Offices and staff management, Insights. No map. |
+| Office | Contracts (accept or decline), My jobs (Start work, Mark fixed with after-photo, Send back) |
 | Super Admin | Access requests (approve / decline) |
 | Anyone | Request Authority access form (name, department, official email, phone) |
 
