@@ -100,8 +100,8 @@ export function HowItWorks({ issues }: { issues: Issue[] }) {
         </li>
         <Arrow />
         <li>
-          <div className={`${frame} map-night pointer-events-none`} aria-hidden inert data-kind="product">
-            <CityMap issues={issues} night still zoom={12} className="h-full" />
+          <div className={`${frame} pointer-events-none`} aria-hidden inert data-kind="product">
+            <CityMap issues={issues} still zoom={12} className="h-full" />
           </div>
           <StepText n={2} title={t("home.step2")} body={t("home.step2Body")} />
         </li>

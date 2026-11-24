@@ -74,5 +74,12 @@ See PRD section 10.
 - [ ] Authorities register for one area.
 - [ ] Offices record their workers; a sector is neglected when its Offices keep having spare workers and the work is still not done. Show it on Insights.
 - [ ] Enforce one email per Office in the API (the screen already does).
-- [ ] Bring back the previous map design (the user does not like the new one). Details in `docs/HANDOFF.md`.
+- [x] Bring back the previous map design (the user does not like the new one). Details in `docs/HANDOFF.md`.
 - [ ] Look at the branch `official-signup` before building Office self-registration: it already has Office staff sign-up.
+
+## Fixes of 24 November 2026, second note (Authority side)
+
+- [x] Authorities work in a sidebar workspace (Dashboard, Reports, Offices, Insights) with no top bar and no map; `/admin` is an overview Dashboard and the work queue moved to `/admin/reports`.
+- [x] "Problems by category" moved from Insights to the Dashboard.
+- [x] Insights: "Areas with the most Reports" replaces the Citizen leaderboard; Neglected sectors and Problems that keep coming back show their evidence (the Issues waiting longest, the Reports behind each cluster). Idle-worker evidence comes with the worker counts below.
+- [x] Office track record on Insights is a list of cards on phones (no sideways scrolling).

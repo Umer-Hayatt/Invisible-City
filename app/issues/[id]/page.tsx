@@ -68,7 +68,7 @@ export default function IssuePage() {
       const out = await api<{ issueRemoved: boolean; suspended: boolean }>(`/api/issues/${id}/reports/${reportId}/spam`, { method: "POST" });
       const extra = [out.issueRemoved ? t("review.issueRemoved") : "", out.suspended ? t("review.suspended") : ""].filter(Boolean).join(" ");
       window.alert(t("review.flagged", { extra }));
-      if (out.issueRemoved) router.push("/admin");
+      if (out.issueRemoved) router.push("/admin/reports");
       else load();
     } catch (e) {
       window.alert(errorText((e as Error).message));

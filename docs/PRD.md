@@ -94,7 +94,7 @@ The same updates show in the app on the Citizen's **My reports** page.
 |---|---|
 | Public | City map (Issues and heatmap layers), Issue page (reporter names, before/after photos, timeline), Insights |
 | Citizen | Profile setup, Report a problem (phone-first: camera, GPS, map pin), My reports (with confirm/reject on Fixed Issues) |
-| Authority | Priority queue with filters; Issue review (each Report with reporter email and phone, Spam flag, suggested Offices, Assign); Offices and staff management |
+| Authority | A sidebar workspace instead of the top bar: Dashboard (overview: counts, problems by category, what needs attention, busiest areas, Offices), Reports (priority queue with filters; Issue review with each Report's reporter email and phone, Spam flag, suggested Offices, Assign), Offices and staff management, Insights. No map. |
 | Office | My jobs (Start work, Mark fixed with after-photo, Send back) |
 | Super Admin | Access requests (approve / decline) |
 | Anyone | Request Authority access form (name, department, official email, phone) |

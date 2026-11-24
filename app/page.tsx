@@ -90,8 +90,8 @@ export default function Home() {
           </div>
 
           <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
-            <div data-kind="product" className="map-night overflow-hidden rounded-[8px] border border-navy-line">
-              <CityMap issues={visible} layer={layer} night className="h-[420px] sm:h-[540px]" />
+            <div data-kind="product" className="overflow-hidden rounded-[8px] border border-navy-line">
+              <CityMap issues={visible} layer={layer} className="h-[420px] sm:h-[540px]" />
               <Legend />
             </div>
 
@@ -124,7 +124,7 @@ export default function Home() {
             </div>
           </div>
           {me?.role === "authority" && (
-            <Link href="/admin" className="mt-5 inline-block font-semibold text-lime hover:text-on-dark">
+            <Link href="/admin/reports" className="mt-5 inline-block font-semibold text-lime hover:text-on-dark">
               {t("home.workQueue")}
             </Link>
           )}
@@ -149,9 +149,7 @@ function Legend() {
     <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-navy-line bg-navy-2 px-4 py-3 text-sm font-medium">
       {items.map((x) => (
         <li key={x.l} className="inline-flex items-center gap-1.5">
-          <svg aria-hidden width="13" height="17" viewBox="0 0 24 32" fill={x.c}>
-            <path d="M12 0a12 12 0 0 0-12 12c0 8.5 12 20 12 20s12-11.5 12-20A12 12 0 0 0 12 0Z" />
-          </svg>
+          <span aria-hidden className="h-3 w-3 rounded-full border-2 border-white" style={{ background: x.c }} />
           {x.l}
         </li>
       ))}
