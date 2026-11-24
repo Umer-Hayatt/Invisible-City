@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-24T00:00:00Z",
+  "title": "Design System: INvisible City",
+  "extensions": {
+    "colorMeta": {
+      "sign-green": { "role": "primary", "displayName": "Sign Green", "canonical": "#00653a", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "sign-green-600": { "role": "primary", "displayName": "Sign Green Deep", "canonical": "#00562f", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "sign-green-700": { "role": "primary", "displayName": "Sign Green Deepest", "canonical": "#004526", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "sign-green-100": { "role": "primary", "displayName": "Green Tint", "canonical": "#bfdfcb", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "sign-green-50": { "role": "primary", "displayName": "Green Wash", "canonical": "#e1efe6", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "sign-ink": { "role": "primary", "displayName": "Reflective White", "canonical": "#ffffff" },
+      "sign-soft": { "role": "primary", "displayName": "Sign Soft", "canonical": "#b9dcc6", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#b9dcc6", "#e1efe6"] },
+      "sign-yellow": { "role": "secondary", "displayName": "Sign Yellow", "canonical": "#ffc400", "tonalRamp": ["#2b2309", "#5c4500", "#8f6c00", "#c99a00", "#ffc400", "#ffcf26", "#ffe27a", "#fff4c2"] },
+      "sign-yellow-50": { "role": "secondary", "displayName": "Yellow Wash", "canonical": "#fff4c2", "tonalRamp": ["#2b2309", "#5c4500", "#8f6c00", "#c99a00", "#ffc400", "#ffcf26", "#ffe27a", "#fff4c2"] },
+      "concrete": { "role": "neutral", "displayName": "Pale Concrete", "canonical": "#eef0ec", "tonalRamp": ["#0f1a14", "#34403a", "#5f6b64", "#84908a", "#b9c3bc", "#cfd4ce", "#e3e6e1", "#eef0ec"] },
+      "surface": { "role": "neutral", "displayName": "Surface", "canonical": "#ffffff" },
+      "sunken": { "role": "neutral", "displayName": "Sunken Concrete", "canonical": "#e3e6e1", "tonalRamp": ["#0f1a14", "#34403a", "#5f6b64", "#84908a", "#b9c3bc", "#cfd4ce", "#e3e6e1", "#eef0ec"] },
+      "ink": { "role": "neutral", "displayName": "Road Ink", "canonical": "#0f1a14", "tonalRamp": ["#0f1a14", "#34403a", "#5f6b64", "#84908a", "#b9c3bc", "#cfd4ce", "#e3e6e1", "#eef0ec"] },
+      "ink-2": { "role": "neutral", "displayName": "Ink Secondary", "canonical": "#34403a", "tonalRamp": ["#0f1a14", "#34403a", "#5f6b64", "#84908a", "#b9c3bc", "#cfd4ce", "#e3e6e1", "#eef0ec"] },
+      "muted": { "role": "neutral", "displayName": "Muted", "canonical": "#5f6b64", "tonalRamp": ["#0f1a14", "#34403a", "#5f6b64", "#84908a", "#b9c3bc", "#cfd4ce", "#e3e6e1", "#eef0ec"] },
+      "line": { "role": "neutral", "displayName": "Road Edge", "canonical": "#cfd4ce", "tonalRamp": ["#0f1a14", "#34403a", "#5f6b64", "#84908a", "#b9c3bc", "#cfd4ce", "#e3e6e1", "#eef0ec"] },
+      "asphalt": { "role": "neutral", "displayName": "Asphalt", "canonical": "#0d0f0e", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "asphalt-surface": { "role": "neutral", "displayName": "Asphalt Surface", "canonical": "#151917", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "asphalt-sunken": { "role": "neutral", "displayName": "Asphalt Sunken", "canonical": "#1c211e", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "night-ink": { "role": "neutral", "displayName": "Night Ink", "canonical": "#edf2ee", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "night-ink-2": { "role": "neutral", "displayName": "Night Ink Secondary", "canonical": "#b9c3bc", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "night-muted": { "role": "neutral", "displayName": "Night Muted", "canonical": "#84908a", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "night-line": { "role": "neutral", "displayName": "Night Road Edge", "canonical": "#29302c", "tonalRamp": ["#0d0f0e", "#151917", "#1c211e", "#29302c", "#84908a", "#b9c3bc", "#d6ddd8", "#edf2ee"] },
+      "night-brand": { "role": "primary", "displayName": "Night Green", "canonical": "#3fb57a", "tonalRamp": ["#11271b", "#183d29", "#006b3e", "#2f9e66", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "night-brand-600": { "role": "primary", "displayName": "Night Green Deep", "canonical": "#2f9e66", "tonalRamp": ["#11271b", "#183d29", "#006b3e", "#2f9e66", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "night-sign": { "role": "primary", "displayName": "Night Sign Face", "canonical": "#006b3e", "tonalRamp": ["#11271b", "#183d29", "#006b3e", "#2f9e66", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },
+      "night-yellow": { "role": "secondary", "displayName": "Night Yellow", "canonical": "#ffcf26", "tonalRamp": ["#2b2309", "#5c4500", "#8f6c00", "#c99a00", "#ffc400", "#ffcf26", "#ffe27a", "#fff4c2"] },
+      "vms-board": { "role": "tertiary", "displayName": "Message Board", "canonical": "#090a09", "tonalRamp": ["#090a09", "#141614", "#1d201d", "#262826", "#3a3d3a", "#5a5e5a", "#8a8e8a", "#c5c8c5"] },
+      "vms-amber": { "role": "tertiary", "displayName": "Message Amber", "canonical": "#ffb21a", "tonalRamp": ["#2e1f00", "#5c3e00", "#8f6100", "#c48500", "#ffb21a", "#ffc552", "#ffd98a", "#ffecc4"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Gantry Display", "purpose": "The gantry headline only; two lines, the second in sign-soft." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles in the page header (2.25rem, 3.75rem from sm); closing sign headline." },
+      "title": { "displayName": "Section Title", "purpose": "Section headings on a page (1.875rem, 2.25rem from sm)." },
+      "route": { "displayName": "Route", "purpose": "Sector names on sign rows (1.25rem, 1.5rem from sm)." },
+      "body": { "displayName": "Body", "purpose": "Sentences under headings, 50-62ch." },
+      "label": { "displayName": "Label", "purpose": "Badges, captions, legends, buttons." },
+      "figure": { "displayName": "Figure", "purpose": "Every data number, tabular; never words (except the message sign)." },
+      "urdu": { "displayName": "Urdu", "purpose": "All text under lang=ur; tracking zeroed and upper-casing removed." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 1px 2px rgb(15 26 20 / 0.06), 0 8px 24px -12px rgb(15 26 20 / 0.12)", "purpose": "Cards, map controls, message sign. Night: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 28px -14px rgb(0 0 0 / 0.7)." },
+      { "name": "float", "value": "0 18px 50px -18px rgb(15 26 20 / 0.35)", "purpose": "Sign panels and map popups. Night: 0 22px 60px -20px rgb(0 0 0 / 0.85)." },
+      { "name": "sign-border", "value": "inset 0 0 0 5px var(--color-sign), inset 0 0 0 8px var(--color-sign-ink)", "purpose": "The reflective white border set inside every sign panel." },
+      { "name": "logo-plate-border", "value": "inset 0 0 0 2px var(--color-sign), inset 0 0 0 3.5px var(--color-sign-ink)", "purpose": "The same border at logo scale." },
+      { "name": "vms-frame", "value": "inset 0 0 0 2px #262826", "purpose": "Frame of the variable message sign, combined with the card shadow." },
+      { "name": "nav-scrolled", "value": "0 10px 30px -18px rgb(0 0 0 / 0.45)", "purpose": "Nav shadow once the page scrolls past 8px." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Default easing: route paint, page-in, nav marker, message sign, theme circle." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "Page-out." },
+      { "name": "dur-fast", "value": "160ms", "purpose": "Press, page-out." },
+      { "name": "dur-base", "value": "320ms", "purpose": "Page-in." },
+      { "name": "dur-slow", "value": "700ms", "purpose": "Route paint, entrance rise." },
+      { "name": "route-paint", "value": "scaleX(0) to 1, 700ms ease-out, delay 250ms + 160ms per item; vertical 900ms on phones", "purpose": "Route and road-edge lines painted in from the start edge once on load; origin flips in RTL." },
+      { "name": "message-sign-cycle", "value": "every 3400ms; line rises in/out 350ms ease-out", "purpose": "Variable message sign turning to the next of the latest eight Issues." },
+      { "name": "page-transition", "value": "out 160ms translateY(-6px) blur(2px); in 320ms after 160ms from translateY(12px) blur(4px)", "purpose": "Only page content moves; nav pinned out of the transition." },
+      { "name": "nav-marker", "value": "380ms ease-out view-transition", "purpose": "Active lane marker slides between nav links." },
+      { "name": "theme-circle", "value": "clip-path circle grow, 650ms ease-out", "purpose": "New theme spreads from the toggle; instant under reduced motion." },
+      { "name": "press", "value": "scale(0.97), 160ms", "purpose": "Every button on active." },
+      { "name": "reduced-motion", "value": "all animations and transitions 1ms, no delay, single iteration; scroll reveal removed", "purpose": "Every state arrives without movement." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "container", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action on concrete: Report a problem, submit.",
+      "html": "<button class=\"ds-btn-primary\">Report a problem</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--color-brand, #00653a); color: var(--color-on-brand, #ffffff); font-family: Overpass, system-ui, sans-serif; font-size: 14px; font-weight: 800; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; transition: background-color 160ms cubic-bezier(0.22, 1, 0.36, 1), transform 160ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-primary:hover { background: var(--color-brand-600, #00562f); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 3px solid var(--color-accent, #ffc400); outline-offset: 2px; }"
+    },
+    {
+      "name": "On-Sign Button",
+      "kind": "button",
+      "refersTo": "button-on-sign",
+      "description": "White button on a green sign face; turns sign yellow on hover.",
+      "html": "<div class=\"ds-sign-bg\"><button class=\"ds-btn-on-sign\">Report a problem</button></div>",
+      "css": ".ds-sign-bg { background: #00653a; padding: 24px; border-radius: 18px; } .ds-btn-on-sign { display: inline-flex; align-items: center; gap: 10px; background: #ffffff; color: #00653a; font-family: Overpass, system-ui, sans-serif; font-size: 16px; font-weight: 900; padding: 14px 24px; border: none; border-radius: 10px; cursor: pointer; transition: background-color 160ms, color 160ms, transform 160ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-on-sign:hover { background: #ffc400; color: #0f1a14; } .ds-btn-on-sign:active { transform: scale(0.97); } .ds-btn-on-sign:focus-visible { outline: 3px solid #ffc400; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action with a heavy ink border.",
+      "html": "<button class=\"ds-btn-ghost\">View on map</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: var(--color-surface, #ffffff); color: var(--color-ink, #0f1a14); font-family: Overpass, system-ui, sans-serif; font-size: 14px; font-weight: 700; padding: 8px 16px; border: 2px solid rgb(15 26 20 / 0.8); border-radius: 10px; cursor: pointer; transition: background-color 160ms, transform 160ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-ghost:hover { background: var(--color-sunken, #e3e6e1); } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: 3px solid #ffc400; outline-offset: 2px; }"
+    },
+    {
+      "name": "Sign Panel with Route Rows",
+      "kind": "custom",
+      "refersTo": "sign-panel",
+      "description": "The gantry: green face, inset white border, route rows; a neglected sector on yellow.",
+      "html": "<section class=\"ds-sign\"><h2 class=\"ds-sign-h\">Fixed means<br><span>a citizen said so.</span></h2><ul class=\"ds-rows\"><li class=\"ds-row ds-row-warn\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/></svg><span class=\"ds-row-name\">G-9<small>Neglected</small></span><span class=\"ds-fig\">2 of 11</span></li><li class=\"ds-row\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/></svg><span class=\"ds-row-name\">F-7</span><span class=\"ds-fig\">9 of 10</span></li></ul></section>",
+      "css": ".ds-sign { background: #00653a; color: #ffffff; border-radius: 18px; padding: 32px 36px; box-shadow: inset 0 0 0 5px #00653a, inset 0 0 0 8px #ffffff, 0 18px 50px -18px rgb(15 26 20 / 0.35); font-family: Overpass, system-ui, sans-serif; } .ds-sign-h { margin: 0 0 20px; font-size: 40px; font-weight: 900; line-height: 0.92; letter-spacing: -0.03em; } .ds-sign-h span { color: #b9dcc6; } .ds-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-width: 340px; } .ds-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border: 2.5px solid currentColor; border-radius: 10px; cursor: pointer; transition: background-color 160ms, color 160ms; } .ds-row:hover { background: #ffffff; color: #00653a; } .ds-row-warn, .ds-row-warn:hover { background: #ffc400; color: #0f1a14; border-color: #ffc400; } .ds-row-name { flex: 1; font-size: 22px; font-weight: 800; line-height: 1.2; } .ds-row-name small { display: block; font-size: 12px; font-weight: 700; } .ds-fig { font-family: 'Overpass Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; }"
+    },
+    {
+      "name": "Exit Sign",
+      "kind": "custom",
+      "refersTo": "exit-tab",
+      "description": "Closing sign with the yellow tab hanging from its top edge.",
+      "html": "<section class=\"ds-exit\"><span class=\"ds-exit-tab\">EXIT</span><h2>Seen something broken?</h2></section>",
+      "css": ".ds-exit { position: relative; background: #00653a; color: #ffffff; border-radius: 18px; padding: 56px 32px 32px; box-shadow: inset 0 0 0 5px #00653a, inset 0 0 0 8px #ffffff; font-family: Overpass, system-ui, sans-serif; } .ds-exit h2 { margin: 0; font-size: 36px; font-weight: 900; line-height: 0.95; letter-spacing: -0.02em; } .ds-exit-tab { position: absolute; top: 0; inset-inline-start: 32px; background: #ffc400; color: #0f1a14; padding: 4px 16px; font-size: 14px; font-weight: 900; border-radius: 0 0 8px 8px; }"
+    },
+    {
+      "name": "Variable Message Sign",
+      "kind": "custom",
+      "refersTo": "message-sign",
+      "description": "Amber mono board cycling the latest Issues.",
+      "html": "<section class=\"ds-vms\"><span class=\"ds-vms-dot\"></span><span class=\"ds-vms-text\">G-9 · Broken streetlight · Assigned</span></section>",
+      "css": ".ds-vms { display: flex; align-items: center; gap: 16px; background: #090a09; color: #ffb21a; border-radius: 12px; padding: 16px 28px; box-shadow: inset 0 0 0 2px #262826, 0 1px 2px rgb(15 26 20 / 0.06), 0 8px 24px -12px rgb(15 26 20 / 0.12); } .ds-vms-dot { width: 10px; height: 10px; border-radius: 9999px; background: #ffb21a; flex-shrink: 0; } .ds-vms-text { font-family: 'Overpass Mono', ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.04em; font-size: 20px; font-weight: 600; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Plain panel; interactive cards turn their border green on hover.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-label\">Open Issues</div><div class=\"ds-card-fig\">42</div></div>",
+      "css": ".ds-card { background: var(--color-surface, #ffffff); color: var(--color-ink, #0f1a14); border: 1.5px solid var(--color-line, #cfd4ce); border-radius: 14px; padding: 20px; box-shadow: 0 1px 2px rgb(15 26 20 / 0.06), 0 8px 24px -12px rgb(15 26 20 / 0.12); font-family: Overpass, system-ui, sans-serif; transition: border-color 200ms; } .ds-card:hover { border-color: var(--color-brand, #00653a); } .ds-card-label { font-size: 12px; font-weight: 600; color: var(--color-muted, #5f6b64); } .ds-card-fig { margin-top: 8px; font-family: 'Overpass Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 30px; font-weight: 600; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Text field and select; green border on focus.",
+      "html": "<input class=\"ds-field\" placeholder=\"Describe the problem\">",
+      "css": ".ds-field { width: 100%; background: var(--color-surface, #ffffff); color: var(--color-ink, #0f1a14); border: 1.5px solid var(--color-line, #cfd4ce); border-radius: 8px; padding: 10px 12px; font-family: Overpass, system-ui, sans-serif; font-size: 14px; outline: none; transition: border-color 160ms, box-shadow 160ms; } .ds-field::placeholder { color: rgb(95 107 100 / 0.7); } .ds-field:focus { border-color: var(--color-brand, #00653a); box-shadow: 0 0 0 4px rgb(0 101 58 / 0.1); }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Sign-plate logo, 3px ink rule, green lane marker under the active link.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-logo\" dir=\"ltr\"><span class=\"ds-plate\">IN</span><span>visible City</span></a><nav><a class=\"ds-link ds-active\">Map</a><a class=\"ds-link\">Insights</a></nav></header>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 24px; background: var(--color-canvas, #eef0ec); border-bottom: 3px solid var(--color-ink, #0f1a14); font-family: Overpass, system-ui, sans-serif; } .ds-logo { display: flex; align-items: center; gap: 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; color: var(--color-ink, #0f1a14); text-decoration: none; } .ds-plate { display: flex; align-items: center; height: 36px; padding: 0 8px; border-radius: 7px; background: #00653a; color: #ffffff; font-size: 15px; font-weight: 900; box-shadow: inset 0 0 0 2px #00653a, inset 0 0 0 3.5px #ffffff; } .ds-link { position: relative; display: inline-block; padding: 20px 12px; font-size: 15px; font-weight: 700; color: var(--color-ink-2, #34403a); text-decoration: none; cursor: pointer; transition: color 160ms; } .ds-link:hover, .ds-active { color: var(--color-ink, #0f1a14); } .ds-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -3px; height: 5px; background: var(--color-brand, #00653a); } .ds-link:focus-visible { outline: 3px solid #ffc400; outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Pill badge with an inset ring; resolved shown in green.",
+      "html": "<span class=\"ds-badge\">Confirmed</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 2px 10px; font-family: Overpass, system-ui, sans-serif; font-size: 12px; font-weight: 600; background: var(--color-brand-50, #e1efe6); color: var(--color-brand-700, #004526); box-shadow: inset 0 0 0 1px var(--color-brand-100, #bfdfcb); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Gantry Over the City",
+    "overview": "Islamabad's own road signage is the interface. Green sign panels with white reflective lettering own whole regions of the page; the route every Report travels is a painted lane line; the latest Issues scroll past on a variable message sign. The record of what got fixed reads the way a driver reads the road: big, bold, legible at a glance, and unambiguous about where to go next.\n\nThe ground changes with the hour. By day the page sits on pale concrete; by night (dark mode) on asphalt, and the signs stay green with white lettering in both. Sign yellow is a warning colour and nothing else: neglected sectors, the exit tab, the focus ring, selection. Depth comes from the sign panels themselves (inset white border plus one float shadow), not from layered glass or glow.\n\nThe home page is the full expression (Persuade). Working routes (map, insights, admin, office) take the same tokens, type and module with restraint: one sign panel at most, cards and the road-edge page header otherwise.",
+    "keyCharacteristics": [
+      "Sign green owns whole panels; white lettering and a white inset border on every sign.",
+      "Sign yellow only for warnings, the exit tab, focus and selection.",
+      "Overpass, a highway-gothic descendant, for every word; Overpass Mono for figures only.",
+      "Heavy ink rules (3px nav underline, 5px route and road-edge lines) instead of hairlines.",
+      "Motion paints lines and turns sign boards; it never decorates."
+    ],
+    "rules": [
+      { "name": "The Green Owns Regions Rule", "body": "Sign green appears as a whole panel or a solid fill. Pale green tints (sign-green-50/100) are kept for small status marks only: the resolved badge and the confirmed-Fix photo placeholder.", "section": "colors" },
+      { "name": "The Yellow Means Warning Rule", "body": "Sign yellow marks what needs attention (neglected sectors, focus, the exit). If nothing is wrong or focused, no yellow is on screen except the exit tab.", "section": "colors" },
+      { "name": "The Figures Only Rule", "body": "Overpass Mono sets digits, never words. Mixed sentences pass through the `Figures` helper so only the numbers change face. The single exception is the variable message sign, whose whole board is mono uppercase because that is what a real VMS shows.", "section": "typography" },
+      { "name": "The Urdu Rule", "body": "Under `lang=\"ur\"`, letter-spacing is zeroed and upper-casing removed (they break joined Arabic letters), body line height opens to 1.75 and headings to 1.5.", "section": "typography" },
+      { "name": "The Painted Not Lit Rule", "body": "Signs reflect; they do not glow. No coloured glows, blurred backdrops or gradient lighting on surfaces.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** give sign green whole panels with white lettering and the inset white border (5px green, 3px white).",
+      "**Do** keep sign yellow for warnings, the exit tab, focus (3px outline, 2px offset) and selection, always with ink text on it.",
+      "**Do** set every data number in Overpass Mono with tabular figures, via `.figure` or the `Figures` helper.",
+      "**Do** draw structure with heavy ink rules (3px nav, 5px route and road edge) and 1.5px line borders.",
+      "**Do** open working pages with the page header and its painted road-edge line.",
+      "**Do** use logical start/end spacing and flip directional arrows in RTL; keep the logo LTR.",
+      "**Do** keep every motion meaningful (painting a line, turning a board, moving between pages) and collapse it under reduced motion."
+    ],
+    "donts": [
+      "**Don't** put an eyebrow or kicker label above a heading; the heading carries the page.",
+      "**Don't** use gradient text, glassmorphism (backdrop blur) or glowing borders and halos.",
+      "**Don't** set words in Overpass Mono, outside the variable message sign.",
+      "**Don't** use sign yellow as decoration or as a second brand colour.",
+      "**Don't** wash large regions in pale green; a region is a sign panel or it is concrete.",
+      "**Don't** introduce another typeface besides Overpass, Overpass Mono and Noto Naskh Arabic for Urdu."
+    ]
+  }
+}

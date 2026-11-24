@@ -117,7 +117,7 @@ export default function IssuePage() {
             </p>
           </div>
           {!finished && (
-            <div className={`shrink-0 rounded-2xl px-5 py-3 ${showFix ? "border border-line bg-sunken" : "border border-white/15 bg-white/10 backdrop-blur-md"}`}>
+            <div className={`shrink-0 rounded-2xl px-5 py-3 ${showFix ? "border border-line bg-sunken" : "border border-white/25 bg-black/45"}`}>
               <div className={`text-xs font-semibold ${showFix ? "text-muted" : "text-white/70"}`}>{t("issue.priority")}</div>
               <div className="mt-1">
                 <PriorityMeter value={issue.priority} wide />
@@ -132,7 +132,7 @@ export default function IssuePage() {
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
               <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
-              <figcaption className="absolute start-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-canvas backdrop-blur">
+              <figcaption className="absolute start-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-xs font-bold text-canvas">
                 {t("issue.before")} · {formatDate(issue.created_at)}
               </figcaption>
             </figure>
@@ -164,9 +164,9 @@ export default function IssuePage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <Card className="p-5">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand">
-              <Sparkles size={13} /> {t("issue.aiSummary")}
-            </div>
+            <h2 className="flex items-center gap-1.5 text-base font-black text-ink">
+              <Sparkles size={16} className="text-brand" /> {t("issue.aiSummary")}
+            </h2>
             <p className="mt-2 leading-relaxed text-ink-2">{issue.summary}</p>
             {issue.recurrence_of && (
               <p className="mt-3 flex items-center gap-2 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-800">

@@ -141,7 +141,7 @@ function ReportForm() {
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photo.preview} alt={t("report.selectedPhoto")} className="max-h-[340px] w-full object-cover" />
-                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 text-xs font-semibold text-canvas backdrop-blur">
+                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 text-xs font-semibold text-canvas">
                     <Camera size={14} /> {t("office.changePhoto")}
                   </span>
                 </>
@@ -356,7 +356,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
             <div className="hidden bg-sunken sm:block" />
           )}
           <div className="space-y-3 p-6">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-brand">
+            <div className="inline-flex items-center gap-1.5 rounded-[8px] bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand">
               <Sparkles size={12} /> {t("report.aiAnalysis")} ·{" "}
               {a.source === "gemini" ? "Gemini" : a.source === "groq" ? "Groq" : t("report.aiOffline")}
             </div>

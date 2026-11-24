@@ -109,7 +109,7 @@ body {
   display: none;
 }
 
-/* Urdu: a Naskh face for Arabic script (Latin falls back to Jakarta) and a little more line height for its marks. */
+/* Urdu: a Naskh face for Arabic script (Latin falls back to Overpass) and a little more line height for its marks. */
 html[lang="ur"] body,
 html[lang="ur"] .leaflet-container {
   font-family: var(--font-urdu), var(--font-overpass), system-ui, sans-serif;
@@ -323,10 +323,10 @@ html {
 ::-webkit-scrollbar-thumb {
   border: 3px solid var(--color-sunken);
   border-radius: 9999px;
-  background: linear-gradient(180deg, #34d399, var(--color-brand) 60%, var(--color-brand-600));
+  background: var(--color-brand);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--color-accent), var(--color-brand));
+  background: var(--color-brand-600);
 }
 ::selection {
   background: var(--color-brand-100);
@@ -403,7 +403,7 @@ html {
 .dark :is(.ring-slate-200) { --tw-ring-color: rgb(148 163 184 / 0.3); }
 .dark :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400) { border-color: rgb(148 163 184 / 0.3); }
 .dark .bg-white { background-color: var(--color-surface); }
-.dark .bg-white\/80 { background-color: rgb(15 21 29 / 0.8); }
+.dark .bg-white\/80 { background-color: rgb(21 25 23 / 0.85); }
 
 /* Map popups and controls in dark mode */
 .dark .leaflet-popup-content-wrapper,
@@ -415,7 +415,7 @@ html {
   border-color: var(--color-line) !important;
 }
 .dark .leaflet-control-attribution {
-  background: rgb(15 21 29 / 0.8) !important;
+  background: rgb(21 25 23 / 0.85) !important;
   color: var(--color-muted) !important;
 }
 .dark .leaflet-control-attribution a {

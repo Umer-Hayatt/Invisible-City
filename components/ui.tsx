@@ -235,19 +235,16 @@ export function Stat({
   hint,
   icon: Icon,
   tone,
-  glow = false,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: string;
   icon?: LucideIcon;
   tone?: "good" | "bad" | "warn";
-  /** A slowly travelling light around the border, for headline figures. */
-  glow?: boolean;
 }) {
   const toneCls = tone === "good" ? "text-brand" : tone === "bad" ? "text-red-600" : tone === "warn" ? "text-orange-600" : "text-ink";
   return (
-    <Card interactive className={`p-5 ${glow ? "glow-border" : ""}`}>
+    <Card interactive className="p-5">
       <div className="flex items-center justify-between text-xs font-semibold text-muted">
         {label}
         {Icon && (
