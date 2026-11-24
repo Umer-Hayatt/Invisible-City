@@ -144,10 +144,16 @@ export async function contributors(demo: boolean, authId?: string): Promise<Cont
     report_count: number;
     first_id: number;
   }>(
-    `SELECT r.reporter_id, p.display_name AS reporter_name, r.issue_id, r.id, i.status, i.report_count,
-            (SELECT MIN(id) FROM reports r2 WHERE r2.issue_id = r.issue_id AND NOT r2.is_spam) AS first_id
-     FROM reports r JOIN issues i ON i.id = r.issue_id JOIN people p ON p.id = r.reporter_id
-     WHERE NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL AND i.is_demo = $1${authId ? " AND p.auth_id = $2" : ""}`,
+    // "First to report" is the lowest non-spam Report id on the Issue, worked out in one pass (a window
+    // function) rather than a subquery per row. Deleted Reports still count as first, as before.
+    `SELECT x.reporter_id, x.reporter_name, x.issue_id, x.id, x.status, x.report_count, x.first_id
+     FROM (
+       SELECT r.reporter_id, p.display_name AS reporter_name, p.auth_id, r.issue_id, r.id, r.deleted_at,
+              i.status, i.report_count, MIN(r.id) OVER (PARTITION BY r.issue_id) AS first_id
+       FROM reports r JOIN issues i ON i.id = r.issue_id JOIN people p ON p.id = r.reporter_id
+       WHERE NOT r.is_spam AND i.deleted_at IS NULL AND i.is_demo = $1
+     ) x
+     WHERE x.deleted_at IS NULL${authId ? " AND x.auth_id = $2" : ""}`,
     authId ? [demo, authId] : [demo],
   );
   const map = new Map<string, Contributor>();
@@ -227,28 +233,29 @@ export interface OfficeRecord {
 
 /** Office track record for Insights: one row per Office that has held at least one Issue. */
 export async function officeRecords(demo: boolean): Promise<OfficeRecord[]> {
-  const issues = await sql().query<{
-    id: number;
-    office_id: number;
-    office: string;
-    department: string;
-    sector: string;
-    status: string;
-    fixed_at: string | null;
-    resolved_at: string | null;
-  }>(
-    `SELECT i.id, i.office_id, o.name AS office, d.name AS department, o.sector, i.status, i.fixed_at, i.resolved_at
-     FROM issues i JOIN offices o ON o.id = i.office_id JOIN departments d ON d.id = o.department_id
-     WHERE i.deleted_at IS NULL AND i.is_demo = $1`,
-    [demo],
-  );
-  const events = issues.length
-    ? await sql().query<{ issue_id: number; kind: string; created_at: string }>(
-        `SELECT issue_id, kind, created_at FROM events
-         WHERE kind IN ('assigned', 'fixed', 'rejected') AND issue_id = ANY($1::int[]) ORDER BY created_at, id`,
-        [issues.map((i) => i.id)],
-      )
-    : [];
+  const [issues, events] = await Promise.all([
+    sql().query<{
+      id: number;
+      office_id: number;
+      office: string;
+      department: string;
+      sector: string;
+      status: string;
+      fixed_at: string | null;
+      resolved_at: string | null;
+    }>(
+      `SELECT i.id, i.office_id, o.name AS office, d.name AS department, o.sector, i.status, i.fixed_at, i.resolved_at
+       FROM issues i JOIN offices o ON o.id = i.office_id JOIN departments d ON d.id = o.department_id
+       WHERE i.deleted_at IS NULL AND i.is_demo = $1`,
+      [demo],
+    ),
+    sql().query<{ issue_id: number; kind: string; created_at: string }>(
+      `SELECT e.issue_id, e.kind, e.created_at FROM events e JOIN issues i ON i.id = e.issue_id
+       WHERE e.kind IN ('assigned', 'fixed', 'rejected') AND i.office_id IS NOT NULL AND i.deleted_at IS NULL AND i.is_demo = $1
+       ORDER BY e.created_at, e.id`,
+      [demo],
+    ),
+  ]);
   const byIssue = new Map<number, typeof events>();
   for (const e of events) byIssue.set(e.issue_id, [...(byIssue.get(e.issue_id) ?? []), e]);
 
