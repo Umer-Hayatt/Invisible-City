@@ -30,7 +30,7 @@ export async function emailReporters(
     fixed: {
       subject: `Fixed: ${issue.title}. Is it really fixed?`,
       body: [
-        `The Office working on an Issue you reported says it is fixed: ${issue.title}.`,
+        `The Business working on an Issue you reported says it is fixed: ${issue.title}.`,
         "",
         `Please look at the after-repair photo and confirm the Fix, or reject it with a comment if the problem is still there.`,
         `Open My reports: ${siteUrl()}/track`,

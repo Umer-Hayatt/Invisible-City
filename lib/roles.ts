@@ -41,13 +41,13 @@ export async function deriveRole(who: Identity, q: Sql = sql()): Promise<{ role:
   if (!email) return { role: "citizen", officeId: null, area: null };
   // The most recent approval decides the area; an approval with no area covers the whole city.
   const [approved] = await q.query<{ area: string | null }>(
-    "SELECT area FROM access_requests WHERE lower(official_email) = $1 AND decision = 'approved' AND is_demo = $2 ORDER BY decided_at DESC NULLS LAST, id DESC LIMIT 1",
+    "SELECT area FROM access_requests WHERE lower(official_email) = $1 AND decision = 'approved' AND revoked_at IS NULL AND is_demo = $2 ORDER BY decided_at DESC NULLS LAST, id DESC LIMIT 1",
     [email, who.isDemo],
   );
   if (approved) return { role: "authority", officeId: null, area: approved.area };
   const [staff] = await q.query<{ office_id: number }>(
     `SELECT s.office_id FROM office_staff s JOIN offices o ON o.id = s.office_id
-     WHERE lower(s.email) = $1 AND o.is_demo = $2 LIMIT 1`,
+     WHERE lower(s.email) = $1 AND o.is_demo = $2 AND o.revoked_at IS NULL LIMIT 1`,
     [email, who.isDemo],
   );
   if (staff) return { role: "office", officeId: staff.office_id, area: null };

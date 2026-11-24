@@ -17,10 +17,7 @@ import type { Role } from "@/lib/roles-list";
 function linksFor(role: Role | null) {
   const links = [{ href: "/", label: t("nav.map") }];
   if (role === "citizen") links.push({ href: "/track", label: t("nav.myReports") });
-  links.push({ href: "/insights", label: t("nav.insights") });
-  if (role === "authority") links.push({ href: "/admin", label: t("nav.authority") }, { href: "/admin/offices", label: t("nav.offices") });
-  if (role === "office") links.push({ href: "/office", label: t("nav.office") });
-  if (role === "super_admin") links.push({ href: "/super-admin", label: t("nav.superAdmin") });
+  // Citizens and visitors: the map, Report and My reports only. Insights and staff pages live in the workspace.
   return links;
 }
 
@@ -68,8 +65,8 @@ export default function Nav() {
       .filter((l) => (l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/")))
       .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
   const isActive = (href: string) => href === activeHref;
-  // Authorities work in their own sidebar workspace (components/AuthorityShell.tsx), without this top bar.
-  if (me?.role === "authority") return null;
+  // Authorities, Businesses and the Super Admin work in a sidebar workspace (components/WorkspaceShell.tsx).
+  if (me && me.role !== "citizen") return null;
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="on-dark sticky top-0 z-[1000] bg-char text-on-dark">

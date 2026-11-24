@@ -20,9 +20,13 @@ _Avoid_: Platform admin, owner, root
 A type of public service responsible for a set of Categories, such as Electrical, Water & Sewerage, Roads, or Sanitation.
 _Avoid_: Team, agency
 
-**Office**:
-One physical branch of a Department at a known location, staffed by people who carry out repairs. A private business doing a Department's work can be an Office too. An Office signs in with one email.
-_Avoid_: Team, crew, field unit
+**Business**:
+Whoever carries out repairs for a Department in one sector: a government office (such as a CDA depot) or a private firm. A Business signs in with one email. Called "Office" in the code and database (`offices`, role `office`); every screen says Business (renamed 24 November 2026).
+_Avoid_: Office (on screen), team, crew, contractor, field unit
+
+**Revocation**:
+The Super Admin taking away an Authority's or a Business's access. A revoked Authority is a Citizen again; a revoked Business cannot sign in or be assigned, and its unfinished jobs go back to Open.
+_Avoid_: Ban, suspension (that is for Citizens)
 
 **Area**:
 The one Islamabad sector an Authority works for, such as G-9. An Authority with no Area works for the whole city.
@@ -92,7 +96,7 @@ _Avoid_: Auto-resolve
 A person asking to be made an Authority for an Area or the whole city, which a Super Admin approves or declines after checking they are a real official.
 
 **Office registration**:
-An Office (or private business) asking to join, with its Department, sector and workers, under the Google email it will sign in with. An Authority of that Area or of the whole city approves or declines it.
+A Business (government or private) asking to join, with its Department, sector and workers, under the Google email it will sign in with. An Authority of that Area or of the whole city approves or declines it.
 
 **Demo account**:
 A made-up Citizen, Authority or Office login with seeded data, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.
