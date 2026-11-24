@@ -192,12 +192,11 @@ describe("assigning an Issue", () => {
     expect(offices[0].distance).toBeGreaterThan(0);
   });
 
-  it("moves an Open Issue to Assigned, emails the Office's staff, and refuses a second Assignment", async () => {
+  it("moves an Open Issue to Assigned, emails the Office, and refuses a second Assignment", async () => {
     await citizen("assignme");
     const id = await report(33.85, 73.85);
     const office = await newOffice("Roads Assign", "Roads", 33.85, 73.85);
     await staff(office, "Lead@Gov.pk");
-    await staff(office, "crew@gov.pk");
     app.mail.sent.length = 0;
     authority();
     expect((await assignTo(id, office)).status).toBe(200);
@@ -205,7 +204,7 @@ describe("assigning an Issue", () => {
     expect(after.issue).toMatchObject({ status: "assigned", assigned_team: "Roads Assign" });
     expect(after.events.some((e: { message: string }) => e.message.includes("Assigned to Roads Assign"))).toBe(true);
     expect(app.mail.sent).toHaveLength(1);
-    expect(app.mail.sent[0].to.sort()).toEqual(["crew@gov.pk", "lead@gov.pk"]);
+    expect(app.mail.sent[0].to).toEqual(["lead@gov.pk"]);
     const again = await assignTo(id, office);
     expect(again.status).toBe(409);
     expect((await again.json()).error).toBe("conflict");
@@ -239,7 +238,7 @@ describe("assigning an Issue", () => {
 });
 
 describe("Offices and staff", () => {
-  it("adds staff by email, allows one Office per email, and removes staff", async () => {
+  it("gives each Office one email: a new one replaces the old, and an email on another Office is refused", async () => {
     const a = await newOffice("Staff Office A", "Electrical", 33.2, 73.2);
     const b = await newOffice("Staff Office B", "Electrical", 33.3, 73.3);
     authority();
@@ -248,6 +247,11 @@ describe("Offices and staff", () => {
     expect(clash.status).toBe(409);
     expect((await clash.json()).error).toBe("email_taken");
     expect((await staff(a, "not-an-email")).status).toBe(400);
+    // Setting a second email replaces the first, then the first again replaces the second.
+    expect((await staff(a, "other@gov.pk")).status).toBe(201);
+    const replaced = (await (await listOffices()).json()).offices.find((o: { id: number }) => o.id === a);
+    expect(replaced.staff.map((s: { email: string }) => s.email)).toEqual(["other@gov.pk"]);
+    expect((await staff(a, "shared@gov.pk")).status).toBe(201);
 
     const listed = (await (await listOffices()).json()).offices.find((o: { id: number }) => o.id === a);
     expect(listed.staff.map((s: { email: string }) => s.email)).toEqual(["shared@gov.pk"]);

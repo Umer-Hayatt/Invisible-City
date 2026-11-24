@@ -21,8 +21,16 @@ A type of public service responsible for a set of Categories, such as Electrical
 _Avoid_: Team, agency
 
 **Office**:
-One physical branch of a Department at a known location, staffed by people who carry out repairs.
+One physical branch of a Department at a known location, staffed by people who carry out repairs. A private business doing a Department's work can be an Office too. An Office signs in with one email.
 _Avoid_: Team, crew, field unit
+
+**Area**:
+The one Islamabad sector an Authority works for, such as G-9. An Authority with no Area works for the whole city.
+_Avoid_: Zone, region, jurisdiction
+
+**Spare workers**:
+An Office's recorded workers minus its Issues that are Assigned or In progress. Spare workers while Issues wait more than 7 days make a sector neglected.
+_Avoid_: Idle staff, free capacity
 
 **MNA**:
 The elected representative of a Constituency. Not part of the first release.
@@ -81,7 +89,10 @@ _Avoid_: Auto-resolve
 ## Trust
 
 **Access request**:
-A person asking to be made an Authority, which a Super Admin approves or declines after checking they are a real official.
+A person asking to be made an Authority for an Area or the whole city, which a Super Admin approves or declines after checking they are a real official.
+
+**Office registration**:
+An Office (or private business) asking to join, with its Department, sector and workers, under the Google email it will sign in with. An Authority of that Area or of the whole city approves or declines it.
 
 **Demo account**:
 A made-up Citizen, Authority or Office login with seeded data, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.

@@ -3,6 +3,7 @@ import {
   cityOverview,
   contributors,
   neighborhoodStats,
+  officeCapacity,
   officeRecords,
   predictiveInsights,
   publicLeaderboard,
@@ -16,11 +17,15 @@ import { dataWorld } from "@/lib/roles";
  */
 export async function GET() {
   const { demo } = await dataWorld();
-  const issues = await listIssues(demo);
-  const [overview, leaders, offices] = await Promise.all([cityOverview(issues, demo), contributors(demo), officeRecords(demo)]);
+  const [issues, capacity] = await Promise.all([listIssues(demo), officeCapacity(demo)]);
+  const [overview, leaders, offices] = await Promise.all([
+    cityOverview(issues, demo, capacity),
+    contributors(demo),
+    officeRecords(demo),
+  ]);
   return Response.json({
     overview,
-    neighborhoods: neighborhoodStats(issues),
+    neighborhoods: neighborhoodStats(issues, capacity),
     predictive: predictiveInsights(issues),
     leaderboard: publicLeaderboard(leaders),
     offices,

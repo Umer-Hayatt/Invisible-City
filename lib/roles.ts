@@ -15,6 +15,8 @@ export interface Actor {
   role: Role;
   /** Office staff only: the one Office they work for. */
   officeId: number | null;
+  /** Authority only: the one area (an Islamabad sector) they work for; null means the whole city. */
+  area: string | null;
   isDemo: boolean;
   profileComplete: boolean;
   suspended: boolean;
@@ -32,23 +34,24 @@ export async function dataWorld(): Promise<{ demo: boolean }> {
   return { demo: who ? who.isDemo : demoMode() };
 }
 
-export async function deriveRole(who: Identity, q: Sql = sql()): Promise<{ role: Role; officeId: number | null }> {
+export async function deriveRole(who: Identity, q: Sql = sql()): Promise<{ role: Role; officeId: number | null; area: string | null }> {
   const email = who.email?.toLowerCase() ?? null;
   if (who.isDemo ? who.demoKey === "superAdmin" : !!email && superAdminEmails().includes(email))
-    return { role: "super_admin", officeId: null };
-  if (!email) return { role: "citizen", officeId: null };
-  const approved = await q.query(
-    "SELECT 1 FROM access_requests WHERE lower(official_email) = $1 AND decision = 'approved' AND is_demo = $2 LIMIT 1",
+    return { role: "super_admin", officeId: null, area: null };
+  if (!email) return { role: "citizen", officeId: null, area: null };
+  // The most recent approval decides the area; an approval with no area covers the whole city.
+  const [approved] = await q.query<{ area: string | null }>(
+    "SELECT area FROM access_requests WHERE lower(official_email) = $1 AND decision = 'approved' AND is_demo = $2 ORDER BY decided_at DESC NULLS LAST, id DESC LIMIT 1",
     [email, who.isDemo],
   );
-  if (approved.length) return { role: "authority", officeId: null };
+  if (approved) return { role: "authority", officeId: null, area: approved.area };
   const [staff] = await q.query<{ office_id: number }>(
     `SELECT s.office_id FROM office_staff s JOIN offices o ON o.id = s.office_id
      WHERE lower(s.email) = $1 AND o.is_demo = $2 LIMIT 1`,
     [email, who.isDemo],
   );
-  if (staff) return { role: "office", officeId: staff.office_id };
-  return { role: "citizen", officeId: null };
+  if (staff) return { role: "office", officeId: staff.office_id, area: null };
+  return { role: "citizen", officeId: null, area: null };
 }
 
 interface PersonRow {
@@ -83,7 +86,7 @@ export async function currentActor(): Promise<Actor | null> {
       [who.email, p.id],
     );
   }
-  const { role, officeId } = await deriveRole(who, q);
+  const { role, officeId, area } = await deriveRole(who, q);
   return {
     personId: p.id,
     authId: who.authId,
@@ -92,6 +95,7 @@ export async function currentActor(): Promise<Actor | null> {
     phone: p.phone,
     role,
     officeId,
+    area,
     isDemo: who.isDemo,
     profileComplete: !!p.display_name?.trim() && !!p.phone,
     suspended: !!p.suspended_at,

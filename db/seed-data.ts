@@ -143,14 +143,17 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
 
   // --- offices ------------------------------------------------------------
   const offices: { id: number; name: string; department: string; lat: number; lng: number }[] = [];
+  // The Offices of the neglected sectors have workers sitting idle while Issues wait: that is the neglect.
+  const IDLE_SECTORS = ["I-10", "G-11", "I-9"];
   for (const [name, department, sector] of OFFICES) {
     const hood = NEIGHBORHOODS.find((n) => n.name === sector)!;
     const lat = hood.lat + 0.0015;
     const lng = hood.lng - 0.0015;
+    const workers = IDLE_SECTORS.includes(sector) ? 6 : 0;
     const [o] = await q.query<{ id: number }>(
-      `INSERT INTO offices (name, department_id, sector, lat, lng, is_demo)
-       VALUES ($1, (SELECT id FROM departments WHERE name = $2), $3, $4, $5, true) RETURNING id`,
-      [name, department, sector, lat, lng],
+      `INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers)
+       VALUES ($1, (SELECT id FROM departments WHERE name = $2), $3, $4, $5, true, $6) RETURNING id`,
+      [name, department, sector, lat, lng, workers],
     );
     offices.push({ id: o.id, name, department, lat, lng });
   }

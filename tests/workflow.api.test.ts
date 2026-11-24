@@ -32,7 +32,6 @@ beforeAll(async () => {
   roads = await newOffice("F-7 Roads Office", 33.72, 73.05);
   otherRoads = await newOffice("I-8 Roads Office", 33.66, 73.08);
   await staff(roads, "crew-1@gov.pk");
-  await staff(roads, "crew-2@gov.pk");
   await staff(otherRoads, "elsewhere@gov.pk");
 });
 afterAll(() => app.stop());
@@ -153,7 +152,7 @@ async function issueIn(state: "open" | "assigned" | "in_progress" | "fixed" | "r
 // My jobs
 // ---------------------------------------------------------------------------
 describe("My jobs", () => {
-  it("shows Office staff only their own Office's Issues, and every staff member of that Office the same jobs", async () => {
+  it("shows an Office only its own Issues", async () => {
     const mine = await issueIn("assigned");
     const theirs = await reportedTwice();
     expect((await act.assign(theirs, otherRoads)).status).toBe(200);
@@ -165,10 +164,8 @@ describe("My jobs", () => {
       return ((await res.json()).jobs as { id: number }[]).map((j) => j.id);
     };
     const one = await idsFor("crew-1@gov.pk");
-    const two = await idsFor("crew-2@gov.pk");
     expect(one).toContain(mine);
     expect(one).not.toContain(theirs);
-    expect(two).toEqual(one);
     expect(await idsFor("elsewhere@gov.pk")).toContain(theirs);
   });
 });

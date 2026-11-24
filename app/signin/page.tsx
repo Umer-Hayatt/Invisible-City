@@ -61,9 +61,17 @@ function SignIn() {
         </button>
         {error && <div className="mt-3 text-sm font-medium text-danger-ink">{error}</div>}
         <p className="mt-4 text-sm text-muted">{t("signin.public")}</p>
-        <Link href="/request-access" className="mt-3 inline-block text-base font-semibold text-brand hover:underline">
-          {t("nav.requestAccess")}
-        </Link>
+        <div className="mt-5 border-t border-line pt-4">
+          <p className="text-sm font-semibold text-muted">{t("signin.officials")}</p>
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+            <Link href="/register-office" className="text-base font-semibold text-brand hover:underline">
+              {t("register.title")}
+            </Link>
+            <Link href="/request-access" className="text-base font-semibold text-brand hover:underline">
+              {t("nav.requestAccess")}
+            </Link>
+          </div>
+        </div>
       </Card>
 
       {demoMode && (

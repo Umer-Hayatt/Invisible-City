@@ -31,26 +31,45 @@ export default function AuthorityDashboard() {
 function Dashboard() {
   const [issues, setIssues] = useState<Issue[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  // An Authority registered for one area: the server sends only that area's Issues; the rest is narrowed here.
+  const [area, setArea] = useState<string | null>(null);
   useEffect(() => {
-    api<{ issues: Issue[] }>("/api/issues").then((d) => setIssues(d.issues)).catch(() => setIssues([]));
+    api<{ issues: Issue[]; area: string | null }>("/api/issues")
+      .then((d) => {
+        setIssues(d.issues);
+        setArea(d.area ?? null);
+      })
+      .catch(() => setIssues([]));
     api<Stats>("/api/stats").then(setStats).catch(() => {});
   }, []);
   if (!issues || !stats) return <PageSkeleton />;
 
   const active = issues.filter((i) => isActive(i.status));
-  const neglected = stats.neighborhoods.filter((n) => n.neglected);
+  const mine = (sector: string) => !area || sector === area;
+  const hoods = stats.neighborhoods.filter((n) => mine(n.name));
+  const neglected = hoods.filter((n) => n.neglected);
   const urgent = active.slice(0, 5); // already sorted by priority
-  const areas = stats.neighborhoods
+  const areas = hoods
     .filter((n) => n.total > 0)
     .sort((a, b) => b.reports - a.reports)
     .slice(0, 5);
-  const offices = [...stats.offices].sort((a, b) => b.assigned - a.assigned).slice(0, 4);
-  const cats = stats.overview.byCategory.filter((c) => c.open + c.resolved > 0).sort((a, b) => b.open + b.resolved - (a.open + a.resolved));
+  const offices = stats.offices.filter((o) => mine(o.sector)).sort((a, b) => b.assigned - a.assigned).slice(0, 4);
+  const byCategory = area
+    ? stats.overview.byCategory.map((c) => ({
+        category: c.category,
+        open: active.filter((i) => i.category === c.category).length,
+        resolved: issues.filter((i) => i.category === c.category && i.status === "resolved").length,
+      }))
+    : stats.overview.byCategory;
+  const cats = byCategory.filter((c) => c.open + c.resolved > 0).sort((a, b) => b.open + b.resolved - (a.open + a.resolved));
   const maxCat = Math.max(1, ...cats.map((c) => c.open + c.resolved));
 
   return (
     <div className="space-y-10">
-      <PageHeader title={t("authority.dashboard")} sub={t("authority.dashboardSub")} />
+      <PageHeader
+        title={area ? t("authority.dashboardArea", { area }) : t("authority.dashboard")}
+        sub={t("authority.dashboardSub")}
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Stat label={t("admin.statAwaiting")} value={active.filter((i) => i.status === "open").length} icon={Inbox} />

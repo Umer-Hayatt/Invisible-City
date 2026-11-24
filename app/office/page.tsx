@@ -36,6 +36,7 @@ function Jobs() {
   return (
     <div>
       <PageHeader title={t("office.title")} sub={t("office.sub")} />
+      <Workers />
       {jobs === null ? (
         <ListSkeleton />
       ) : jobs.length === 0 ? (
@@ -55,6 +56,68 @@ function Jobs() {
     </div>
   );
 }
+
+/** How many workers the Office has. Workers with no active job are spare hands; Insights flags a sector whose
+ * Offices have spare hands while its Issues wait. */
+function Workers() {
+  const [office, setOffice] = useState<{ workers: number; active: number } | null>(null);
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    api<{ office: { workers: number; active: number } }>("/api/office")
+      .then((d) => {
+        setOffice(d.office);
+        setValue(String(d.office.workers));
+      })
+      .catch(() => setOffice(null));
+  }, []);
+  if (!office) return null;
+  const spare = Math.max(0, office.workers - office.active);
+  return (
+    <Card className="mb-6 flex flex-wrap items-end justify-between gap-4 p-5">
+      <div>
+        <h2 className="text-lg font-semibold">{t("office.workersTitle")}</h2>
+        <p className="text-base text-ink-2">
+          {office.workers ? t("office.workersLine", { spare, active: office.active }) : t("office.workersNone")}
+        </p>
+      </div>
+      <form
+        className="flex items-center gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setMsg("");
+          try {
+            const d = await api<{ workers: number }>("/api/office", { method: "PUT", ...jsonBody({ workers: Number(value) }) });
+            setOffice({ ...office, workers: d.workers });
+          } catch (err) {
+            setMsg(errorText((err as Error).message));
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <input
+          type="number"
+          min={0}
+          max={10000}
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          aria-label={t("register.workers")}
+          className={`${field} w-28`}
+        />
+        <button disabled={busy} className={btn.dark}>
+          {t("offices.save")}
+        </button>
+        {msg && <span className="text-sm text-danger-ink">{msg}</span>}
+      </form>
+    </Card>
+  );
+}
+
+const jsonBody = (data: unknown) => ({ headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
 
 function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
   const [mode, setMode] = useState<"idle" | "sendBack" | "fix">("idle");
