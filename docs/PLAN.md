@@ -70,12 +70,12 @@ See PRD section 10.
 ## Fixes of 24 November 2026 (fixes.docx)
 
 - [x] Frontend: new theme on every page, Citizens see only Critical, no health score, reporter names shown to everyone, one email per Office, voice in Urdu or English.
-- [ ] Offices register themselves and ask for access, as a Department with an area (private businesses included).
-- [ ] Authorities register for one area.
-- [ ] Offices record their workers; a sector is neglected when its Offices keep having spare workers and the work is still not done. Show it on Insights.
-- [ ] Enforce one email per Office in the API (the screen already does).
-- [x] Bring back the previous map design (the user does not like the new one). Details in `docs/HANDOFF.md`.
-- [ ] Look at the branch `official-signup` before building Office self-registration: it already has Office staff sign-up.
+- [x] Offices register themselves and ask for access, as a Department with an area (private businesses included). (PR #13)
+- [x] Authorities register for one area. (PR #13)
+- [x] Offices record their workers; a sector is neglected when its Offices keep having spare workers and the work is still not done. Show it on Insights. (PR #13)
+- [x] Enforce one email per Office in the API (the screen already does). (PR #13)
+- [x] Bring back the previous map design (the user does not like the new one). (PR #12)
+- [x] Look at the branch `official-signup` before building Office self-registration. Done: #13 replaces it; close PR #11 without merging.
 
 ## Fixes of 24 November 2026, second note (Authority side)
 
