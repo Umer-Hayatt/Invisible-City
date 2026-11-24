@@ -26,19 +26,17 @@ function linksFor(role: Role | null) {
 const aiTitle = (mode: string) =>
   mode === "gemini" ? t("nav.aiGemini") : mode === "groq" ? t("nav.aiGroq") : t("nav.aiHeuristic");
 
+/** The mark: a small green sign plate with "IN" in white reflective lettering, then the name. */
 export function Logo() {
   return (
-    <Link href="/" className="group flex items-center gap-2.5">
-      <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-on-brand">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="transition-transform duration-500 ease-out group-hover:rotate-90">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-        </svg>
-        <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-canvas bg-accent" />
+    <Link href="/" dir="ltr" className="flex items-center gap-1" aria-label="INvisible City">
+      <span
+        aria-hidden
+        className="flex h-9 items-center rounded-[7px] bg-sign px-2 text-[15px] font-black leading-none tracking-tight text-sign-ink shadow-[inset_0_0_0_2px_var(--color-sign),inset_0_0_0_3.5px_var(--color-sign-ink)]"
+      >
+        IN
       </span>
-      <span className="text-[17px] font-extrabold tracking-tight">
-        <span className="text-brand">IN</span>visible City
-      </span>
+      <span className="text-[18px] font-extrabold tracking-[-0.01em]">visible City</span>
     </Link>
   );
 }
@@ -78,8 +76,8 @@ export default function Nav() {
   return (
     <header
       style={{ viewTransitionName: "site-header" }}
-      className={`sticky top-0 z-[1000] border-b bg-canvas/80 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 ${
-        scrolled ? "border-line shadow-[0_8px_30px_-12px_rgb(16_32_26/0.18)]" : "border-line/60"
+      className={`sticky top-0 z-[1000] border-b-[3px] border-ink bg-canvas transition-shadow duration-300 ${
+        scrolled ? "shadow-[0_10px_30px_-18px_rgb(0_0_0/0.45)]" : ""
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6">
@@ -90,14 +88,14 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className={`relative isolate rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-                isActive(l.href) ? "text-canvas" : "text-ink-2 hover:bg-sunken hover:text-ink"
+              className={`relative px-3 py-5 text-[15px] font-bold transition-colors ${
+                isActive(l.href) ? "text-ink" : "text-ink-2 hover:text-ink"
               }`}
             >
               {isActive(l.href) && (
-                // The same named pill sits under whichever link is active, so the browser slides it across.
+                // A painted lane marker under the active link; the same named marker slides to the next one.
                 <ViewTransition name="nav-pill" share="nav-pill">
-                  <span aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ink" />
+                  <span aria-hidden className="absolute inset-x-3 -bottom-[3px] h-[5px] bg-brand" />
                 </ViewTransition>
               )}
               {l.label}
@@ -118,7 +116,7 @@ export default function Nav() {
           <ThemeToggle />
           <LanguageSwitch />
           {canReport && (
-            <Link href="/report" className="press shine inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600">
+            <Link href="/report" className="press inline-flex items-center gap-1.5 rounded-[10px] bg-brand px-4 py-2 text-sm font-extrabold text-on-brand transition-colors hover:bg-brand-600">
               <Plus size={16} strokeWidth={2.5} /> {t("nav.report")}
             </Link>
           )}
