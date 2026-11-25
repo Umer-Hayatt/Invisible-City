@@ -1,9 +1,10 @@
 import { suggestedOffices } from "./authority";
 import { nowIso, nowMs } from "./clock";
 import { emailWithdrawn } from "./contract-ends";
+import { contractPdfAttachment } from "./contract-pdf";
 import { addEvent, setAssignment } from "./db";
 import { areaAuthorities, settleJobRequests } from "./jobs";
-import { sendQuietly } from "./mailer";
+import { sendQuietly, type MailAttachment } from "./mailer";
 import type { Actor } from "./roles";
 import { Sql, sql } from "./sql";
 import { cleanText } from "./workflow";
@@ -125,7 +126,10 @@ export async function sendContract(actor: Actor, issueId: number, officeId: numb
         "",
         "Read it in Invisible City, then accept or decline:",
         `${site()}/office/contracts`,
+        "",
+        "The contract is attached as a PDF.",
       ].join("\n"),
+      attachments: await contractPdfAttachment(result.id),
     });
   return { status: "sent", id: result.id };
 }
@@ -196,10 +200,10 @@ async function lockForAnswer(q: Sql, actor: Actor, id: number) {
   return o ? { issueId: c.issue_id, office: o.name, ...i } : null;
 }
 
-async function emailAuthorities(actor: Actor, a: Answered, subject: string, lines: string[]) {
+async function emailAuthorities(actor: Actor, a: Answered, subject: string, lines: string[], attachments?: MailAttachment[]) {
   if (actor.isDemo) return;
   const to = (await areaAuthorities(a.neighborhood, false)).map((x) => x.email);
-  await sendQuietly({ to, subject, body: [...lines, "", `${site()}/issues/${a.issueId}`].join("\n") });
+  await sendQuietly({ to, subject, body: [...lines, "", `${site()}/issues/${a.issueId}`].join("\n"), attachments });
 }
 
 /** The Business agrees: the contract is accepted and the Issue becomes Assigned to it, in one transaction. */
@@ -219,9 +223,22 @@ export async function acceptContract(actor: Actor, id: number): Promise<AnswerOu
     return c;
   });
   if (typeof out === "string") return out;
-  await emailAuthorities(actor, out, `${out.office} accepted the contract: ${out.title}`, [
-    `${out.office} accepted your contract. The Issue in ${out.neighborhood} is now Assigned to it.`,
-  ]);
+  if (!actor.isDemo) {
+    const attachments = await contractPdfAttachment(id);
+    await emailAuthorities(
+      actor,
+      out,
+      `${out.office} accepted the contract: ${out.title}`,
+      [`${out.office} accepted your contract. The Issue in ${out.neighborhood} is now Assigned to it.`, "The accepted contract is attached as a PDF."],
+      attachments,
+    );
+    await sendQuietly({
+      to: await staffEmails(actor.officeId!),
+      subject: `You accepted the contract: ${out.title}`,
+      body: [`You accepted the contract for the Issue in ${out.neighborhood}. It is now in your Jobs.`, "A copy is attached as a PDF.", "", `${site()}/office`].join("\n"),
+      attachments,
+    });
+  }
   return "ok";
 }
 

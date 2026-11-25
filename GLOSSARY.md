@@ -29,7 +29,7 @@ A Business asking an Authority to be given an Open Issue of its Department in it
 _Avoid_: Bid, application
 
 **Contract**:
-An Authority's written offer of one Open Issue to one Business: the work, price, dates and payment terms. The Business accepts or declines it; the Authority can withdraw it while it waits. Accepting makes the Assignment. An accepted Contract ends when its Issue leaves the Business.
+An Authority's written offer of one Open Issue to one Business: the work, price, dates and payment terms. The Business accepts or declines it; the Authority can withdraw it while it waits. Accepting makes the Assignment. An accepted Contract ends when its Issue leaves the Business. Either side can download it as a **Contract PDF** (not legally binding by itself); it is also emailed when sent and when accepted.
 _Avoid_: Work order, tender, agreement (as a noun for the record)
 
 **Job chat**:

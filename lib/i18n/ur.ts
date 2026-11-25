@@ -480,6 +480,7 @@ export const ur: Record<MessageKey, string> = {
   "contract.paymentPlaceholder": "مثلاً: مرمت کی تصدیق کے بعد ادائیگی",
   "contract.send": "کاروبار کو بھیجیں",
   "contract.withdraw": "واپس لیں",
+  "contract.downloadPdf": "PDF ڈاؤن لوڈ کریں",
   "contract.waitingFor": "{office} کی منظوری کا انتظار ہے۔",
   "contract.waitingForUs": "آپ کے جواب کا انتظار ہے۔",
   "contract.waitingElsewhere": "اس مسئلے کا معاہدہ کسی اور کاروبار کے جواب کا منتظر ہے۔ اسے چننے کے لیے پہلے وہ واپس لیں۔",

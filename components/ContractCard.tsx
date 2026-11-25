@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Clock, FileSignature, MessagesSquare, Undo2, XCircle } from "lucide-react";
+import { ArrowUpRight, CircleCheck, Clock, Download, FileSignature, MessagesSquare, Undo2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import JobChat from "@/components/JobChat";
@@ -197,6 +197,9 @@ function ContractCard({ c, side, onChanged, onError }: { c: Contract; side: "aut
       </div>
       <ContractTerms c={c} />
       <ContractState c={c} side={side} />
+      <a href={`/api/contracts/${c.id}/pdf`} download className={btn.ghost}>
+        <Download size={16} aria-hidden /> {t("contract.downloadPdf")}
+      </a>
       {c.status === "sent" && side === "office" && <Answer c={c} onChanged={onChanged} onError={onError} />}
       {c.status === "sent" && side === "authority" && (
         <>

@@ -475,6 +475,7 @@ export const en = {
   "contract.paymentPlaceholder": "For example: paid after the Fix is confirmed",
   "contract.send": "Send to the Business",
   "contract.withdraw": "Withdraw",
+  "contract.downloadPdf": "Download PDF",
   "contract.waitingFor": "Waiting for {office} to accept.",
   "contract.waitingForUs": "Waiting for your answer.",
   "contract.waitingElsewhere": "A contract for this Issue is waiting for another Business. Withdraw it first to choose this one.",

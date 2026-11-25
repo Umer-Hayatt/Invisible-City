@@ -56,7 +56,7 @@ The seed leaves each Demo account something to do:
 
 1. **Map** (no sign-in): heatmap and health layers; I-10, G-11 and I-9 show as neglected; G-9 has a pothole that came back after a repair.
 2. **Demo Citizen**, then **Report a problem**: add any street photo and a demo location (try F-10 Markaz twice to see duplicates merge), or tap **Speak in Urdu**. **My reports** has one Fix waiting for an answer: confirm it, and the Resolution shows in Insights.
-3. **Demo Authority** (G-9 only): pick an Open Issue in the queue, see who reported it, and send a Contract to one of the three Businesses.
+3. **Demo Authority** (G-9 only): pick an Open Issue in the queue, see who reported it, and send a Contract to one of the three Businesses; either side can download it as a PDF.
 4. **Demo Business: Roads / Sanitation / Electrical**: each has one job of each kind in G-9 and a Contract waiting: accept it, start the Assigned job, and mark the In progress one fixed with an after-photo.
 5. **Demo Super Admin**, **Insights**: health by sector, neglected areas, predictive maintenance, and the Business track record (Fixes, Rejections, Unconfirmed closures, days to fix).
 6. Switch to **اردو** at any point; the whole site turns right to left.

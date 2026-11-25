@@ -144,7 +144,7 @@ describe("the Business's answer", () => {
     business();
     expect((await reply(contractId, "accepted")).status).toBe(200);
     expect(await row(issueId)).toEqual({ status: "assigned", office_id: roads });
-    expect(app.mail.sent.map((m) => m.to)).toEqual([["f7@gov.pk"]]);
+    expect(app.mail.sent.map((m) => m.to).sort()).toEqual([["f7@gov.pk"], ["f7roads@biz.pk"]]);
     expect((await (await getIssue(get(), id(issueId))).json()).events.at(-1)).toMatchObject({ kind: "assigned", message: "Assigned to F-7 Road Co" });
     expect((await reply(contractId, "accepted")).status).toBe(409);
     expect((await reply(contractId, "declined", "Too late")).status).toBe(409);

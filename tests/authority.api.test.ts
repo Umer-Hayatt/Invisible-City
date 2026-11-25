@@ -206,12 +206,12 @@ describe("assigning an Issue", () => {
     const after = await issue(id);
     expect(after.issue).toMatchObject({ status: "assigned", assigned_team: "Roads Assign" });
     expect(after.events.some((e: { message: string }) => e.message.includes("Assigned to Roads Assign"))).toBe(true);
-    // The contract to the Office, then its acceptance to the Authority.
-    expect(app.mail.sent.map((m) => m.to)).toEqual([["lead@gov.pk"], ["official@gov.pk"]]);
+    // The contract to the Office, then its acceptance to the Authority and a copy to the Office.
+    expect(app.mail.sent.map((m) => m.to)).toEqual([["lead@gov.pk"], ["official@gov.pk"], ["lead@gov.pk"]]);
     const again = await offer(id, office);
     expect(again.status).toBe(409);
     expect((await again.json()).error).toBe("conflict");
-    expect(app.mail.sent).toHaveLength(2);
+    expect(app.mail.sent).toHaveLength(3);
   });
 
   it("refuses an Office of another Department", async () => {
