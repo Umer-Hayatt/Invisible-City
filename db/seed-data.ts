@@ -275,9 +275,9 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
         }
         await event(issueId, "fixed", fixMessage, fixedAt, office.id);
       }
-      if (resolvedAt) await event(issueId, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", resolvedAt);
+      if (resolvedAt) await event(issueId, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", resolvedAt, office?.id);
       if (closedAt)
-        await event(issueId, "closed_unconfirmed", "Closed unconfirmed: no Citizen confirmed or rejected the Fix within 7 days.", closedAt);
+        await event(issueId, "closed_unconfirmed", "Closed unconfirmed: no Citizen confirmed or rejected the Fix within 7 days.", closedAt, office?.id);
     }
   }
 

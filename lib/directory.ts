@@ -1,6 +1,7 @@
 import { nowIso } from "./clock";
 import { reopenIssue } from "./contract-ends";
 import { addEvent } from "./db";
+import { officeRecords } from "./insights";
 import { sendQuietly } from "./mailer";
 import { Sql, sql } from "./sql";
 
@@ -44,19 +45,19 @@ export interface BusinessEntry {
   revoked_at: string | null;
 }
 
-/** Every Business with its one email, the jobs it holds now and the Fixes it has made. */
-export async function listBusinesses(demo: boolean) {
-  return sql().query<BusinessEntry>(
+/** Every Business with its one email, the jobs it holds now and the Fixes it has made (its track record in Insights). */
+export async function listBusinesses(demo: boolean): Promise<BusinessEntry[]> {
+  const rows = await sql().query<Omit<BusinessEntry, "fixes">>(
     `SELECT o.id, o.name, d.name AS department, o.sector, o.is_private, o.workers, o.phone, o.revoked_at,
             (SELECT s.email FROM office_staff s WHERE s.office_id = o.id ORDER BY s.id LIMIT 1) AS email,
             (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
-               AND i.status IN ('assigned', 'in_progress'))::int AS active,
-            (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
-               AND i.status IN ('fixed', 'resolved', 'closed_unconfirmed'))::int AS fixes
+               AND i.status IN ('assigned', 'in_progress'))::int AS active
      FROM offices o JOIN departments d ON d.id = o.department_id
      WHERE o.is_demo = $1 ORDER BY (o.revoked_at IS NULL) DESC, d.name, o.name`,
     [demo],
   );
+  const fixes = new Map((await officeRecords(demo)).map((r) => [r.officeId, r.fixes]));
+  return rows.map((b) => ({ ...b, fixes: fixes.get(b.id) ?? 0 }));
 }
 
 /** Revokes every approval of this Authority email. They are a Citizen again on their next page load. */
@@ -87,8 +88,9 @@ export async function revokeBusiness(officeId: number, by: string | null, demo: 
       [nowIso(), by, officeId, demo],
     );
     if (!office) return null;
+    // Locked, so a Fix recorded at this moment is either seen (and stays) or waits and is refused.
     const jobs = await q.query<{ id: number }>(
-      "SELECT id FROM issues WHERE office_id = $1 AND status IN ('assigned', 'in_progress') AND deleted_at IS NULL",
+      "SELECT id FROM issues WHERE office_id = $1 AND status IN ('assigned', 'in_progress') AND deleted_at IS NULL ORDER BY id FOR UPDATE",
       [officeId],
     );
     for (const j of jobs) {

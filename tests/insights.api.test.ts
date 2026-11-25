@@ -11,6 +11,7 @@ import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { POST as submitReport } from "../app/api/reports/route";
 import { GET as city } from "../app/api/city/route";
 import { GET as stats } from "../app/api/stats/route";
+import { GET as businesses } from "../app/api/super-admin/businesses/route";
 import { DELETE as revokeBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
@@ -192,6 +193,12 @@ describe("Insights follow the workflow (real world)", () => {
     const s = await realStats();
     expect(recordOf(s, first)).toMatchObject({ assigned: 0, fixes: 1, rejections: 1, avgDaysToFix: 1 });
     expect(recordOf(s, second)).toMatchObject({ assigned: 1, fixes: 1, rejections: 0, avgDaysToFix: 1 });
+
+    // The Super Admin's list says the same about every Business.
+    signInAs(SUPER_ADMIN);
+    const { businesses: list } = await read(await businesses());
+    const fixesOf = (o: number) => list.find((b: { id: number }) => b.id === o).fixes;
+    for (const o of [first, second, roads]) expect(fixesOf(o)).toBe(recordOf(s, o)!.fixes);
   });
 });
 

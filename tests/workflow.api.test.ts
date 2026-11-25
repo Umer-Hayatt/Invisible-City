@@ -337,6 +337,8 @@ describe("Unconfirmed closure", () => {
     expect(data.issue.closed_at).toBe(new Date(NOW.getTime() + 7 * 86_400_000).toISOString());
     expect(data.issue.resolved_at).toBeNull();
     expect(data.events.at(-1).kind).toBe("closed_unconfirmed");
+    const [entry] = await app.sql.query("SELECT office_id FROM events WHERE issue_id = $1 AND kind = 'closed_unconfirmed'", [n]);
+    expect(entry).toEqual({ office_id: roads });
 
     await issue(n);
     // Other tests' Fixes close at the same moment, so count only the mail to this Issue's reporters.

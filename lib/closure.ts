@@ -62,17 +62,17 @@ export async function emailReporters(
  */
 export async function closeOverdueFixes(q: Sql = sql()) {
   const cutoff = new Date(nowMs() - FIX_ANSWER_DAYS * DAY_MS).toISOString();
-  const closed = await q.query<{ id: number; title: string; is_demo: boolean; closed_at: string }>(
+  const closed = await q.query<{ id: number; title: string; is_demo: boolean; closed_at: string; office_id: number | null }>(
     `UPDATE issues SET status = 'closed_unconfirmed',
        closed_at = fixed_at + interval '${FIX_ANSWER_DAYS} days', updated_at = fixed_at + interval '${FIX_ANSWER_DAYS} days'
      WHERE status = 'fixed' AND fixed_at <= $1 AND deleted_at IS NULL
-     RETURNING id, title, is_demo, closed_at`,
+     RETURNING id, title, is_demo, closed_at, office_id`,
     [cutoff],
   );
   for (const i of closed) {
     await q.query(
-      "INSERT INTO events (issue_id, kind, message, actor_role, created_at) VALUES ($1, 'closed_unconfirmed', $2, 'system', $3)",
-      [i.id, `Closed unconfirmed: no Citizen confirmed or rejected the Fix within ${FIX_ANSWER_DAYS} days.`, i.closed_at],
+      "INSERT INTO events (issue_id, kind, message, actor_role, created_at, office_id) VALUES ($1, 'closed_unconfirmed', $2, 'system', $3, $4)",
+      [i.id, `Closed unconfirmed: no Citizen confirmed or rejected the Fix within ${FIX_ANSWER_DAYS} days.`, i.closed_at, i.office_id],
     );
     await emailReporters(i, "closed_unconfirmed", q);
   }

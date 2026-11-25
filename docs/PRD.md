@@ -71,7 +71,7 @@ Open → Assigned → In progress → Fixed → Resolved
 - **Assignment**: the Authority opens an Issue and sees the Offices of the Category's Department, nearest first. The Authority picks one and sends it a Contract; the Issue is Assigned when the Office accepts (section 3, Assignment by agreement).
 - An Office can **send back** an Assigned Issue with a reason ("not our area", "not our department"). It returns to Open.
 - The Office moves the Issue to In progress, then records a **Fix** with a required after-repair photo. The Issue becomes Fixed.
-- Any one Citizen who reported the Issue can confirm the Fix (**Resolution** → Resolved) or reject it with a comment (**Rejection** → back to In progress, or to Open when the Office was revoked since).
+- Any one Citizen who reported the Issue can confirm the Fix (**Resolution** → Resolved) or reject it with a comment (**Rejection** → back to In progress, or to Open when the Office was revoked since). My jobs shows an Office only the Rejections of its own Fixes.
 - With no answer 7 days after the Fix, the Issue becomes **Unconfirmed closure** (Closed unconfirmed), recorded separately from a Resolution.
 - Every change is added to the Issue's public timeline.
 

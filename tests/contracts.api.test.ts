@@ -15,6 +15,7 @@ import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { DELETE as revokeBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setClock } from "../lib/clock";
 import { setSession } from "../lib/session";
+import { setSql } from "../lib/sql";
 import { ctx, NOW, offer, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
 
 /** An Authority never assigns a job on its own: it sends a contract, and the Issue is Assigned when the Business accepts. */
@@ -228,6 +229,25 @@ it("revoking a Business withdraws its waiting contracts, so the Issue can be off
   authority();
   expect((await contractsSeen(`http://test/x?issue=${issueId}`))[0]).toMatchObject({ id: contractId, status: "withdrawn" });
   expect((await offer(issueId, roads)).status).toBe(201);
+});
+
+it("a Business revoked while its contract was being sent is not offered it", async () => {
+  const issueId = await pothole();
+  authority();
+  // The Revocation lands after the Business was checked and before the contract is written.
+  setSql({
+    ...app.sql,
+    async tx(fn) {
+      await app.sql.query("UPDATE offices SET revoked_at = now() WHERE id = $1", [roads]);
+      return app.sql.tx(fn);
+    },
+  });
+  try {
+    expect(await errorOf(await offer(issueId, roads))).toEqual({ status: 400, error: "invalid_office" });
+  } finally {
+    setSql(app.sql);
+    await app.sql.query("UPDATE offices SET revoked_at = NULL WHERE id = $1", [roads]);
+  }
 });
 
 describe("when the Issue leaves the Business", () => {

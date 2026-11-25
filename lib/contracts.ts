@@ -89,6 +89,9 @@ export async function sendContract(actor: Actor, issueId: number, officeId: numb
       [issueId],
     );
     if (issue?.status !== "open") return "conflict" as const;
+    // Checked again here: FOR SHARE waits out a Revocation in progress.
+    const [working] = await q.query("SELECT 1 FROM offices WHERE id = $1 AND revoked_at IS NULL FOR SHARE", [officeId]);
+    if (!working) return "invalid_office" as const;
     const [waiting] = await q.query("SELECT 1 FROM contracts WHERE issue_id = $1 AND status = 'sent'", [issueId]);
     if (waiting) return "contract_waiting" as const;
     const [row] = await q.query<{ id: number }>(
@@ -188,7 +191,8 @@ async function lockForAnswer(q: Sql, actor: Actor, id: number) {
     [c.issue_id, actor.isDemo],
   );
   if (!i) return null;
-  const [o] = await q.query<{ name: string }>("SELECT name FROM offices WHERE id = $1 AND revoked_at IS NULL", [actor.officeId]);
+  // FOR SHARE waits out a Revocation in progress, so a job never goes to a Business that was just revoked.
+  const [o] = await q.query<{ name: string }>("SELECT name FROM offices WHERE id = $1 AND revoked_at IS NULL FOR SHARE", [actor.officeId]);
   return o ? { issueId: c.issue_id, office: o.name, ...i } : null;
 }
 

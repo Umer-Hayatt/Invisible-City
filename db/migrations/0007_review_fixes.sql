@@ -17,6 +17,16 @@ update events e set office_id = (
   order by a.created_at desc, a.id desc limit 1
 ) where e.kind in ('in_progress', 'sent_back', 'fixed', 'rejected', 'resolved', 'closed_unconfirmed');
 
+-- Jobs stuck with a revoked Business (a Citizen rejected its Fix after the Revocation) go back to Open.
+with stuck as (
+  select i.id, i.office_id, o.name from issues i join offices o on o.id = i.office_id
+  where o.revoked_at is not null and i.status in ('assigned', 'in_progress') and i.deleted_at is null
+), noted as (
+  insert into events (issue_id, kind, message, actor_role, created_at, office_id)
+  select id, 'sent_back', 'Back to Open: ' || name || ' no longer works with the city', 'system', now(), office_id from stuck
+)
+update issues i set office_id = null, status = 'open', resolved_at = null, updated_at = now() from stuck where i.id = stuck.id;
+
 -- An accepted contract ends when its Issue leaves the Business: sent back, reopened by a Revocation, or removed.
 alter table contracts add column ended_at timestamptz;
 alter table contracts drop constraint contracts_status_check;
