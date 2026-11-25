@@ -130,6 +130,18 @@ Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (applied to the liv
 - [ ] PDF emailed to both sides on Send and on Accept (mailer attachments).
 - [ ] Payment recorded: the Authority marks it Paid after the Fix is confirmed.
 
+## Demo of one area (agreed 25 November 2026)
+
+Today the Demo Authority covers the whole city and there is one Demo Business. The Demo will show one area (a sector) instead, working as it does for real people.
+
+- [x] The Demo Authority is approved for one area only, and sees and acts only on the Reports and Businesses of that area. Suggested: G-9, where the Demo Business already is.
+- [x] Three Demo Businesses in the role switcher instead of one, each of a different Department, all in the Demo Authority's area. Suggested: Roads, Sanitation, Electrical.
+- [x] Each Demo Business sees only the jobs of its own Department and area.
+- [x] Demo seed: enough Issues in that area for each of the three (available, Assigned, In progress, Fixed) and a Contract waiting for an answer, so every Business has something to do.
+- [x] Remove Insights for Authorities, in the Demo and for real ones: the sidebar link, the page and `/api/stats` become Super Admin only. Check what else on the Authority dashboard reads `/api/stats` first. Replaces the earlier rule "Insights is for Authorities and the Super Admin" (PRD, HANDOFF).
+- [x] Role switcher text in English and Urdu; PRD section 8 (Demo mode), README and the Demo tests updated.
+- [ ] Deploy, then reseed the live Demo (`npm run seed`).
+
 ## Review of 25 November 2026
 
 - [x] Reporter email and phone only for an Authority of the Issue's Area (or of the whole city).

@@ -18,7 +18,7 @@ interface Cluster { neighborhood: string; recurring: number; issues: Ev[] }
 
 describe("evidence behind the Insights", () => {
   it("counts every Report per sector, which is at least the number of Issues there", async () => {
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const { neighborhoods } = (await (await stats()).json()) as { neighborhoods: Hood[] };
     const [{ n }] = await app.sql.query<{ n: number }>(
       "SELECT COALESCE(SUM(report_count), 0)::int AS n FROM issues WHERE is_demo AND deleted_at IS NULL",
@@ -28,7 +28,7 @@ describe("evidence behind the Insights", () => {
   });
 
   it("lists the Issues each neglected sector has left waiting, oldest first", async () => {
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const { neighborhoods } = (await (await stats()).json()) as { neighborhoods: Hood[] };
     const neglected = neighborhoods.filter((h) => h.neglected);
     expect(neglected.length).toBeGreaterThan(0);
@@ -42,7 +42,7 @@ describe("evidence behind the Insights", () => {
   });
 
   it("names the Reports behind each repeat-problem cluster, a repair that failed first", async () => {
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const { predictive } = (await (await stats()).json()) as { predictive: Cluster[] };
     expect(predictive.length).toBeGreaterThan(0);
     for (const c of predictive) expect(c.issues.length).toBeGreaterThan(0);

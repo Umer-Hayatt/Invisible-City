@@ -39,7 +39,7 @@ Everyone signs in with Google. Signing in alone only ever makes someone a Citize
 ## 4. Rules
 
 ### Citizens and Reports
-- Signing in is required to submit a Report. Viewing the map and Issue pages is public; Insights, screen and API, is for Authorities and the Super Admin only.
+- Signing in is required to submit a Report. Viewing the map and Issue pages is public; Insights, screen and API, is for the Super Admin only (25 November 2026; Authorities keep their own area's figures on their Dashboard and Reports page, from a separate API).
 - On first sign-in a Citizen enters a display name and a phone number in `+92 3xx xxxxxxx` format. The phone is required but not verified by SMS. Email comes from Google.
 - A Report is a photo (required; photos only, no video), a location (phone GPS, adjustable by moving a map pin), an optional description, and the AI's reading.
 - The AI suggests the **Category** and severity. The Citizen can change the Category before submitting.
@@ -106,7 +106,7 @@ The same updates show in the app on the Citizen's **My reports** page.
 |---|---|
 | Public | City map (Issues and heatmap layers), Issue page (reporter names, before/after photos, timeline) |
 | Citizen | Profile setup, Report a problem (phone-first: camera, GPS, map pin), My reports (with confirm/reject on Fixed Issues) |
-| Authority | A sidebar workspace instead of the top bar: Dashboard (overview: counts, problems by category, what needs attention, busiest areas, Offices), Reports (priority queue with filters; Issue review with each Report's reporter email and phone, Spam flag, suggested Offices, Contract), Job requests, Contracts, Offices and staff management, Insights. No map. |
+| Authority | A sidebar workspace instead of the top bar: Dashboard (overview: counts, problems by category, what needs attention, busiest areas, Offices), Reports (priority queue with filters; Issue review with each Report's reporter email and phone, Spam flag, suggested Offices, Contract), Job requests, Contracts, Offices and staff management. No Insights (Super Admin only). No map. |
 | Office | Contracts (accept or decline), My jobs (Start work, Mark fixed with after-photo, Send back) |
 | Super Admin | Access requests (approve / decline) |
 | Anyone | Request Authority access form (name, department, official email, phone) |
@@ -121,7 +121,7 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 ## 7. Insights (existing, kept)
 - Invisible-problems heatmap.
 - Sectors: the percentage of reported problems fixed, and average days to fix. The neighbourhood health score is still computed by the API but shown nowhere (24 November 2026).
-- Neglected sector (24 November 2026): the Offices in the sector have **spare workers** (recorded workers minus their Assigned and In progress Issues) while at least one Issue there has waited Open or Assigned for more than 7 days. A sector whose Offices recorded no workers falls back to the old test: ≥ 3 complaints, resolution rate < 35% and below 60% of the city rate. Each neglected sector shows its evidence (spare workers and the Issues waiting longest). Shown to Authorities and Super Admins only.
+- Neglected sector (24 November 2026): the Offices in the sector have **spare workers** (recorded workers minus their Assigned and In progress Issues) while at least one Issue there has waited Open or Assigned for more than 7 days. A sector whose Offices recorded no workers falls back to the old test: ≥ 3 complaints, resolution rate < 35% and below 60% of the city rate. Each neglected sector shows its evidence (spare workers and the Issues waiting longest). Insights are shown to the Super Admin only; an Authority still sees the neglected flag on its Dashboard and Reports page.
 - Predictive maintenance from recurring problems.
 - Before vs after photos.
 - **Office track record** (new): per Office, Issues assigned, Fixes, Rejections, Unconfirmed closures, and average days to fix.
@@ -131,7 +131,7 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 - "Citizens who report most" shows names and Report counts. The Citizen Impact score is computed but not shown for now (24 November 2026).
 
 ## 8. Demo mode
-The public site has **Demo accounts** (a Citizen, an Authority, an Office, a Super Admin) that anyone can switch between, all with made-up seeded people and data, under a visible "Demo" banner. Real Google sign-ins work on the same site at the same time, and real data never mixes with demo data, so the team can test the real flow live.
+The public site has **Demo accounts** (a Citizen, an Authority, three Businesses and a Super Admin) that anyone can switch between, all with made-up seeded people and data, under a visible "Demo" banner. The Demo shows one area, **G-9** (25 November 2026): the Demo Authority is approved for G-9 only and sees and acts only on its Reports and Businesses; a Roads, a Sanitation and an Electrical Business work there, each seeing only the jobs of its own Department in G-9 (two Open, one Assigned, one In progress, one Fixed, and a Contract waiting for an answer). Real Google sign-ins work on the same site at the same time, and real data never mixes with demo data, so the team can test the real flow live.
 **Which data a visitor sees** (the Demo world and the real world never mix):
 - Signed in as a Demo account: Demo data only. Signed in with a real Google account: real data only, and no Demo banner.
 - Not signed in: Demo data while Demo mode is on (so judges land on a full map), real data when it is off.

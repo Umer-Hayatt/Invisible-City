@@ -12,7 +12,7 @@ import { Category, Issue, isActive } from "@/lib/types";
 
 /**
  * The Authority's Dashboard: an overview of the city today, borrowing a little from each place they work in.
- * Nothing is decided here; each block links to Reports, Offices or Insights, where the work happens.
+ * Nothing is decided here; each block links to Reports or Offices, where the work happens.
  */
 interface Stats {
   neighborhoods: NeighborhoodStat[];
@@ -40,7 +40,7 @@ function Dashboard() {
         setArea(d.area ?? null);
       })
       .catch(() => setIssues([]));
-    api<Stats>("/api/stats").then(setStats).catch(() => {});
+    api<Stats>("/api/area-overview").then(setStats).catch(() => {});
   }, []);
   if (!issues || !stats) return <PageSkeleton />;
 
@@ -138,7 +138,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2">
         <section>
-          <SectionTitle title={t("insights.areasTitle")} right={<More href="/insights" label={t("nav.insights")} />} />
+          <SectionTitle title={t("insights.areasTitle")} />
           <Card className="divide-y divide-line">
             {areas.map((n) => (
               <div key={n.name} className="flex items-center justify-between gap-3 p-4">

@@ -64,7 +64,7 @@ function Queue() {
 
   const load = useCallback(() => {
     api<{ issues: Issue[] }>("/api/issues").then((d) => setIssues(d.issues));
-    api<{ neighborhoods: NeighborhoodStat[] }>("/api/stats").then((d) => setHoods(d.neighborhoods));
+    api<{ neighborhoods: NeighborhoodStat[] }>("/api/area-overview").then((d) => setHoods(d.neighborhoods));
   }, []);
   useEffect(load, [load]);
 

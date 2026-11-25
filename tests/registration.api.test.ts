@@ -183,7 +183,7 @@ describe("workers and the neglect rule", () => {
   });
 
   it("keeps the Demo neglect story on worker evidence", async () => {
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const { neighborhoods } = await (await stats()).json();
     for (const name of ["I-10", "G-11", "I-9"]) {
       const h = neighborhoods.find((n: { name: string }) => n.name === name);

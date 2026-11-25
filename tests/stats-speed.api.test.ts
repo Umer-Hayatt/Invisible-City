@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { GET as areaOverview } from "../app/api/area-overview/route";
 import { GET as stats } from "../app/api/stats/route";
 import { contributors } from "../lib/insights";
 import { setSession } from "../lib/session";
@@ -29,18 +30,31 @@ describe("Insights after the speed-up", () => {
   });
 
   it("still returns every part of the Insights response", async () => {
-    for (const who of ["citizen", "office"] as const) {
+    for (const who of ["citizen", "office", "authority"] as const) {
       signInDemo(who);
       expect((await stats()).status).toBe(403);
     }
     setSession(null);
     expect((await stats()).status).toBe(401);
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const body = await (await stats()).json();
     expect(body.overview.totalIssues).toBeGreaterThan(0);
     expect(body.neighborhoods.length).toBeGreaterThan(0);
     expect(body.leaderboard.length).toBeGreaterThan(0);
     expect(body.offices.length).toBeGreaterThan(0);
     expect(body.offices.some((o: { avgDaysToFix: number | null }) => o.avgDaysToFix !== null)).toBe(true);
+  });
+
+  it("gives an Authority the area figures but no Insights", async () => {
+    signInDemo("authority");
+    expect((await stats()).status).toBe(403);
+    const body = await (await areaOverview()).json();
+    expect(body.overview.totalIssues).toBeGreaterThan(0);
+    expect(body.neighborhoods.length).toBeGreaterThan(0);
+    expect(body.offices.length).toBeGreaterThan(0);
+    expect(body.leaderboard).toBeUndefined();
+    expect(body.predictive).toBeUndefined();
+    signInDemo("citizen");
+    expect((await areaOverview()).status).toBe(403);
   });
 });

@@ -1,4 +1,4 @@
-import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
+import { DEMO_ACCOUNTS, DEMO_AREA, DEMO_BUSINESSES } from "../lib/demo-accounts";
 import { constituencyFor, haversineMeters, NEIGHBORHOODS } from "../lib/geo";
 import { computePriority } from "../lib/scoring";
 import { Sql } from "../lib/sql";
@@ -6,7 +6,9 @@ import { Category, Severity } from "../lib/types";
 
 /**
  * Demo data: ~70 Issues with the neglect story (I-10, G-11, I-9 resolve almost nothing) and the
- * G-9 recurrence, 19 fictional Offices, and Demo accounts. Deterministic, so demos are repeatable.
+ * G-9 recurrence, 21 fictional Offices, and Demo accounts. Deterministic, so demos are repeatable.
+ * The Demo shows one area, G-9: its Authority is approved for G-9 only, and a Roads, a Sanitation and an Electrical
+ * Business work there, each with jobs of every kind.
  * Everything seeded is flagged is_demo so `clearDemoData` can remove it without touching real rows.
  */
 
@@ -14,7 +16,7 @@ export { DEMO_ACCOUNTS };
 
 /** [name, department, sector]: positions come from the sector centre. */
 const OFFICES: [string, string, string][] = [
-  // The first Office is the Demo Business: G-9 has Open road Issues, so its Available jobs are never empty.
+  // The first Office is the Demo Roads Business; the last two are the Demo Sanitation and Electrical Businesses.
   ["Roads Sub-division G-9", "Roads", "G-9"],
   ["Roads Sub-division F-7", "Roads", "F-7"],
   ["Roads Sub-division I-9", "Roads", "I-9"],
@@ -32,8 +34,10 @@ const OFFICES: [string, string, string][] = [
   ["Building Control Blue Area", "Building Control", "Blue Area"],
   ["Building Control G-6", "Building Control", "G-6"],
   ["General Maintenance F-6", "General Maintenance", "F-6"],
-  ["General Maintenance G-9", "General Maintenance", "G-9"],
+  ["General Maintenance G-10", "General Maintenance", "G-10"],
   ["General Maintenance I-8", "General Maintenance", "I-8"],
+  ["Sanitation Depot G-9", "Sanitation", "G-9"],
+  ["Electrical Works G-9", "Electrical", "G-9"],
 ];
 
 const SEED_TEXT: Partial<Record<Category, string[]>> = {
@@ -144,7 +148,7 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
   }
 
   // --- offices ------------------------------------------------------------
-  const offices: { id: number; name: string; department: string; lat: number; lng: number }[] = [];
+  const offices: { id: number; name: string; department: string; sector: string; lat: number; lng: number }[] = [];
   // The Offices of the neglected sectors have workers sitting idle while Issues wait: that is the neglect.
   const IDLE_SECTORS = ["I-10", "G-11", "I-9"];
   for (const [name, department, sector] of OFFICES) {
@@ -157,14 +161,17 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
        VALUES ($1, (SELECT id FROM departments WHERE name = $2), $3, $4, $5, true, $6, $7) RETURNING id`,
       [name, department, sector, lat, lng, workers, `+92 51 ${String(9100000 + offices.length * 1111).slice(0, 7)}`],
     );
-    offices.push({ id: o.id, name, department, lat, lng });
+    offices.push({ id: o.id, name, department, sector, lat, lng });
   }
-  // The Demo Office staff account works for the first Roads Office; the Demo Authority is approved.
-  await q.query("INSERT INTO office_staff (office_id, email) VALUES ($1, $2)", [offices[0].id, DEMO_ACCOUNTS.office.email]);
+  // Each Demo Business account works for its own Office in G-9; the Demo Authority is approved for G-9 only.
+  for (const b of DEMO_BUSINESSES) {
+    const office = offices.find((o) => o.name === b.name)!;
+    await q.query("INSERT INTO office_staff (office_id, email) VALUES ($1, $2)", [office.id, DEMO_ACCOUNTS[b.key].email]);
+  }
   await q.query(
-    `INSERT INTO access_requests (name, department_id, official_email, phone, decision, decided_by, decided_at, is_demo)
-     VALUES ($1, (SELECT id FROM departments WHERE name = 'General Maintenance'), $2, $3, 'approved', $4, $5, true)`,
-    [DEMO_ACCOUNTS.authority.name, DEMO_ACCOUNTS.authority.email, DEMO_ACCOUNTS.authority.phone, DEMO_ACCOUNTS.superAdmin.email, now.toISOString()],
+    `INSERT INTO access_requests (name, department_id, official_email, phone, decision, decided_by, decided_at, is_demo, area)
+     VALUES ($1, (SELECT id FROM departments WHERE name = 'General Maintenance'), $2, $3, 'approved', $4, $5, true, $6)`,
+    [DEMO_ACCOUNTS.authority.name, DEMO_ACCOUNTS.authority.email, DEMO_ACCOUNTS.authority.phone, DEMO_ACCOUNTS.superAdmin.email, now.toISOString(), DEMO_AREA],
   );
 
   // The database decides which Department handles a Category, as it does for real Issues.
@@ -221,12 +228,15 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
         lat = firstG9Resolved.lat + 0.0002;
         lng = firstG9Resolved.lng + 0.0002;
       }
+      // The Demo Businesses of G-9 only ever hold Issues of G-9, so each sees just its own area's jobs.
+      const sameDepartment = offices.filter((o) => o.department === departmentOf(category));
+      const inArea = sameDepartment.filter((o) => (o.sector === DEMO_AREA) === (name === DEMO_AREA));
       const office =
         status === "open"
           ? null
-          : offices
-              .filter((o) => o.department === departmentOf(category))
-              .sort((a, b) => haversineMeters(lat, lng, a.lat, a.lng) - haversineMeters(lat, lng, b.lat, b.lng))[0] ?? null;
+          : (inArea.length ? inArea : sameDepartment).sort(
+              (a, b) => haversineMeters(lat, lng, a.lat, a.lng) - haversineMeters(lat, lng, b.lat, b.lng),
+            )[0] ?? null;
       const cover = photos?.byCategory[category] ?? null;
       const priority = computePriority({
         severity, category, report_count: reportCount, created_at: created.toISOString(),
@@ -281,90 +291,112 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
     }
   }
 
-  await demoStory(q, now, offices[0], photos);
+  await demoArea(q, now, offices, personIds, photos);
 }
 
 /**
- * Gives the Demo accounts something to do from the first click, by moving three existing road Issues to the
- * Demo Office (so no Issue is added and Resolutions are unchanged):
- * - one Assigned, for Office staff to Start work or Send back;
- * - one In progress, for Office staff to Mark fixed;
- * - one Fixed, which the Demo Citizen also reported, waiting for the Demo Citizen to confirm or reject.
- * A contract for an Open footpath Issue waits for the Demo Office to accept or decline.
- * The Demo Authority still has plenty of Open Issues to send contracts for.
+ * Gives every Demo account something to do from the first click, in the one area of the Demo, G-9. For each of the
+ * three Demo Businesses (Roads, Sanitation, Electrical) it adds Issues of that Department:
+ * - two Open ones, which the Business can see in Available jobs and ask for;
+ * - one Assigned, for the Business to Start work or Send back;
+ * - one In progress, for the Business to Mark fixed;
+ * - one Fixed, waiting for a Citizen to confirm or reject (the Roads one also has the Demo Citizen's Report);
+ * - one Open one with a contract waiting for the Business to accept or decline.
+ * The Demo Authority, approved for G-9 only, sees all of them and nothing outside G-9.
  */
-async function demoStory(q: Sql, now: Date, office: { id: number; name: string }, photos?: SeedPhotos) {
-  const picks = await q.query<{ id: number; created_at: string; neighborhood: string }>(
-    `SELECT id, created_at, neighborhood FROM issues
-     WHERE is_demo AND category = 'road_damage' AND status IN ('open', 'assigned') AND recurrence_of IS NULL
-     ORDER BY (status = 'assigned') DESC, id LIMIT 3`,
-  );
+async function demoArea(
+  q: Sql,
+  now: Date,
+  offices: { id: number; name: string }[],
+  personIds: string[],
+  photos?: SeedPhotos,
+) {
+  const hood = NEIGHBORHOODS.find((n) => n.name === DEMO_AREA)!;
   const [{ id: citizenId }] = await q.query<{ id: string }>("SELECT id FROM people WHERE auth_id = 'demo-citizen'");
+  const [{ id: authorityId, display_name: authorityName }] = await q.query<{ id: string; display_name: string }>(
+    "SELECT id, display_name FROM people WHERE auth_id = 'demo-authority'",
+  );
   const day = 86_400_000;
   const at = (ms: number) => new Date(ms).toISOString();
-  const story = ["fixed", "in_progress", "assigned"] as const;
+  const dateIn = (days: number) => at(now.getTime() + days * day).slice(0, 10);
+  let n = 0;
 
-  for (const [n, issue] of picks.entries()) {
-    const status = story[n];
-    const created = new Date(issue.created_at).getTime();
+  type Status = "open" | "assigned" | "in_progress" | "fixed";
+  const add = async (category: Category, status: Status, office: { id: number; name: string }, withCitizen = false) => {
+    const i = n++;
+    const texts = SEED_TEXT[category]!;
+    const text = texts[i % texts.length];
+    const severity: Severity = i % 3 === 0 ? "high" : "medium";
+    const lat = hood.lat + ((i % 6) - 2.5) * 0.0013;
+    const lng = hood.lng + (Math.floor(i / 6) - 1) * 0.0016;
+    const created = now.getTime() - (4 + i) * day;
     const assignedAt = created + day;
     const startedAt = assignedAt + (now.getTime() - assignedAt) * 0.3;
     const fixedAt = now.getTime() - 6 * 3_600_000; // well inside the 7 days for an answer
-    await q.query("DELETE FROM events WHERE issue_id = $1 AND kind IN ('assigned', 'in_progress', 'fixed')", [issue.id]);
-    await q.query(
-      `UPDATE issues SET status = $2, office_id = $3, updated_at = $4,
-         fixed_at = $5, after_image = $6, fix_note = $7 WHERE id = $1`,
+    const held = status !== "open";
+    const reports = withCitizen ? 2 : 1;
+    const cover = photos?.byCategory[category] ?? null;
+    const note = "Fixed and checked by the field team.";
+    const [issue] = await q.query<{ id: number }>(
+      `INSERT INTO issues (category, severity, title, summary, lat, lng, neighborhood, constituency, status, priority,
+         office_id, report_count, cover_image, after_image, fix_note, is_demo, created_at, updated_at, fixed_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,true,$16,$17,$18) RETURNING id`,
       [
-        issue.id,
-        status,
-        office.id,
-        at(status === "fixed" ? fixedAt : status === "in_progress" ? startedAt : assignedAt),
+        category, severity, text.split(",")[0], text + ".", lat, lng, DEMO_AREA, constituencyFor(DEMO_AREA), status,
+        computePriority({ severity, category, report_count: reports, created_at: at(created), status, recurrence_of: null }),
+        held ? office.id : null, reports, cover, status === "fixed" ? (photos?.fixed ?? null) : null,
+        status === "fixed" ? note : null, at(created),
+        at(status === "fixed" ? fixedAt : status === "in_progress" ? startedAt : held ? assignedAt : created),
         status === "fixed" ? at(fixedAt) : null,
-        status === "fixed" ? (photos?.fixed ?? null) : null,
-        status === "fixed" ? "Pothole filled and re-asphalted." : null,
       ],
     );
-    const event = (kind: string, message: string, when: number, role: string) =>
-      q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at, office_id) VALUES ($1, $2, $3, $4, $5, $6)", [
-        issue.id,
-        kind,
-        message,
-        role,
-        at(when),
-        office.id,
+    const ev = (kind: string, message: string, when: number, role: string, officeId: number | null = office.id) =>
+      q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at, office_id) VALUES ($1,$2,$3,$4,$5,$6)", [
+        issue.id, kind, message, role, at(when), officeId,
       ]);
-    await event("assigned", `Assigned to ${office.name}`, assignedAt, "authority");
-    if (status !== "assigned") await event("in_progress", `Work started by ${office.name}`, startedAt, "office");
-    if (status === "fixed") {
-      await event("fixed", `Fixed by ${office.name}: Pothole filled and re-asphalted. After-repair photo added.`, fixedAt, "office");
-      // The Demo Citizen reported this one too, half a day after the first Report.
+    await ev("created", `Reported by citizen in ${DEMO_AREA}`, created, "citizen", null);
+    if (held) await ev("assigned", `Assigned to ${office.name}`, assignedAt, "authority");
+    if (status === "in_progress" || status === "fixed") await ev("in_progress", `Work started by ${office.name}`, startedAt, "office");
+    if (status === "fixed") await ev("fixed", `Fixed by ${office.name}: ${note} After-repair photo added.`, fixedAt, "office");
+    for (let r = 0; r < reports; r++) {
       await q.query(
         `INSERT INTO reports (issue_id, reporter_id, description, image, lat, lng, ai_category, ai_severity,
            ai_confidence, ai_summary, ai_source, created_at)
-         SELECT id, $2, 'Same pothole, still there on my way to work.', cover_image, lat + 0.0001, lng + 0.0001,
-                category, severity, 0.8, summary, 'seed', $3
-         FROM issues WHERE id = $1`,
-        [issue.id, citizenId, at(created + day / 2)],
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,0.8,$9,'seed',$10)`,
+        [
+          issue.id, r === 1 ? citizenId : personIds[i % personIds.length],
+          r === 1 ? "Same problem, still there on my way to work." : text,
+          cover, lat + r * 0.0001, lng + r * 0.0001, category, severity, text, at(created + r * (day / 2)),
+        ],
       );
-      await q.query("UPDATE issues SET report_count = report_count + 1 WHERE id = $1", [issue.id]);
     }
-  }
+    return issue.id;
+  };
 
-  // A footpath, so the Demo Authority keeps its Open road Issue to offer the Demo Office.
-  const dateIn = (days: number) => at(now.getTime() + days * day).slice(0, 10);
-  await q.query(
-    `INSERT INTO contracts (issue_id, office_id, authority_id, authority_name, scope, price_pkr, start_date, finish_date, payment_terms, sent_at)
-     SELECT i.id, $1, p.id, p.display_name, $2, 85000, $3, $4, $5, $6
-     FROM issues i, people p
-     WHERE i.is_demo AND i.category = 'blocked_footpath' AND i.status = 'open' AND p.auth_id = 'demo-authority'
-     ORDER BY i.id LIMIT 1`,
-    [
-      office.id,
-      "Clear the footpath of everything blocking it, repair the broken paving and leave it safe to walk on.",
-      dateIn(2),
-      dateIn(9),
-      "Paid in full after the Citizens confirm the Fix.",
-      at(now.getTime() - 3 * 3_600_000),
-    ],
-  );
+  const scopes: Record<string, string> = {
+    Roads: "Clear the footpath of everything blocking it, repair the broken paving and leave it safe to walk on.",
+    Sanitation: "Clear the dumped waste, haul it away and leave the spot clean.",
+    Electrical: "Replace the failed lamps, check the feeder circuit and leave the lane lit.",
+  };
+  const contractCategory: Record<string, Category> = { Roads: "blocked_footpath", Sanitation: "garbage", Electrical: "streetlight" };
+  const mainCategory: Record<string, Category> = { Roads: "road_damage", Sanitation: "garbage", Electrical: "streetlight" };
+
+  for (const b of DEMO_BUSINESSES) {
+    const office = offices.find((o) => o.name === b.name)!;
+    const category = mainCategory[b.department];
+    await add(category, "open", office);
+    await add(category, "open", office);
+    await add(category, "assigned", office);
+    await add(category, "in_progress", office);
+    await add(category, "fixed", office, b.department === "Roads"); // the Demo Citizen answers the Roads one
+    const offered = await add(contractCategory[b.department], "open", office);
+    await q.query(
+      `INSERT INTO contracts (issue_id, office_id, authority_id, authority_name, scope, price_pkr, start_date, finish_date, payment_terms, sent_at)
+       VALUES ($1,$2,$3,$4,$5,85000,$6,$7,$8,$9)`,
+      [
+        offered, office.id, authorityId, authorityName, scopes[b.department], dateIn(2), dateIn(9),
+        "Paid in full after the Citizens confirm the Fix.", at(now.getTime() - 3 * 3_600_000),
+      ],
+    );
+  }
 }

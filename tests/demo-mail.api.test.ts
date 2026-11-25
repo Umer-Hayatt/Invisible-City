@@ -26,7 +26,7 @@ describe("the Demo never sends email", () => {
   it.each(["declined", "approved"])("when a Business registration is %s", async (decision) => {
     const [{ id: departmentId }] = await app.sql.query<{ id: number }>("SELECT id FROM departments WHERE name = 'Roads'");
     signInDemo("citizen");
-    const form = { name: `Demo Roads ${decision}`, departmentId, sector: "F-7", isPrivate: true, workers: 3, contactName: "Lead", phone: "0300 7654321" };
+    const form = { name: `Demo Roads ${decision}`, departmentId, sector: "G-9", isPrivate: true, workers: 3, contactName: "Lead", phone: "0300 7654321" };
     expect((await register(json(form))).status).toBe(201);
     signInDemo("authority");
     const { registrations: list } = await (await registrations()).json();

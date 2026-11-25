@@ -26,7 +26,6 @@ export const WORKSPACE: Partial<Record<Role, Item[]>> = {
     { href: "/admin/requests", label: "requests.title", icon: Hand },
     { href: "/admin/contracts", label: "contract.title", icon: FileSignature },
     { href: "/admin/offices", label: "nav.offices", icon: Building2 },
-    { href: "/insights", label: "nav.insights", icon: BarChart3 },
   ],
   office: [
     { href: "/office", label: "business.jobs", icon: ClipboardList },

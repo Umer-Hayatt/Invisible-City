@@ -35,30 +35,50 @@ describe("the seeded demo story", () => {
       issues: { category: string; department: string; office_id: number | null }[];
     };
     const held = issues.filter((i) => i.office_id);
-    expect(held.some((i) => i.category === "blocked_footpath")).toBe(true);
-    const wrong = held.filter((i) => all.find((o) => o.id === i.office_id)?.department !== i.department);
+    for (const category of ["road_damage", "garbage", "streetlight"]) expect(held.some((i) => i.category === category)).toBe(true);
+    // An Issue of G-9 for a Department with no Business in G-9 is held by one elsewhere, which the Authority's list omits.
+    const wrong = held.filter((i) => {
+      const o = all.find((x) => x.id === i.office_id);
+      return o && o.department !== i.department;
+    });
     expect(wrong.map((i) => i.category)).toEqual([]);
   });
 
-  it("gives the Demo Office an Assigned, an In progress and a Fixed job", async () => {
-    signInDemo("office");
-    const { jobs: list } = (await (await jobs()).json()) as { jobs: Job[] };
-    // Its unfinished work; it may also have Resolved jobs from before (the Demo Business is a busy office).
-    const unfinished = list.map((j) => j.status).filter((s) => s !== "resolved" && s !== "closed_unconfirmed");
-    expect(unfinished.sort()).toEqual(["assigned", "fixed", "in_progress"]);
+  it("shows the Demo Authority only G-9, with its three Businesses", async () => {
+    signInDemo("authority");
+    const { offices: all } = (await (await offices()).json()) as { offices: { sector: string; department: string }[] };
+    expect(all.filter((o) => ["Roads", "Sanitation", "Electrical"].includes(o.department)).length).toBe(3);
+    expect([...new Set(all.map((o) => o.sector))]).toEqual(["G-9"]);
+    const { issues } = (await (await listIssues(new Request("http://test/api/issues"))).json()) as { issues: { neighborhood: string }[] };
+    expect(issues.length).toBeGreaterThan(0);
+    expect([...new Set(issues.map((i) => i.neighborhood))]).toEqual(["G-9"]);
   });
 
-  it("gives the Demo Office a contract to answer, and accepting it makes the Issue its job", async () => {
-    signInDemo("office");
-    const list = async () => (await (await contracts(new Request("http://test/x"))).json()).contracts as { id: number; issue_id: number; status: string }[];
-    const [waiting] = (await list()).filter((c) => c.status === "sent");
-    expect(waiting).toBeTruthy();
-    const accept = new Request("http://test/x", { method: "POST", body: JSON.stringify({ decision: "accepted" }) });
-    expect((await answer(accept, id(waiting.id))).status).toBe(200);
-    const { jobs: mine } = (await (await jobs()).json()) as { jobs: Job[] };
-    expect(mine.find((j) => j.id === waiting.issue_id)?.status).toBe("assigned");
-    expect(app.mail.sent).toHaveLength(0);
-  });
+  it.each(["office", "officeSanitation", "officeElectrical"] as const)(
+    "gives the Demo Business %s an Assigned, an In progress and a Fixed job, all in G-9",
+    async (key) => {
+      signInDemo(key);
+      const { jobs: list } = (await (await jobs()).json()) as { jobs: (Job & { neighborhood: string })[] };
+      const unfinished = list.filter((j) => j.status !== "resolved" && j.status !== "closed_unconfirmed").map((j) => j.status);
+      for (const s of ["assigned", "in_progress", "fixed"]) expect(unfinished).toContain(s);
+      expect([...new Set(list.map((j) => j.neighborhood))]).toEqual(["G-9"]);
+    },
+  );
+
+  it.each(["office", "officeSanitation", "officeElectrical"] as const)(
+    "gives the Demo Business %s a contract to answer, and accepting it makes the Issue its job",
+    async (key) => {
+      signInDemo(key);
+      const list = async () => (await (await contracts(new Request("http://test/x"))).json()).contracts as { id: number; issue_id: number; status: string }[];
+      const [waiting] = (await list()).filter((c) => c.status === "sent");
+      expect(waiting).toBeTruthy();
+      const accept = new Request("http://test/x", { method: "POST", body: JSON.stringify({ decision: "accepted" }) });
+      expect((await answer(accept, id(waiting.id))).status).toBe(200);
+      const { jobs: mine } = (await (await jobs()).json()) as { jobs: Job[] };
+      expect(mine.find((j) => j.id === waiting.issue_id)?.status).toBe("assigned");
+      expect(app.mail.sent).toHaveLength(0);
+    },
+  );
 
   it("lets the Demo Citizen confirm the Fix they reported, and the city figures move", async () => {
     signInDemo("citizen");

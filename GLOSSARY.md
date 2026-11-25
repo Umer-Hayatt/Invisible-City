@@ -114,7 +114,7 @@ A person asking to be made an Authority for an Area or the whole city, which a S
 A Business (government or private) asking to join, with its Department, sector and workers, under the Google email it will sign in with. An Authority of that Area or of the whole city approves or declines it.
 
 **Demo account**:
-A made-up Citizen, Authority or Office login with seeded data, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.
+A made-up Citizen, Authority, Business (Roads, Sanitation or Electrical) or Super Admin login with seeded data, the Authority and Businesses all in one area, G-9, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.
 
 **Example Issue**:
 A Demo Issue shown, marked "Example", on the home page of real Citizens and visitors while there are few real Issues. It cannot be opened and appears nowhere else.

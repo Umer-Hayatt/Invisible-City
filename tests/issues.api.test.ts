@@ -18,7 +18,7 @@ const json = async (r: Response) => r.json();
 describe("the public map and Issue pages", () => {
   it("lists the demo Issues, highest priority first", async () => {
     const { issues } = await json(await listIssues(new Request("http://test/api/issues")));
-    expect(issues.length).toBe(69);
+    expect(issues.length).toBe(87);
     const priorities = issues.map((i: { priority: number }) => i.priority);
     expect(priorities).toEqual([...priorities].sort((a, b) => b - a));
   });
@@ -47,7 +47,7 @@ describe("the public map and Issue pages", () => {
   });
 
   it("keeps the neglect story: I-10, G-11 and I-9 resolve the least, and G-9 has a recurrence", async () => {
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const { neighborhoods, predictive } = await json(await getStats());
     const neglected = neighborhoods.filter((n: { neglected: boolean }) => n.neglected).map((n: { name: string }) => n.name);
     expect(neglected).toEqual(expect.arrayContaining(["I-10", "G-11", "I-9"]));

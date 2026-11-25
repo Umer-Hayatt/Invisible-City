@@ -204,7 +204,7 @@ describe("Insights follow the workflow (real world)", () => {
 
 describe("The Demo seed tells the workflow story", () => {
   it("has Offices with Fixes, Rejections and Unconfirmed closures, and keeps closures out of Resolutions", async () => {
-    signInDemo("authority");
+    signInDemo("superAdmin");
     const s: Stats = await read(await stats());
     const sum = (k: keyof Office) => s.offices.reduce((a, o) => a + Number(o[k] ?? 0), 0);
     expect(s.offices.length).toBeGreaterThan(3);

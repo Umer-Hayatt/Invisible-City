@@ -3,7 +3,7 @@ import path from "node:path";
 import { PGlite, types } from "@electric-sql/pglite";
 import { POST as answer } from "../app/api/contracts/[id]/route";
 import { POST as sendContract } from "../app/api/issues/[id]/contract/route";
-import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
+import { DEMO_ACCOUNTS, type DemoKey } from "../lib/demo-accounts";
 import { seedDemoData } from "../db/seed-data";
 import { setClock } from "../lib/clock";
 import { fakeMailer, setMailer } from "../lib/mailer";
@@ -53,8 +53,8 @@ export const ctx = (params: Record<string, string>) => ({ params: Promise.resolv
 /** Sign in as a real (non-demo) person with this email; nobody if null. */
 export const signInAs = (email: string | null, authId = "real-" + email) =>
   setSession(email ? ({ authId, email, isDemo: false } as Identity) : null);
-/** Sign in as one of the four Demo accounts. */
-export const signInDemo = (key: "citizen" | "authority" | "office" | "superAdmin") =>
+/** Sign in as one of the Demo accounts. */
+export const signInDemo = (key: DemoKey) =>
   setSession({ authId: "demo-" + key, email: DEMO_ACCOUNTS[key].email, isDemo: true, demoKey: key });
 
 /** Contract terms that are always acceptable. */

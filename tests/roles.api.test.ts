@@ -217,9 +217,9 @@ describe("Authority access requests", () => {
 describe("Demo data and real data stay apart", () => {
   it("shows a Demo visitor and a signed-out visitor in Demo mode the Demo Issues, and a real Citizen none", async () => {
     const count = async () => (await body(await listIssues(new Request("http://test/api/issues")))).issues.length;
-    expect(await count()).toBe(69);
+    expect(await count()).toBe(87);
     signInDemo("citizen");
-    expect(await count()).toBe(69);
+    expect(await count()).toBe(87);
     signInAs("real@gmail.com");
     expect(await count()).toBe(0);
   });

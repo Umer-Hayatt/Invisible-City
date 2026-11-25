@@ -26,10 +26,10 @@ interface Stats {
   offices: OfficeRecord[];
 }
 
-/** Insights are for the people who run the city: Authorities and the Super Admin. Citizens do not see them. */
+/** Insights are for the Super Admin only. Authorities see their own area's figures on their Dashboard and Reports. */
 export default function InsightsPage() {
   return (
-    <Gate roles={["authority", "super_admin"]} next="/insights">
+    <Gate roles={["super_admin"]} next="/insights">
       <Insights />
     </Gate>
   );

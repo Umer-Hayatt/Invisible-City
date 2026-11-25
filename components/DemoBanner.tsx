@@ -8,6 +8,8 @@ const LABEL: Record<string, string> = {
   citizen: t("demo.accountCitizen"),
   authority: t("demo.accountAuthority"),
   office: t("demo.accountOffice"),
+  officeSanitation: t("demo.accountOfficeSanitation"),
+  officeElectrical: t("demo.accountOfficeElectrical"),
   superAdmin: t("demo.accountSuperAdmin"),
 };
 

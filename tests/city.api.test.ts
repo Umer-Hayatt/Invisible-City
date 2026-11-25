@@ -47,10 +47,10 @@ describe("the city map", () => {
     for (const viewer of [() => signInAs("real@gmail.com"), visitor]) {
       viewer();
       const c = await read();
-      expect(c.examples).toBe(69);
+      expect(c.examples).toBe(87);
       expect(c.issues.every((i) => i.example)).toBe(true);
       expect(c.figures.resolved).toBeGreaterThan(0);
-      expect(c.figures.totalReports).toBeGreaterThan(69);
+      expect(c.figures.totalReports).toBeGreaterThan(87);
       expect(c.figures.avgResolutionDays).toBeGreaterThan(0);
       // Only the map: the list of Issues stays real.
       expect((await (await listIssues(new Request("http://test/api/issues"))).json()).issues).toEqual([]);
@@ -61,7 +61,7 @@ describe("the city map", () => {
     signInDemo("citizen");
     const c = await read();
     expect(c.examples).toBe(0);
-    expect(c.issues).toHaveLength(69);
+    expect(c.issues).toHaveLength(87);
     expect(c.issues.some((i) => i.example)).toBe(false);
   });
 
@@ -78,7 +78,7 @@ describe("the city map", () => {
     const c = await read();
     expect(c.issues.slice(0, 2).map((i) => i.id).sort()).toEqual(ids.sort());
     expect(c.issues.slice(0, 2).some((i) => i.example)).toBe(false);
-    expect(c.examples).toBe(69);
+    expect(c.examples).toBe(87);
     await addReal(EXAMPLES_BELOW - 2);
     expect((await read()).examples).toBe(0);
   });
