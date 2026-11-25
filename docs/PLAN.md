@@ -111,7 +111,7 @@ See PRD section 10.
 
 ## Fixes from the architecture review (25 November 2026)
 
-Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (**not applied yet; apply before merging**), then reseed the Demo. The review's refactors wait until after the hackathon.
+Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (applied to the live Supabase 25 November). Merged and deployed, and the Demo reseeded, on 25 November. The review's refactors wait until after the hackathon.
 
 - [x] The Demo never sends email (revoking an Authority or a Business, deciding a registration).
 - [x] A flagged or withdrawn Report's photo is no longer the Issue's cover.
@@ -120,6 +120,7 @@ Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (**not applied yet;
 - [x] Fixes and Rejections count for the Business that made the Fix.
 - [x] Contracts end when the Issue leaves the Business, and are withdrawn when it is removed.
 - [x] Demo Issues go to the Department of their Category (the database decides).
+- [x] From the code review: the Super Admin's list counts Fixes as Insights does; a Revocation in progress is waited out when a contract is sent or answered; 0007 also reopens jobs already stuck with a revoked Business.
 
 ## Businesses, part 3: the rest of contracts (not started)
 

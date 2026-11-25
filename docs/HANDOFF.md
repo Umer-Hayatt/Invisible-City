@@ -12,11 +12,11 @@ Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invis
 | #15 | `business-jobs` | Available jobs, Job requests, chat per job, Call buttons, Business phone | **Merged**; migration 0005 applied 25 November |
 | #11 | `official-signup` | Old Office staff sign-up | **Close without merging.** #13 replaces it and its migration also uses the number 0003 |
 
-Migrations 0001 to 0006 are applied to the live Supabase and the Demo data was reseeded on 25 November. **Always apply a migration before merging the code that needs it**: #13 to #15 were merged first, and sign-in and the Demo accounts failed on the live site until it was done.
+Migrations 0001 to 0007 are applied to the live Supabase and the Demo data was reseeded on 25 November. **Always apply a migration before merging the code that needs it**: #13 to #15 were merged first, and sign-in and the Demo accounts failed on the live site until it was done.
 Never change a session setting (`SET ...`) through `DATABASE_URL`: it is the transaction pooler, and the setting stays on a shared connection the live site uses. Use `SET LOCAL` inside a transaction.
 Branch `fixes-live-review` (25 November, no migration): contact details by Area, Insights API for officials only, restoring a Business, Example Issues on the city map. Details in `docs/PLAN.md`.
 Branch `contract-agreement` (25 November, migration 0006, applied to the live Supabase 25 November): Authorities no longer assign; they send a Contract and the Issue is Assigned only when the Business accepts. Rules in `docs/PRD.md`, "Assignment by agreement"; code in `lib/contracts.ts`.
-Branch `review-bug-fixes` (25 November, migration 0007, **not applied yet**): seven bugs found by the architecture review; list in `docs/PLAN.md`. Apply 0007, then merge, then reseed the Demo.
+Branch `review-bug-fixes` (25 November, migration 0007, applied to the live Supabase 25 November): seven bugs found by the architecture review, and what its code review found; list in `docs/PLAN.md`. Merged, deployed and the Demo reseeded.
 Security: the Supabase database password, the Cloudinary secret and the Gemini key were pasted in a chat on 24 November. **Rotate all three.**
 
 ## Decisions already made by the user (do not ask again)
