@@ -4,7 +4,9 @@ import { POST as answer } from "../app/api/contracts/[id]/route";
 import { POST as confirm } from "../app/api/issues/[id]/confirm/route";
 import { POST as fix } from "../app/api/issues/[id]/fix/route";
 import { POST as start } from "../app/api/issues/[id]/start/route";
+import { GET as listIssues } from "../app/api/issues/route";
 import { GET as jobs } from "../app/api/office/jobs/route";
+import { GET as offices } from "../app/api/offices/route";
 import { GET as myReports } from "../app/api/reports/route";
 import { GET as city } from "../app/api/city/route";
 import { setSession } from "../lib/session";
@@ -26,6 +28,18 @@ const post = () => new Request("http://test/x", { method: "POST", body: "{}", he
 interface Job { id: number; status: string; office_id: number }
 
 describe("the seeded demo story", () => {
+  it("gives every Issue to a Business of its Category's Department", async () => {
+    signInDemo("authority");
+    const { offices: all } = (await (await offices()).json()) as { offices: { id: number; department: string }[] };
+    const { issues } = (await (await listIssues(new Request("http://test/api/issues"))).json()) as {
+      issues: { category: string; department: string; office_id: number | null }[];
+    };
+    const held = issues.filter((i) => i.office_id);
+    expect(held.some((i) => i.category === "blocked_footpath")).toBe(true);
+    const wrong = held.filter((i) => all.find((o) => o.id === i.office_id)?.department !== i.department);
+    expect(wrong.map((i) => i.category)).toEqual([]);
+  });
+
   it("gives the Demo Office an Assigned, an In progress and a Fixed job", async () => {
     signInDemo("office");
     const { jobs: list } = (await (await jobs()).json()) as { jobs: Job[] };

@@ -1,5 +1,7 @@
 import { nowIso } from "./clock";
-import { addEvent, setAssignment } from "./db";
+import { reopenIssue } from "./contract-ends";
+import { addEvent } from "./db";
+import { officeRecords } from "./insights";
 import { sendQuietly } from "./mailer";
 import { Sql, sql } from "./sql";
 
@@ -43,19 +45,19 @@ export interface BusinessEntry {
   revoked_at: string | null;
 }
 
-/** Every Business with its one email, the jobs it holds now and the Fixes it has made. */
-export async function listBusinesses(demo: boolean) {
-  return sql().query<BusinessEntry>(
+/** Every Business with its one email, the jobs it holds now and the Fixes it has made (its track record in Insights). */
+export async function listBusinesses(demo: boolean): Promise<BusinessEntry[]> {
+  const rows = await sql().query<Omit<BusinessEntry, "fixes">>(
     `SELECT o.id, o.name, d.name AS department, o.sector, o.is_private, o.workers, o.phone, o.revoked_at,
             (SELECT s.email FROM office_staff s WHERE s.office_id = o.id ORDER BY s.id LIMIT 1) AS email,
             (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
-               AND i.status IN ('assigned', 'in_progress'))::int AS active,
-            (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
-               AND i.status IN ('fixed', 'resolved', 'closed_unconfirmed'))::int AS fixes
+               AND i.status IN ('assigned', 'in_progress'))::int AS active
      FROM offices o JOIN departments d ON d.id = o.department_id
      WHERE o.is_demo = $1 ORDER BY (o.revoked_at IS NULL) DESC, d.name, o.name`,
     [demo],
   );
+  const fixes = new Map((await officeRecords(demo)).map((r) => [r.officeId, r.fixes]));
+  return rows.map((b) => ({ ...b, fixes: fixes.get(b.id) ?? 0 }));
 }
 
 /** Revokes every approval of this Authority email. They are a Citizen again on their next page load. */
@@ -65,7 +67,7 @@ export async function revokeAuthority(email: string, by: string | null, demo: bo
      WHERE lower(official_email) = lower($3) AND decision = 'approved' AND revoked_at IS NULL AND is_demo = $4 RETURNING id`,
     [nowIso(), by, email, demo],
   );
-  if (rows.length)
+  if (rows.length && !demo)
     await sendQuietly({
       to: [email],
       subject: "Your Authority access on Invisible City was revoked",
@@ -76,8 +78,8 @@ export async function revokeAuthority(email: string, by: string | null, demo: bo
 
 /**
  * Revokes a Business: it can no longer sign in as a Business or be assigned, and every job it had not finished
- * (Assigned or In progress) goes back to Open for the Authority, with a note on the public timeline. Contracts waiting
- * for its answer are withdrawn.
+ * (Assigned or In progress) goes back to Open for the Authority, with a note on the public timeline, and
+ * the contracts for them end. Contracts waiting for its answer are withdrawn.
  */
 export async function revokeBusiness(officeId: number, by: string | null, demo: boolean) {
   const out = await sql().tx(async (q: Sql) => {
@@ -86,13 +88,14 @@ export async function revokeBusiness(officeId: number, by: string | null, demo: 
       [nowIso(), by, officeId, demo],
     );
     if (!office) return null;
+    // Locked, so a Fix recorded at this moment is either seen (and stays) or waits and is refused.
     const jobs = await q.query<{ id: number }>(
-      "SELECT id FROM issues WHERE office_id = $1 AND status IN ('assigned', 'in_progress') AND deleted_at IS NULL",
+      "SELECT id FROM issues WHERE office_id = $1 AND status IN ('assigned', 'in_progress') AND deleted_at IS NULL ORDER BY id FOR UPDATE",
       [officeId],
     );
     for (const j of jobs) {
-      await setAssignment(j.id, null, "open", q);
-      await addEvent(j.id, "sent_back", `Back to Open: ${office.name} no longer works with the city`, nowIso(), q);
+      await reopenIssue(q, j.id);
+      await addEvent(j.id, "sent_back", `Back to Open: ${office.name} no longer works with the city`, nowIso(), q, officeId);
     }
     await q.query("UPDATE contracts SET status = 'withdrawn', decided_at = $1, decided_by = $2 WHERE office_id = $3 AND status = 'sent'", [
       nowIso(),
@@ -102,7 +105,7 @@ export async function revokeBusiness(officeId: number, by: string | null, demo: 
     const emails = await q.query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [officeId]);
     return { name: office.name, reopened: jobs.length, emails: emails.map((e) => e.email) };
   });
-  if (out)
+  if (out && !demo)
     await sendQuietly({
       to: out.emails,
       subject: `${out.name}: access to Invisible City was revoked`,

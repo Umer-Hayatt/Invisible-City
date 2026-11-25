@@ -22,29 +22,18 @@ export const isFinished = (s: Status) => s === "resolved" || s === "closed_uncon
 /** Still waiting on the city: Open, Assigned, In progress, or Fixed and waiting for a Citizen's answer. */
 export const isActive = (s: Status) => !isFinished(s);
 
-export const TEAMS = [
-  "Road Maintenance Unit",
-  "Sanitation Crew",
-  "Electrical Works",
-  "Water & Sewerage",
-  "Accessibility Task Force",
-  "General Maintenance",
-] as const;
-
-export const CATEGORY_META: Record<
-  Category,
-  { label: string; team: (typeof TEAMS)[number] }
-> = {
-  road_damage: { label: "Road damage / pothole", team: "Road Maintenance Unit" },
-  garbage: { label: "Garbage overflow", team: "Sanitation Crew" },
-  streetlight: { label: "Broken streetlight", team: "Electrical Works" },
-  water_leak: { label: "Water leak", team: "Water & Sewerage" },
-  drainage: { label: "Blocked drain / flooding", team: "Water & Sewerage" },
-  blocked_footpath: { label: "Blocked footpath", team: "General Maintenance" },
-  accessibility: { label: "Accessibility barrier", team: "Accessibility Task Force" },
-  electrical_hazard: { label: "Electrical hazard", team: "Electrical Works" },
-  building_damage: { label: "Building damage", team: "General Maintenance" },
-  other: { label: "Other", team: "General Maintenance" },
+/** Which Department handles a Category is in the database (`categories`), nowhere else. */
+export const CATEGORY_META: Record<Category, { label: string }> = {
+  road_damage: { label: "Road damage / pothole" },
+  garbage: { label: "Garbage overflow" },
+  streetlight: { label: "Broken streetlight" },
+  water_leak: { label: "Water leak" },
+  drainage: { label: "Blocked drain / flooding" },
+  blocked_footpath: { label: "Blocked footpath" },
+  accessibility: { label: "Accessibility barrier" },
+  electrical_hazard: { label: "Electrical hazard" },
+  building_damage: { label: "Building damage" },
+  other: { label: "Other" },
 };
 
 export const SEVERITY_WEIGHT: Record<Severity, number> = {

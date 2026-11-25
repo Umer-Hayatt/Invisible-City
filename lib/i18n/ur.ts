@@ -486,6 +486,7 @@ export const ur: Record<MessageKey, string> = {
   "contract.declinedBy": "{office} نے مسترد کیا۔",
   "contract.declinedByUs": "آپ نے مسترد کیا۔",
   "contract.withdrawn": "جواب سے پہلے واپس لے لیا گیا۔",
+  "contract.ended": "ختم ہو گیا۔ کام شہر کو واپس چلا گیا۔",
   "contract.agree": "{office} کی طرف سے، میں ان شرائط پر یہ کام کرنے پر متفق ہوں۔",
   "contract.accept": "معاہدہ قبول کریں",
   "contract.declineReason": "آپ کیوں مسترد کر رہے ہیں؟ مثلاً: قیمت کم ہے، یا فارغ کارکن نہیں۔",

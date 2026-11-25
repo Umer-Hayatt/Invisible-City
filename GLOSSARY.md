@@ -29,7 +29,7 @@ A Business asking an Authority to be given an Open Issue of its Department in it
 _Avoid_: Bid, application
 
 **Contract**:
-An Authority's written offer of one Open Issue to one Business: the work, price, dates and payment terms. The Business accepts or declines it; the Authority can withdraw it while it waits. Accepting makes the Assignment.
+An Authority's written offer of one Open Issue to one Business: the work, price, dates and payment terms. The Business accepts or declines it; the Authority can withdraw it while it waits. Accepting makes the Assignment. An accepted Contract ends when its Issue leaves the Business.
 _Avoid_: Work order, tender, agreement (as a noun for the record)
 
 **Job chat**:
@@ -37,7 +37,7 @@ The conversation about one Issue between one Business and the Authorities of the
 _Avoid_: Thread, DM
 
 **Revocation**:
-The Super Admin taking away an Authority's or a Business's access. A revoked Authority is a Citizen again; a revoked Business cannot sign in or be assigned, and its unfinished jobs go back to Open.
+The Super Admin taking away an Authority's or a Business's access. A revoked Authority is a Citizen again; a revoked Business cannot sign in or be assigned, and its unfinished jobs go back to Open, as does a job whose Fix a Citizen later rejects.
 _Avoid_: Ban, suspension (that is for Citizens)
 
 **Restore**:
@@ -98,7 +98,7 @@ A Citizen who reported the Issue confirming that the Fix is real.
 _Avoid_: Closure, verification
 
 **Rejection**:
-A Citizen who reported the Issue saying the Fix is not real, which sends the Issue back to the Office.
+A Citizen who reported the Issue saying the Fix is not real, which sends the Issue back to the Office (or to Open, if the Office was revoked).
 _Avoid_: Dispute, reopen
 
 **Unconfirmed closure**:

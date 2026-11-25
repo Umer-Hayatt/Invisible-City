@@ -120,12 +120,14 @@ export async function reportsByReporter(authId: string, q: Sql = sql()) {
   return rows.map((r) => ({ ...r, issue_events: events.filter((e) => e.issue_id === r.issue_id) }));
 }
 
-export function addEvent(issueId: number, kind: string, message: string, at = nowIso(), q: Sql = sql()) {
-  return q.query("INSERT INTO events (issue_id, kind, message, created_at) VALUES ($1, $2, $3, $4)", [
+/** `officeId` is the Business the entry is about, for its track record. */
+export function addEvent(issueId: number, kind: string, message: string, at = nowIso(), q: Sql = sql(), officeId: number | null = null) {
+  return q.query("INSERT INTO events (issue_id, kind, message, created_at, office_id) VALUES ($1, $2, $3, $4, $5)", [
     issueId,
     kind,
     message,
     at,
+    officeId,
   ]);
 }
 

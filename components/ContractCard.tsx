@@ -25,9 +25,10 @@ export interface Contract {
   start_date: string | null;
   finish_date: string;
   payment_terms: string | null;
-  status: "sent" | "accepted" | "declined" | "withdrawn";
+  status: "sent" | "accepted" | "declined" | "withdrawn" | "ended";
   sent_at: string;
   decided_at: string | null;
+  ended_at: string | null;
   decline_reason: string | null;
 }
 
@@ -75,7 +76,13 @@ export function ContractState({ c, side }: { c: Contract; side: "authority" | "o
     <div>
       <p className={`${base} text-muted`}>
         <XCircle size={15} className="mt-0.5 shrink-0" aria-hidden />{" "}
-        {c.status === "withdrawn" ? t("contract.withdrawn") : side === "office" ? t("contract.declinedByUs") : t("contract.declinedBy", { office: c.office })}
+        {c.status === "ended"
+          ? t("contract.ended")
+          : c.status === "withdrawn"
+            ? t("contract.withdrawn")
+            : side === "office"
+              ? t("contract.declinedByUs")
+              : t("contract.declinedBy", { office: c.office })}
       </p>
       {c.decline_reason && (
         <p className="mt-1 text-sm text-ink-2" dir="auto">

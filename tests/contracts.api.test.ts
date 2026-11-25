@@ -2,7 +2,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { DELETE as withdraw, POST as answer } from "../app/api/contracts/[id]/route";
 import { GET as listContracts } from "../app/api/contracts/route";
 import { GET as readChat } from "../app/api/issues/[id]/chat/route";
+import { POST as flagSpam } from "../app/api/issues/[id]/reports/[reportId]/spam/route";
 import { GET as getIssue } from "../app/api/issues/[id]/route";
+import { POST as sendBack } from "../app/api/issues/[id]/send-back/route";
 import { GET as listRequests } from "../app/api/job-requests/route";
 import { DELETE as declineRequest } from "../app/api/job-requests/[id]/route";
 import { GET as available } from "../app/api/office/available/route";
@@ -13,6 +15,7 @@ import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { DELETE as revokeBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setClock } from "../lib/clock";
 import { setSession } from "../lib/session";
+import { setSql } from "../lib/sql";
 import { ctx, NOW, offer, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
 
 /** An Authority never assigns a job on its own: it sends a contract, and the Issue is Assigned when the Business accepts. */
@@ -226,4 +229,68 @@ it("revoking a Business withdraws its waiting contracts, so the Issue can be off
   authority();
   expect((await contractsSeen(`http://test/x?issue=${issueId}`))[0]).toMatchObject({ id: contractId, status: "withdrawn" });
   expect((await offer(issueId, roads)).status).toBe(201);
+});
+
+it("a Business revoked while its contract was being sent is not offered it", async () => {
+  const issueId = await pothole();
+  authority();
+  // The Revocation lands after the Business was checked and before the contract is written.
+  setSql({
+    ...app.sql,
+    async tx(fn) {
+      await app.sql.query("UPDATE offices SET revoked_at = now() WHERE id = $1", [roads]);
+      return app.sql.tx(fn);
+    },
+  });
+  try {
+    expect(await errorOf(await offer(issueId, roads))).toEqual({ status: 400, error: "invalid_office" });
+  } finally {
+    setSql(app.sql);
+    await app.sql.query("UPDATE offices SET revoked_at = NULL WHERE id = $1", [roads]);
+  }
+});
+
+describe("when the Issue leaves the Business", () => {
+  const statusOf = async (issueId: number) => (await contractsSeen(`http://test/x?issue=${issueId}`)).map((c) => c.status);
+
+  it("a Send back ends the accepted contract, and the next one stands on its own", async () => {
+    const { issueId, contractId } = await offered();
+    business();
+    expect((await reply(contractId, "accepted")).status).toBe(200);
+    expect((await sendBack(json({ reason: "Not our area" }), id(issueId))).status).toBe(200);
+    const [ended] = await contractsSeen(`http://test/x?issue=${issueId}`);
+    expect(ended).toMatchObject({ id: contractId, status: "ended", ended_at: NOW.toISOString() });
+    authority();
+    const again = (await (await offer(issueId, roads)).json()).id;
+    business();
+    expect((await reply(again, "accepted")).status).toBe(200);
+    expect((await statusOf(issueId)).sort()).toEqual(["accepted", "ended"]);
+  });
+
+  it("removing the Issue withdraws the waiting contract and tells the Business", async () => {
+    const { issueId, contractId } = await offered();
+    const [{ id: reportId }] = await app.sql.query<{ id: number }>(
+      `INSERT INTO reports (issue_id, reporter_id, lat, lng, ai_category, ai_severity, ai_confidence, ai_summary, ai_source, created_at)
+       SELECT $1, id, 33.72, 73.05, 'road_damage', 'medium', 0.9, 'x.', 'seed', now() FROM people LIMIT 1 RETURNING id`,
+      [issueId],
+    );
+    app.mail.sent.length = 0;
+    authority();
+    const res = await flagSpam(json({}), ctx({ id: String(issueId), reportId: String(reportId) }));
+    expect(await res.json()).toMatchObject({ issueRemoved: true });
+    expect(app.mail.sent.map((m) => [m.to, m.subject])).toEqual([[["f7roads@biz.pk"], "Contract withdrawn: Pothole"]]);
+    // A removed Issue's contracts are on no screen, so this looks at the record itself.
+    const [c] = await app.sql.query("SELECT status FROM contracts WHERE id = $1", [contractId]);
+    expect(c).toEqual({ status: "withdrawn" });
+  });
+
+  it("revoking the Business ends its accepted contract with the job", async () => {
+    const { issueId, contractId } = await offered();
+    business();
+    expect((await reply(contractId, "accepted")).status).toBe(200);
+    signInAs(SUPER_ADMIN);
+    expect((await revokeBusiness(new Request("http://test/x", { method: "DELETE" }), id(roads))).status).toBe(200);
+    authority();
+    expect(await statusOf(issueId)).toEqual(["ended"]);
+  });
 });

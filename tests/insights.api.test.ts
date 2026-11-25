@@ -11,6 +11,8 @@ import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { POST as submitReport } from "../app/api/reports/route";
 import { GET as city } from "../app/api/city/route";
 import { GET as stats } from "../app/api/stats/route";
+import { GET as businesses } from "../app/api/super-admin/businesses/route";
+import { DELETE as revokeBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
 import { NEIGHBORHOODS } from "../lib/geo";
@@ -154,6 +156,49 @@ describe("Insights follow the workflow (real world)", () => {
     expect(after.overview.resolved).toBe(before.overview.resolved);
     expect(roadsRecord(after)).toMatchObject({ unconfirmed: 1, resolutions: 2 });
     expect(f7(after).resolutionRate).toBeCloseTo(2 / 3, 2);
+  });
+
+  it("a Business that takes over a revoked one's job does not inherit its Fixes and Rejections", async () => {
+    signInAs("official@gov.pk");
+    const { departments } = await (await listOffices()).json();
+    const departmentId = departments.find((d: { name: string }) => d.name === "Roads").id;
+    const office = async (name: string, email: string) => {
+      const n = (await (await addOffice(json({ name, departmentId, sector: "F-7", lat: F7.lat, lng: F7.lng }))).json()).id as number;
+      await addStaff(json({ email }), id(n));
+      return n;
+    };
+    const first = await office("First Roads", "first@gov.pk");
+    const second = await office("Second Roads", "second@gov.pk");
+    const work = async (n: number, officeId: number, email: string) => {
+      signInAs("official@gov.pk");
+      ok(await assign(n, officeId));
+      signInAs(email);
+      advanceClock(86_400_000);
+      ok(await start(json({}), id(n)));
+      const f = new FormData();
+      f.set("afterImage", new File([new Uint8Array([4, 5, 6])], "after.jpg", { type: "image/jpeg" }));
+      ok(await fix(new Request("http://test/x", { method: "POST", body: f }), id(n)));
+    };
+    const n = await report("takeover");
+    await work(n, first, "first@gov.pk");
+    signInAs(SUPER_ADMIN);
+    ok(await revokeBusiness(new Request("http://test/x", { method: "DELETE" }), id(first)));
+    signInAs("takeover@gmail.com");
+    ok(await reject(json({ comment: "Still a hole" }), id(n)));
+    const recordOf = (s: Stats, o: number) => s.offices.find((x) => x.officeId === o);
+    // While nobody holds the Issue, its Fix and Rejection stay on the record of the Business that made the Fix.
+    expect(recordOf(await realStats(), first)).toMatchObject({ assigned: 0, fixes: 1, rejections: 1, avgDaysToFix: 1 });
+
+    await work(n, second, "second@gov.pk");
+    const s = await realStats();
+    expect(recordOf(s, first)).toMatchObject({ assigned: 0, fixes: 1, rejections: 1, avgDaysToFix: 1 });
+    expect(recordOf(s, second)).toMatchObject({ assigned: 1, fixes: 1, rejections: 0, avgDaysToFix: 1 });
+
+    // The Super Admin's list says the same about every Business.
+    signInAs(SUPER_ADMIN);
+    const { businesses: list } = await read(await businesses());
+    const fixesOf = (o: number) => list.find((b: { id: number }) => b.id === o).fixes;
+    for (const o of [first, second, roads]) expect(fixesOf(o)).toBe(recordOf(s, o)!.fixes);
   });
 });
 

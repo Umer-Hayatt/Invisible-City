@@ -24,7 +24,7 @@ The demo story: a Citizen reports a pothole in F-10 → the AI recognises road d
 
 Every screen calls an Office a **Business** (government or private); the code keeps the name Office. Authorities, Businesses and the Super Admin each work in a sidebar workspace with no top bar and no site footer: Businesses have Jobs and My Business (details and workers); the Super Admin has Access requests, Authorities, Businesses and Insights. Citizens and visitors see only the map (home), Report and My reports; Insights is for Authorities and the Super Admin only (24 November 2026).
 
-The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or offered a Contract, its waiting Contracts are withdrawn, and its Assigned and In progress Issues go back to Open with a note on the timeline. Both are told by email. A revoked Business can come back two ways (25 November 2026): the Super Admin **restores** it, or its people register again with the same email; the Authority deciding sees "Revoked before", and approval moves the email to the new Business. A revoked Authority sends a new Access request.
+The Super Admin sees every Authority (area, Department, email, phone) and every Business (Department, sector, government or private, workers, email, jobs in hand, Fixes) of their world, and can **revoke** either at any time. A revoked Authority is a Citizen again on their next page load. A revoked Business cannot sign in or be suggested or offered a Contract, its waiting Contracts are withdrawn, and its Assigned and In progress Issues go back to Open with a note on the timeline. A Fix it had made stays for the Citizens to answer; if one rejects it, that Issue goes back to Open too. Both are told by email. A revoked Business can come back two ways (25 November 2026): the Super Admin **restores** it, or its people register again with the same email; the Authority deciding sees "Revoked before", and approval moves the email to the new Business. A revoked Authority sends a new Access request.
 
 **Jobs between Authorities and Businesses** (24 November 2026). A Business sees **Available jobs**: the Open Issues of its Department in its own sector. It can ask for one with a note (a **Job request**); the Authorities of that area are emailed. An Authority sees the Job requests of its area and sends that Business a Contract, or declines the request (not while a Contract waits on that Business). The Assignment accepts that Business's request and declines the others, and a declined Business may ask again. A Business and the Authorities of the Issue's area talk in a **chat** per Issue and Business, open to nobody else, and each sees the other's phone and email to call or write. A Business records its phone (from its registration, editable). 
 
@@ -32,7 +32,7 @@ The Super Admin sees every Authority (area, Department, email, phone) and every 
 - **Accept** (after ticking that it agrees to the terms): the Issue becomes Assigned to it. The area's Authorities are emailed.
 - **Decline**, with a reason: the Issue stays Open and the area's Authorities are emailed. The Authority may send new terms or offer it to another Business.
 
-The Issue stays Open until a Contract is accepted, and only one Contract may wait per Issue; an Authority of the area can **withdraw** it while it waits, which the Business is told by email. Contracts are seen only by that Business and the Authorities of the Issue's area. The public timeline shows the Assignment, never an offer, its terms or a decline. Reporter email and phone stay hidden from the Business until it accepts. A Business nobody can sign in as (no email) cannot be offered a Contract, except in the Demo, where most Businesses have no account. Issues Assigned before this rule stay as they are. Next: the Contract as a PDF, and payment recorded.
+The Issue stays Open until a Contract is accepted, and only one Contract may wait per Issue; an Authority of the area can **withdraw** it while it waits, which the Business is told by email. Contracts are seen only by that Business and the Authorities of the Issue's area. The public timeline shows the Assignment, never an offer, its terms or a decline. Reporter email and phone stay hidden from the Business until it accepts. A Business nobody can sign in as (no email) cannot be offered a Contract, except in the Demo, where most Businesses have no account. Issues Assigned before this rule stay as they are. An accepted Contract **ends** when the Issue leaves the Business: sent back, reopened by a Revocation, or removed. Removing an Issue (its last Report withdrawn or flagged) withdraws a waiting Contract, and the Business is told by email. Next: the Contract as a PDF, and payment recorded.
 
 Everyone signs in with Google. Signing in alone only ever makes someone a Citizen. An Office has exactly one email, and an email belongs to at most one Office: setting a new email replaces the old one (24 November 2026). An Authority approved for an Area sees, sends Contracts, flags spam and manages Offices in that Area only; an Authority approved for the whole city (every Authority approved before 24 November 2026, and the Demo Authority) sees everything. Approving an Office registration creates the Office at its sector and makes the registering email its sign-in; the Office is told by email.
 
@@ -55,7 +55,7 @@ Everyone signs in with Google. Signing in alone only ever makes someone a Citize
 1. Only signed-in Citizens with a completed profile can report.
 2. At most 10 Reports per Citizen per day.
 3. Photos the AI judges not to be a civic problem (selfies, memes, indoor objects) are refused with a message.
-4. An Authority can put a **Spam flag** on a Report. A flagged Report is hidden; if it was the Issue's only Report, the Issue is removed. Three Spam flags cause a **Suspension**.
+4. An Authority can put a **Spam flag** on a Report. A flagged Report is hidden, and its photo is no longer the Issue's cover (the same when a Citizen withdraws a Report): the first remaining Report's photo is shown instead. If it was the Issue's only Report, the Issue is removed. Three Spam flags cause a **Suspension**.
 
 ### Privacy
 - A reporter's display name is visible to everyone. Email and phone are visible only to an Authority of the Issue's Area (or of the whole city) and to the Office the Issue is assigned to. (Changed 24 November 2026: names were hidden before.)
@@ -71,7 +71,7 @@ Open → Assigned → In progress → Fixed → Resolved
 - **Assignment**: the Authority opens an Issue and sees the Offices of the Category's Department, nearest first. The Authority picks one and sends it a Contract; the Issue is Assigned when the Office accepts (section 3, Assignment by agreement).
 - An Office can **send back** an Assigned Issue with a reason ("not our area", "not our department"). It returns to Open.
 - The Office moves the Issue to In progress, then records a **Fix** with a required after-repair photo. The Issue becomes Fixed.
-- Any one Citizen who reported the Issue can confirm the Fix (**Resolution** → Resolved) or reject it with a comment (**Rejection** → back to In progress).
+- Any one Citizen who reported the Issue can confirm the Fix (**Resolution** → Resolved) or reject it with a comment (**Rejection** → back to In progress, or to Open when the Office was revoked since). My jobs shows an Office only the Rejections of its own Fixes.
 - With no answer 7 days after the Fix, the Issue becomes **Unconfirmed closure** (Closed unconfirmed), recorded separately from a Resolution.
 - Every change is added to the Issue's public timeline.
 
@@ -93,7 +93,7 @@ Open → Assigned → In progress → Fixed → Resolved
 The seed data includes 15–25 real Islamabad Offices (CDA, IESCO and others) at approximate locations.
 
 ### Email
-Sent from a project Gmail account (app password):
+Sent from a project Gmail account (app password). The Demo never sends email.
 1. To the Office's staff when it is offered a Contract, or one is withdrawn; to the area's Authorities when it accepts or declines.
 2. To every Citizen who reported an Issue when it is Fixed, asking them to confirm or reject.
 3. To those Citizens when it is Resolved or closed unconfirmed.
@@ -125,7 +125,7 @@ The Citizen screens are designed for phones first; staff screens are designed fo
 - Predictive maintenance from recurring problems.
 - Before vs after photos.
 - **Office track record** (new): per Office, Issues assigned, Fixes, Rejections, Unconfirmed closures, and average days to fix.
-  - "Issues assigned" counts the Issues an Office holds now; a sent-back Issue leaves it. Days to fix run from an Issue's latest Assignment to its latest Fix.
+  - "Issues assigned" counts the Issues an Office holds now; a sent-back Issue leaves it. A Fix or Rejection counts for the Office that made the Fix, even when the Issue has since gone to another Office (25 November 2026). Days to fix run from that Office's latest Assignment of the Issue to its latest Fix.
 - Open severity load counts every Issue not yet Resolved or Closed unconfirmed (a Fix waiting for an answer still counts). Resolution rate counts only Resolutions; Unconfirmed closures are shown apart and count as neither open nor resolved.
 - A new Report near an Issue that was Resolved or Closed unconfirmed in the last 180 days marks a recurrence.
 - "Citizens who report most" shows names and Report counts. The Citizen Impact score is computed but not shown for now (24 November 2026).

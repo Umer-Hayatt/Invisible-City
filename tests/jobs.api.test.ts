@@ -128,6 +128,23 @@ describe("chat and calls", () => {
     expect(auth.contacts).toEqual([expect.objectContaining({ name: "F-7 Road Co", phone: "+92 300 5555555", email: "f7roads@biz.pk" })]);
   });
 
+  it("counts only an Authority's current Area: one who moved away gets no email and no calls from the old one", async () => {
+    await app.sql.query(
+      `INSERT INTO access_requests (name, official_email, phone, decision, decided_at, is_demo, area) VALUES
+         ('Mover', 'mover@gov.pk', '+92 300 1234567', 'approved', now() - interval '2 days', false, 'G-9'),
+         ('Mover', 'mover@gov.pk', '+92 300 1234567', 'approved', now() - interval '1 day', false, 'F-7')`,
+    );
+    signInAs("g9roads@biz.pk");
+    app.mail.sent.length = 0;
+    expect((await askFor(json({}), id(potholeG9))).status).toBe(201);
+    expect(app.mail.sent.at(-1)?.to).toEqual(["g9@gov.pk"]);
+    const { contacts } = await (await readChat(get(), id(potholeG9))).json();
+    expect(contacts.map((c: { name: string }) => c.name)).toEqual(["G-9 Authority"]);
+    signInAs("f7roads@biz.pk");
+    const f7 = (await (await readChat(get(), id(potholeF7))).json()).contacts;
+    expect(f7.map((c: { name: string }) => c.name).sort()).toEqual(["F-7 Authority", "Mover"]);
+  });
+
   it("keeps the chat to the people of that job", async () => {
     // Another area's Authority, another sector's Business, and a Citizen cannot read it.
     signInAs("g9@gov.pk");

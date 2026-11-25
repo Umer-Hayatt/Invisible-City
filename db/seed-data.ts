@@ -2,7 +2,7 @@ import { DEMO_ACCOUNTS } from "../lib/demo-accounts";
 import { constituencyFor, haversineMeters, NEIGHBORHOODS } from "../lib/geo";
 import { computePriority } from "../lib/scoring";
 import { Sql } from "../lib/sql";
-import { Category, CATEGORY_META, Severity } from "../lib/types";
+import { Category, Severity } from "../lib/types";
 
 /**
  * Demo data: ~70 Issues with the neglect story (I-10, G-11, I-9 resolve almost nothing) and the
@@ -167,22 +167,16 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
     [DEMO_ACCOUNTS.authority.name, DEMO_ACCOUNTS.authority.email, DEMO_ACCOUNTS.authority.phone, DEMO_ACCOUNTS.superAdmin.email, now.toISOString()],
   );
 
-  const departmentOf = (c: Category) => {
-    const team = CATEGORY_META[c].team;
-    return {
-      "Road Maintenance Unit": "Roads",
-      "Sanitation Crew": "Sanitation",
-      "Electrical Works": "Electrical",
-      "Water & Sewerage": "Water & Sewerage",
-      "Accessibility Task Force": "Accessibility",
-      "General Maintenance": "General Maintenance",
-    }[team];
-  };
+  // The database decides which Department handles a Category, as it does for real Issues.
+  const departments = await q.query<{ key: Category; department: string }>(
+    "SELECT c.key, d.name AS department FROM categories c JOIN departments d ON d.id = c.department_id",
+  );
+  const departmentOf = (c: Category) => departments.find((d) => d.key === c)!.department;
 
   // --- issues, reports, events -------------------------------------------
-  const event = (issueId: number, kind: string, message: string, at: Date) =>
-    q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at) VALUES ($1, $2, $3, $4, $5)", [
-      issueId, kind, message, kind === "created" || kind === "merged" ? "citizen" : "system", at.toISOString(),
+  const event = (issueId: number, kind: string, message: string, at: Date, officeId: number | null = null) =>
+    q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at, office_id) VALUES ($1, $2, $3, $4, $5, $6)", [
+      issueId, kind, message, kind === "created" || kind === "merged" ? "citizen" : "system", at.toISOString(), officeId,
     ]);
 
   let firstG9Resolved: { id: number; lat: number; lng: number } | null = null;
@@ -272,18 +266,18 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
         await event(issueId, "merged", `${reportCount - 1} duplicate report(s) grouped by AI`, created);
       if (recurrenceOf)
         await event(issueId, "recurring", `Recurring problem: issue #${recurrenceOf} here was repaired before`, created);
-      if (office) await event(issueId, "assigned", `Assigned to ${office.name}`, assignedAt);
+      if (office) await event(issueId, "assigned", `Assigned to ${office.name}`, assignedAt, office.id);
       if (office && fixedAt) {
         const fixMessage = `Fixed by ${office.name}: ${FIX_NOTE} After-repair photo added.`;
         if (rejectedOnce) {
-          await event(issueId, "fixed", fixMessage, between(0.3));
-          await event(issueId, "rejected", "Fix rejected by a Citizen who reported this: still broken at one edge.", between(0.4));
+          await event(issueId, "fixed", fixMessage, between(0.3), office.id);
+          await event(issueId, "rejected", "Fix rejected by a Citizen who reported this: still broken at one edge.", between(0.4), office.id);
         }
-        await event(issueId, "fixed", fixMessage, fixedAt);
+        await event(issueId, "fixed", fixMessage, fixedAt, office.id);
       }
-      if (resolvedAt) await event(issueId, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", resolvedAt);
+      if (resolvedAt) await event(issueId, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", resolvedAt, office?.id);
       if (closedAt)
-        await event(issueId, "closed_unconfirmed", "Closed unconfirmed: no Citizen confirmed or rejected the Fix within 7 days.", closedAt);
+        await event(issueId, "closed_unconfirmed", "Closed unconfirmed: no Citizen confirmed or rejected the Fix within 7 days.", closedAt, office?.id);
     }
   }
 
@@ -331,12 +325,13 @@ async function demoStory(q: Sql, now: Date, office: { id: number; name: string }
       ],
     );
     const event = (kind: string, message: string, when: number, role: string) =>
-      q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at) VALUES ($1, $2, $3, $4, $5)", [
+      q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at, office_id) VALUES ($1, $2, $3, $4, $5, $6)", [
         issue.id,
         kind,
         message,
         role,
         at(when),
+        office.id,
       ]);
     await event("assigned", `Assigned to ${office.name}`, assignedAt, "authority");
     if (status !== "assigned") await event("in_progress", `Work started by ${office.name}`, startedAt, "office");

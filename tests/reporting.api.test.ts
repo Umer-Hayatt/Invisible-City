@@ -5,6 +5,7 @@ import { GET as myReports, POST as submitReport } from "../app/api/reports/route
 import { DELETE as deleteReport } from "../app/api/reports/[id]/route";
 import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
+import { fakePhotoStore, setPhotoStore } from "../lib/photo-store";
 import { setSession } from "../lib/session";
 import { AIAnalysis } from "../lib/types";
 import { ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
@@ -171,6 +172,22 @@ describe("deleting your own Report", () => {
     expect((await issueOf(issueId)).report_count).toBe(1);
     // having withdrawn, they may report it again
     expect((await send(33.3, 73.5)).status).toBe(200);
+  });
+
+  it("takes their photo off the Issue, which shows a remaining Report's photo instead", async () => {
+    const photo = (name: string) => setPhotoStore(fakePhotoStore(`https://photos.test/${name}.jpg`));
+    await citizen("cover-first");
+    photo("first");
+    const { issueId } = await (await send(33.25, 73.55)).json();
+    await citizen("cover-second");
+    photo("second");
+    await send(33.25, 73.55);
+    setPhotoStore(app.photos);
+    expect((await issueOf(issueId)).cover_image).toBe("https://photos.test/first.jpg");
+    await citizen("cover-first");
+    const [r] = await mine();
+    expect((await remove(r.id)).status).toBe(200);
+    expect((await issueOf(issueId)).cover_image).toBe("https://photos.test/second.jpg");
   });
 
   it("is refused once the Issue is no longer Open", async () => {

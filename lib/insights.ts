@@ -308,45 +308,58 @@ export interface OfficeRecord {
   rejections: number;
   resolutions: number;
   unconfirmed: number;
-  /** From the latest Assignment to the latest Fix, averaged over Issues that have a Fix. */
+  /** From the Office's latest Assignment to its latest Fix, averaged over the Issues it has a Fix on. */
   avgDaysToFix: number | null;
 }
 
-/** Office track record for Insights: one row per Office that has held at least one Issue. */
+/**
+ * Office track record for Insights: one row per Office that holds an Issue or has made a Fix. A Fix or Rejection counts
+ * for the Office that made the Fix, even when the Issue has since gone back to Open or to another Office.
+ */
 export async function officeRecords(demo: boolean): Promise<OfficeRecord[]> {
-  const [issues, events] = await Promise.all([
-    sql().query<{
-      id: number;
-      office_id: number;
-      office: string;
-      department: string;
-      sector: string;
-      status: string;
-      fixed_at: string | null;
-      resolved_at: string | null;
-    }>(
-      `SELECT i.id, i.office_id, o.name AS office, d.name AS department, o.sector, i.status, i.fixed_at, i.resolved_at
-       FROM issues i JOIN offices o ON o.id = i.office_id JOIN departments d ON d.id = o.department_id
-       WHERE i.deleted_at IS NULL AND i.is_demo = $1`,
+  const [offices, issues, events] = await Promise.all([
+    sql().query<{ id: number; name: string; department: string; sector: string }>(
+      "SELECT o.id, o.name, d.name AS department, o.sector FROM offices o JOIN departments d ON d.id = o.department_id WHERE o.is_demo = $1",
       [demo],
     ),
-    sql().query<{ issue_id: number; kind: string; created_at: string }>(
-      `SELECT e.issue_id, e.kind, e.created_at FROM events e JOIN issues i ON i.id = e.issue_id
-       WHERE e.kind IN ('assigned', 'fixed', 'rejected') AND i.office_id IS NOT NULL AND i.deleted_at IS NULL AND i.is_demo = $1
+    sql().query<{ id: number; office_id: number; status: string; fixed_at: string | null; resolved_at: string | null }>(
+      `SELECT id, office_id, status, fixed_at, resolved_at FROM issues
+       WHERE office_id IS NOT NULL AND deleted_at IS NULL AND is_demo = $1`,
+      [demo],
+    ),
+    // An entry that names no Office (written before entries did) is about the Office holding the Issue.
+    sql().query<{ issue_id: number; office_id: number; kind: string; created_at: string }>(
+      `SELECT e.issue_id, COALESCE(e.office_id, i.office_id) AS office_id, e.kind, e.created_at
+       FROM events e JOIN issues i ON i.id = e.issue_id
+       WHERE e.kind IN ('assigned', 'fixed', 'rejected') AND COALESCE(e.office_id, i.office_id) IS NOT NULL
+         AND i.deleted_at IS NULL AND i.is_demo = $1
        ORDER BY e.created_at, e.id`,
       [demo],
     ),
   ]);
-  const byIssue = new Map<number, typeof events>();
-  for (const e of events) byIssue.set(e.issue_id, [...(byIssue.get(e.issue_id) ?? []), e]);
+  // One job per Issue and Office: the Issue when that Office holds it now, and what happened while it did.
+  const jobs = new Map<string, { officeId: number; held: (typeof issues)[number] | null; events: typeof events }>();
+  const job = (issueId: number, officeId: number) => {
+    const key = `${issueId}|${officeId}`;
+    const j = jobs.get(key) ?? { officeId, held: null, events: [] };
+    jobs.set(key, j);
+    return j;
+  };
+  for (const i of issues) job(i.id, i.office_id).held = i;
+  for (const e of events) job(e.issue_id, e.office_id).events.push(e);
 
+  const officeById = new Map(offices.map((o) => [o.id, o]));
   const rows = new Map<number, OfficeRecord & { fixDays: number[] }>();
-  for (const i of issues) {
-    const r = rows.get(i.office_id) ?? {
-      officeId: i.office_id,
-      name: i.office,
-      department: i.department,
-      sector: i.sector,
+  for (const { officeId, held, events: evs } of jobs.values()) {
+    const fixedEvents = evs.filter((e) => e.kind === "fixed");
+    const office = officeById.get(officeId);
+    // An Office that sent the Issue back, or lost it before any Fix, has nothing on record for it.
+    if (!office || (!held && fixedEvents.length === 0)) continue;
+    const r = rows.get(officeId) ?? {
+      officeId,
+      name: office.name,
+      department: office.department,
+      sector: office.sector,
       assigned: 0,
       fixes: 0,
       rejections: 0,
@@ -355,18 +368,15 @@ export async function officeRecords(demo: boolean): Promise<OfficeRecord[]> {
       avgDaysToFix: null,
       fixDays: [],
     };
-    rows.set(i.office_id, r);
-    const evs = byIssue.get(i.id) ?? [];
-    const fixedEvents = evs.filter((e) => e.kind === "fixed");
+    rows.set(officeId, r);
     // Issues finished before Fix events were recorded still count one Fix, at the time they were fixed or resolved.
-    const fixedNow = i.status === "fixed" || i.status === "resolved" || i.status === "closed_unconfirmed";
-    const fixes = fixedEvents.length || (fixedNow ? 1 : 0);
-    r.assigned++;
-    r.fixes += fixes;
+    const fixedNow = held?.status === "fixed" || held?.status === "resolved" || held?.status === "closed_unconfirmed";
+    if (held) r.assigned++;
+    r.fixes += fixedEvents.length || (fixedNow ? 1 : 0);
     r.rejections += evs.filter((e) => e.kind === "rejected").length;
-    if (i.status === "resolved") r.resolutions++;
-    if (i.status === "closed_unconfirmed") r.unconfirmed++;
-    const lastFix = fixedEvents.at(-1)?.created_at ?? (fixedNow ? (i.fixed_at ?? i.resolved_at) : null);
+    if (held?.status === "resolved") r.resolutions++;
+    if (held?.status === "closed_unconfirmed") r.unconfirmed++;
+    const lastFix = fixedEvents.at(-1)?.created_at ?? (held && fixedNow ? (held.fixed_at ?? held.resolved_at) : null);
     const assignedAt = lastFix
       ? evs.filter((e) => e.kind === "assigned" && e.created_at <= lastFix).at(-1)?.created_at
       : undefined;
