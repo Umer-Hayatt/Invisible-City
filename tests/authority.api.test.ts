@@ -10,6 +10,7 @@ import { DELETE as removeStaff } from "../app/api/offices/[id]/staff/[staffId]/r
 import { POST as submitReport } from "../app/api/reports/route";
 import { setAnalyzer } from "../lib/ai";
 import { setClock } from "../lib/clock";
+import { fakePhotoStore, setPhotoStore } from "../lib/photo-store";
 import { setSession } from "../lib/session";
 import { AIAnalysis, Severity } from "../lib/types";
 import { assign, ctx, NOW, offer, signInAs, signInDemo, startTestApp } from "./helpers";
@@ -136,15 +137,19 @@ describe("Spam flags", () => {
     expect(await issue(id)).toBeNull();
   });
 
-  it("keeps an Issue that still has other Reports, with the count lowered", async () => {
+  it("keeps an Issue that still has other Reports, with the count lowered and the flagged photo off the cover", async () => {
     await citizen("spammer2");
+    setPhotoStore(fakePhotoStore("https://photos.test/spam.jpg"));
     const id = await report(33.32, 73.32);
     await citizen("honest");
+    setPhotoStore(fakePhotoStore("https://photos.test/honest.jpg"));
     await report(33.32, 73.32);
+    setPhotoStore(app.photos);
     authority();
     const [first] = (await issue(id)).reports;
     expect((await (await flagReport(id, first.id)).json()).issueRemoved).toBe(false);
     const after = await issue(id);
+    expect(after.issue.cover_image).toBe("https://photos.test/honest.jpg");
     expect(after.reports).toHaveLength(1);
     expect(after.issue.report_count).toBe(1);
   });

@@ -1,4 +1,5 @@
 import { nowIso, nowMs } from "./clock";
+import { closeContractsOfRemoved, emailWithdrawn, type WithdrawnContract } from "./contract-ends";
 import { addEvent, duplicateCandidates, NewReport, recentlyResolvedNearby, recordReport } from "./db";
 import { haversineMeters } from "./geo";
 import { computePriority, findDuplicate, maxSeverity } from "./scoring";
@@ -66,34 +67,42 @@ export function submitReport(r: Draft): Promise<SubmitOutcome> {
 export type DeleteOutcome = "deleted" | "not_found" | "not_open";
 
 /** A Citizen takes back their own Report, but only while its Issue is still Open. */
-export function deleteOwnReport(reportId: number, personId: string): Promise<DeleteOutcome> {
-  return sql().tx(async (q) => {
+export async function deleteOwnReport(reportId: number, personId: string): Promise<DeleteOutcome> {
+  const out = await sql().tx(async (q) => {
     const [row] = await q.query<{ issue_id: number; status: string }>(
       `SELECT r.issue_id, i.status FROM reports r JOIN issues i ON i.id = r.issue_id
-       WHERE r.id = $1 AND r.reporter_id = $2 AND NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL`,
+       WHERE r.id = $1 AND r.reporter_id = $2 AND NOT r.is_spam AND r.deleted_at IS NULL AND i.deleted_at IS NULL FOR UPDATE OF r, i`,
       [reportId, personId],
     );
-    if (!row) return "not_found";
-    if (row.status !== "open") return "not_open";
+    if (!row) return "not_found" as const;
+    if (row.status !== "open") return "not_open" as const;
     const now = nowIso();
     await q.query("UPDATE reports SET deleted_at = $1 WHERE id = $2", [now, reportId]);
-    await recountIssue(q, row.issue_id, now, "A citizen withdrew their report.");
-    return "deleted";
+    return recountIssue(q, row.issue_id, now, "A citizen withdrew their report.");
   });
+  if (typeof out === "string") return out;
+  for (const c of out.withdrawn) await emailWithdrawn(c);
+  return "deleted";
 }
 
 /**
  * After a Report is withdrawn or flagged as spam: recount the remaining Reports, recompute severity and
- * priority, and note it on the timeline. With none left the Issue is removed. Returns true when removed.
+ * priority, show a remaining Report's photo as the cover, and note it on the timeline. With none left the Issue is removed and
+ * its contracts close; the caller emails the Businesses of `withdrawn` once the transaction is done.
  */
-export async function recountIssue(q: Sql, issueId: number, now: string, message: string): Promise<boolean> {
-  const left = await q.query<{ ai_severity: Severity }>(
-    "SELECT ai_severity FROM reports WHERE issue_id = $1 AND NOT is_spam AND deleted_at IS NULL",
+export async function recountIssue(
+  q: Sql,
+  issueId: number,
+  now: string,
+  message: string,
+): Promise<{ removed: boolean; withdrawn: WithdrawnContract[] }> {
+  const left = await q.query<{ ai_severity: Severity; image: string | null }>(
+    "SELECT ai_severity, image FROM reports WHERE issue_id = $1 AND NOT is_spam AND deleted_at IS NULL ORDER BY created_at, id",
     [issueId],
   );
   if (left.length === 0) {
     await q.query("UPDATE issues SET deleted_at = $1, updated_at = $1 WHERE id = $2", [now, issueId]);
-    return true;
+    return { removed: true, withdrawn: await closeContractsOfRemoved(q, issueId) };
   }
   const n = left.length;
   const severity = left.map((r) => r.ai_severity).reduce((a, b) => maxSeverity(a, b));
@@ -101,13 +110,14 @@ export async function recountIssue(q: Sql, issueId: number, now: string, message
     "SELECT category, created_at, status, recurrence_of FROM issues WHERE id = $1",
     [issueId],
   );
-  await q.query("UPDATE issues SET report_count = $1, severity = $2, priority = $3, updated_at = $4 WHERE id = $5", [
+  await q.query("UPDATE issues SET report_count = $1, severity = $2, priority = $3, cover_image = $4, updated_at = $5 WHERE id = $6", [
     n,
     severity,
     computePriority({ ...issue, severity, report_count: n }),
+    left.find((r) => r.image)?.image ?? null,
     now,
     issueId,
   ]);
   await addEvent(issueId, "report_removed", `${message} ${n} citizens have now reported this.`, now, q);
-  return false;
+  return { removed: false, withdrawn: [] };
 }

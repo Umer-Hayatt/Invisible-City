@@ -120,7 +120,7 @@ export type DecideOutcome = "approved" | "declined" | "not_found" | "conflict" |
 
 /**
  * Approve or decline a pending registration. Approval creates the Office at its sector's centre, with the workers it
- * gave, and makes the registering email its one sign-in, all in one transaction. The registrant gets an email.
+ * gave, and makes the registering email its one sign-in, all in one transaction. The registrant gets an email (never in the Demo).
  */
 export async function decideRegistration(
   id: number,
@@ -163,7 +163,7 @@ export async function decideRegistration(
     throw e;
   });
 
-  if (outcome === "approved" || outcome === "declined") {
+  if (!demo && (outcome === "approved" || outcome === "declined")) {
     const [r] = await sql().query<{ email: string; name: string }>("SELECT email, name FROM office_registrations WHERE id = $1", [id]);
     await sendQuietly(
       outcome === "approved"

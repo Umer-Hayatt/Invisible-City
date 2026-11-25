@@ -96,12 +96,17 @@ export async function requestJob(officeId: number, issueId: number, note: string
   return "requested";
 }
 
-/** The Authorities who work for an area: those of that sector, or the whole-city ones when the sector has none. */
+/**
+ * The Authorities who work for an area: those of that sector, or the whole-city ones when the sector has none. As in
+ * lib/roles.ts, only an Authority's latest approval counts, so one who moved no longer belongs to the old area.
+ */
 export async function areaAuthorities(area: string, demo: boolean) {
   const rows = await sql().query<{ email: string; name: string; phone: string | null; area: string | null }>(
-    `SELECT DISTINCT ON (lower(official_email)) lower(official_email) AS email, name, phone, area
-     FROM access_requests WHERE decision = 'approved' AND revoked_at IS NULL AND is_demo = $1 AND (area = $2 OR area IS NULL)
-     ORDER BY lower(official_email), decided_at DESC NULLS LAST, id DESC`,
+    `SELECT * FROM (
+       SELECT DISTINCT ON (lower(official_email)) lower(official_email) AS email, name, phone, area
+       FROM access_requests WHERE decision = 'approved' AND revoked_at IS NULL AND is_demo = $1
+       ORDER BY lower(official_email), decided_at DESC NULLS LAST, id DESC
+     ) latest WHERE area = $2 OR area IS NULL ORDER BY email`,
     [demo, area],
   );
   const local = rows.filter((r) => r.area === area);

@@ -481,6 +481,7 @@ export const en = {
   "contract.declinedBy": "{office} declined.",
   "contract.declinedByUs": "You declined.",
   "contract.withdrawn": "Withdrawn before an answer.",
+  "contract.ended": "Ended. The job went back to the city.",
   "contract.agree": "On behalf of {office}, I agree to do this work on these terms.",
   "contract.accept": "Accept the contract",
   "contract.declineReason": "Why are you declining? For example: the price is too low, or we have no spare workers.",

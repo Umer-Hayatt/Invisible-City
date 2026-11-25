@@ -1,4 +1,5 @@
 import { nowIso } from "./clock";
+import { emailWithdrawn } from "./contract-ends";
 import { haversineMeters } from "./geo";
 import { recountIssue } from "./reporting";
 import { Sql, sql } from "./sql";
@@ -53,18 +54,18 @@ export async function suggestedOffices(issueId: number, demo: boolean) {
 export type FlagOutcome = { status: "not_found" } | { status: "flagged"; issueRemoved: boolean; suspended: boolean };
 
 /** Hides a Report; removes a lone-Report Issue; a Citizen's third flagged Report suspends them. */
-export function flagSpam(issueId: number, reportId: number, authorityId: string, demo: boolean): Promise<FlagOutcome> {
-  return sql().tx(async (q) => {
+export async function flagSpam(issueId: number, reportId: number, authorityId: string, demo: boolean): Promise<FlagOutcome> {
+  const out = await sql().tx(async (q) => {
     const [row] = await q.query<{ reporter_id: string }>(
       `SELECT r.reporter_id FROM reports r JOIN issues i ON i.id = r.issue_id
        WHERE r.id = $1 AND r.issue_id = $2 AND NOT r.is_spam AND r.deleted_at IS NULL
-         AND i.deleted_at IS NULL AND i.is_demo = $3 FOR UPDATE OF r`,
+         AND i.deleted_at IS NULL AND i.is_demo = $3 FOR UPDATE OF r, i`,
       [reportId, issueId, demo],
     );
     if (!row) return { status: "not_found" as const };
     const now = nowIso();
     await q.query("UPDATE reports SET is_spam = true, flagged_by = $1 WHERE id = $2", [authorityId, reportId]);
-    const issueRemoved = await recountIssue(q, issueId, now, "A report was flagged as spam and hidden.");
+    const { removed: issueRemoved, withdrawn } = await recountIssue(q, issueId, now, "A report was flagged as spam and hidden.");
     const [{ n }] = await q.query<{ n: number }>(
       "SELECT count(*)::int AS n FROM reports WHERE reporter_id = $1 AND is_spam",
       [row.reporter_id],
@@ -77,8 +78,12 @@ export function flagSpam(issueId: number, reportId: number, authorityId: string,
       );
       suspended = done.length > 0;
     }
-    return { status: "flagged" as const, issueRemoved, suspended };
+    return { status: "flagged" as const, issueRemoved, suspended, withdrawn };
   });
+  if (out.status === "not_found") return out;
+  const { withdrawn, ...flagged } = out;
+  for (const c of withdrawn) await emailWithdrawn(c);
+  return flagged;
 }
 
 // ---------------------------------------------------------------------------

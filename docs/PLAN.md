@@ -109,9 +109,21 @@ See PRD section 10.
 
 - [x] Authorities no longer assign: the Assign API is gone. They send a Contract from Reports or a Job request; the Business accepts (the Issue is then Assigned) or declines with a reason; the Authority can withdraw. Contracts pages for both, emails, a Demo contract waiting for the Demo Business. Migration `0006_contracts.sql` (applied).
 
+## Fixes from the architecture review (25 November 2026)
+
+Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (**not applied yet; apply before merging**), then reseed the Demo. The review's refactors wait until after the hackathon.
+
+- [x] The Demo never sends email (revoking an Authority or a Business, deciding a registration).
+- [x] A flagged or withdrawn Report's photo is no longer the Issue's cover.
+- [x] Only an Authority's current Area counts for emails and chat contacts.
+- [x] A rejected Fix by a revoked Business goes back to Open.
+- [x] Fixes and Rejections count for the Business that made the Fix.
+- [x] Contracts end when the Issue leaves the Business, and are withdrawn when it is removed.
+- [x] Demo Issues go to the Department of their Category (the database decides).
+
 ## Businesses, part 3: the rest of contracts (not started)
 
-- [ ] Migration 0007: payment status (agreed, paid, paid at) on contracts.
+- [ ] Migration 0008: payment status (agreed, paid, paid at) on contracts.
 - [ ] Send a contract from the chat too.
 - [ ] Contract PDF on the server (A4, both parties, Issue with photo, terms, price, dates, acceptance record, signature lines; "not legally binding by itself").
 - [ ] PDF emailed to both sides on Send and on Accept (mailer attachments).

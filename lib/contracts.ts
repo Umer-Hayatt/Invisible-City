@@ -1,5 +1,6 @@
 import { suggestedOffices } from "./authority";
 import { nowIso, nowMs } from "./clock";
+import { emailWithdrawn } from "./contract-ends";
 import { addEvent, setAssignment } from "./db";
 import { areaAuthorities, settleJobRequests } from "./jobs";
 import { sendQuietly } from "./mailer";
@@ -15,6 +16,7 @@ import { cleanText } from "./workflow";
  *   sent    --accept---> accepted   (that Business; the Issue becomes Assigned to it)
  *   sent    --decline--> declined   (that Business, with a reason; the Issue stays Open)
  *   sent    --withdraw-> withdrawn  (Authority of the Issue's area; the Issue stays Open)
+ *   accepted ----------> ended      (the Issue left the Business: lib/contract-ends.ts)
  */
 export interface Terms {
   scope: string;
@@ -83,10 +85,10 @@ export async function sendContract(actor: Actor, issueId: number, officeId: numb
 
   const result = await sql().tx(async (q) => {
     const [issue] = await q.query<{ status: string; title: string; neighborhood: string; severity: string }>(
-      "SELECT status, title, neighborhood, severity FROM issues WHERE id = $1 FOR UPDATE",
+      "SELECT status, title, neighborhood, severity FROM issues WHERE id = $1 AND deleted_at IS NULL FOR UPDATE",
       [issueId],
     );
-    if (issue.status !== "open") return "conflict" as const;
+    if (issue?.status !== "open") return "conflict" as const;
     const [waiting] = await q.query("SELECT 1 FROM contracts WHERE issue_id = $1 AND status = 'sent'", [issueId]);
     if (waiting) return "contract_waiting" as const;
     const [row] = await q.query<{ id: number }>(
@@ -143,9 +145,10 @@ export interface ContractRow {
   start_date: string | null;
   finish_date: string;
   payment_terms: string | null;
-  status: "sent" | "accepted" | "declined" | "withdrawn";
+  status: "sent" | "accepted" | "declined" | "withdrawn" | "ended";
   sent_at: string;
   decided_at: string | null;
+  ended_at: string | null;
   decline_reason: string | null;
 }
 
@@ -159,11 +162,11 @@ export function listContracts(actor: Actor, issueId: number | null = null) {
     `SELECT c.id, c.issue_id, i.title, i.category, i.severity, i.neighborhood, i.cover_image, c.office_id, o.name AS office,
             EXISTS (SELECT 1 FROM office_staff s WHERE s.office_id = o.id) AS can_answer, c.authority_name, c.scope, c.price_pkr,
             to_char(c.start_date, 'YYYY-MM-DD') AS start_date, to_char(c.finish_date, 'YYYY-MM-DD') AS finish_date,
-            c.payment_terms, c.status, c.sent_at, c.decided_at, c.decline_reason
+            c.payment_terms, c.status, c.sent_at, c.decided_at, c.ended_at, c.decline_reason
      FROM contracts c JOIN issues i ON i.id = c.issue_id JOIN offices o ON o.id = c.office_id
      WHERE i.is_demo = $1 AND i.deleted_at IS NULL
        AND ($2::int IS NULL OR c.office_id = $2) AND ($3::text IS NULL OR i.neighborhood = $3) AND ($4::int IS NULL OR c.issue_id = $4)
-     ORDER BY (c.status = 'sent') DESC, COALESCE(c.decided_at, c.sent_at) DESC, c.id DESC LIMIT 200`,
+     ORDER BY (c.status = 'sent') DESC, COALESCE(c.ended_at, c.decided_at, c.sent_at) DESC, c.id DESC LIMIT 200`,
     [actor.isDemo, own ? (actor.officeId ?? -1) : null, own ? null : actor.area, issueId],
   );
 }
@@ -207,7 +210,7 @@ export async function acceptContract(actor: Actor, id: number): Promise<AnswerOu
     );
     if (!done.length) return "conflict" as const;
     await setAssignment(c.issueId, actor.officeId, "assigned", q);
-    await addEvent(c.issueId, "assigned", `Assigned to ${c.office}`, nowIso(), q);
+    await addEvent(c.issueId, "assigned", `Assigned to ${c.office}`, nowIso(), q, actor.officeId);
     await settleJobRequests(c.issueId, actor.officeId!, q);
     return c;
   });
@@ -251,11 +254,6 @@ export async function withdrawContract(actor: Actor, id: number): Promise<Answer
     [nowIso(), actor.email, id],
   );
   if (!done.length) return "conflict";
-  if (!actor.isDemo)
-    await sendQuietly({
-      to: await staffEmails(c.office_id),
-      subject: `Contract withdrawn: ${c.title}`,
-      body: `The city has withdrawn the contract it offered ${c.office} for "${c.title}". There is nothing to answer.`,
-    });
+  if (!actor.isDemo) await emailWithdrawn({ ...c, emails: await staffEmails(c.office_id) });
   return "ok";
 }

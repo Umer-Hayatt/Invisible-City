@@ -1,6 +1,6 @@
 import { nowIso } from "./clock";
 import { closeOverdueFixes, emailReporters } from "./closure";
-import { setAssignment } from "./db";
+import { reopenIssue } from "./contract-ends";
 import type { Actor } from "./roles";
 import { Sql, sql } from "./sql";
 
@@ -12,6 +12,7 @@ import { Sql, sql } from "./sql";
  *   In progress --record Fix-------> Fixed         (Office staff of that Office; reporters emailed)
  *   Fixed       --confirm----------> Resolved      (a Citizen who reported it; reporters emailed)
  *   Fixed       --reject(comment)--> In progress   (a Citizen who reported it; after-photo cleared)
+ *                                 -> Open          (the same, when the Office was revoked since its Fix; Office cleared)
  *   Fixed, 7 days later -----------> Closed unconfirmed (lib/closure.ts)
  *
  * Who may act is checked before the state: someone who may never act on this Issue gets "forbidden",
@@ -76,64 +77,71 @@ async function run(actor: Actor, issueId: number, command: Command, apply: (q: S
   });
 }
 
-function event(q: Sql, issueId: number, kind: string, message: string, role: string, at: string) {
-  return q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at) VALUES ($1, $2, $3, $4, $5)", [
-    issueId,
+function event(q: Sql, row: IssueRow, kind: string, message: string, role: string, at: string) {
+  return q.query("INSERT INTO events (issue_id, kind, message, actor_role, created_at, office_id) VALUES ($1, $2, $3, $4, $5, $6)", [
+    row.id,
     kind,
     message,
     role,
     at,
+    row.office_id,
   ]);
 }
 
 export async function startWork(actor: Actor, issueId: number): Promise<Outcome> {
   const { outcome } = await run(actor, issueId, "start", async (q, row, now) => {
     await q.query("UPDATE issues SET status = 'in_progress', updated_at = $1 WHERE id = $2", [now, issueId]);
-    await event(q, issueId, "in_progress", `Work started by ${row.office_name}`, "office", now);
+    await event(q, row, "in_progress", `Work started by ${row.office_name}`, "office", now);
   });
   return outcome;
 }
 
 export async function sendBack(actor: Actor, issueId: number, reason: string): Promise<Outcome> {
   const { outcome } = await run(actor, issueId, "send_back", async (q, row, now) => {
-    await setAssignment(issueId, null, "open", q);
-    await event(q, issueId, "sent_back", `Sent back by ${row.office_name}: ${reason}`, "office", now);
+    await reopenIssue(q, issueId);
+    await event(q, row, "sent_back", `Sent back by ${row.office_name}: ${reason}`, "office", now);
   });
   return outcome;
 }
 
 export async function recordFix(actor: Actor, issueId: number, afterImage: string, note: string): Promise<Outcome> {
-  const { outcome, row } = await run(actor, issueId, "fix", async (q, r, now) => {
+  const { outcome, row: done } = await run(actor, issueId, "fix", async (q, row, now) => {
     await q.query(
       `UPDATE issues SET status = 'fixed', after_image = $1, fix_note = $2, fixed_at = $3, updated_at = $3 WHERE id = $4`,
       [afterImage, note || null, now, issueId],
     );
-    await event(q, issueId, "fixed", `Fixed by ${r.office_name}${note ? `: ${note}` : ""}. After-repair photo added.`, "office", now);
+    await event(q, row, "fixed", `Fixed by ${row.office_name}${note ? `: ${note}` : ""}. After-repair photo added.`, "office", now);
   });
-  if (row) await emailReporters(row, "fixed");
+  if (done) await emailReporters(done, "fixed");
   return outcome;
 }
 
 export async function confirmFix(actor: Actor, issueId: number): Promise<Outcome> {
-  const { outcome, row } = await run(actor, issueId, "confirm", async (q, _r, now) => {
+  const { outcome, row: done } = await run(actor, issueId, "confirm", async (q, row, now) => {
     await q.query(
       "UPDATE issues SET status = 'resolved', resolved_at = $1, resolution_note = fix_note, updated_at = $1 WHERE id = $2",
       [now, issueId],
     );
-    await event(q, issueId, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", "citizen", now);
+    await event(q, row, "resolved", "Resolved: a Citizen who reported this confirmed the Fix.", "citizen", now);
   });
-  if (row) await emailReporters(row, "resolved");
+  if (done) await emailReporters(done, "resolved");
   return outcome;
 }
 
 export async function rejectFix(actor: Actor, issueId: number, comment: string): Promise<Outcome> {
-  const { outcome } = await run(actor, issueId, "reject", async (q, _r, now) => {
+  const { outcome } = await run(actor, issueId, "reject", async (q, row, now) => {
     await q.query(
       `UPDATE issues SET status = 'in_progress', after_image = NULL, fix_note = NULL, fixed_at = NULL, updated_at = $1
        WHERE id = $2`,
       [now, issueId],
     );
-    await event(q, issueId, "rejected", `Fix rejected by a Citizen who reported this: ${comment}`, "citizen", now);
+    await event(q, row, "rejected", `Fix rejected by a Citizen who reported this: ${comment}`, "citizen", now);
+    // Nobody can sign in as a revoked Business to repair it again. FOR SHARE waits out a Revocation in progress.
+    const [office] = await q.query<{ revoked_at: string | null }>("SELECT revoked_at FROM offices WHERE id = $1 FOR SHARE", [row.office_id]);
+    if (office?.revoked_at) {
+      await reopenIssue(q, issueId);
+      await event(q, row, "sent_back", `Back to Open: ${row.office_name} no longer works with the city`, "system", now);
+    }
   });
   return outcome;
 }

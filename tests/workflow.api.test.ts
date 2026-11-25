@@ -11,10 +11,11 @@ import { GET as jobs } from "../app/api/office/jobs/route";
 import { GET as listOffices, POST as addOffice } from "../app/api/offices/route";
 import { POST as addStaff } from "../app/api/offices/[id]/staff/route";
 import { GET as myReports, POST as submitReport } from "../app/api/reports/route";
+import { DELETE as revokeBusiness } from "../app/api/super-admin/businesses/[id]/route";
 import { setAnalyzer } from "../lib/ai";
 import { advanceClock, setClock } from "../lib/clock";
 import { setSession } from "../lib/session";
-import { assign, ctx, NOW, signInAs, signInDemo, startTestApp } from "./helpers";
+import { assign, ctx, NOW, SUPER_ADMIN, signInAs, signInDemo, startTestApp } from "./helpers";
 
 /**
  * Ticket 06: the Office's work and the Citizen's answer, row by row through the Issue state machine
@@ -419,5 +420,34 @@ describe("Demo data", () => {
     // A real Office cannot touch a Demo Issue.
     crew();
     expect((await act.start(job!.id)).status).toBe(404);
+  });
+});
+
+describe("a Fix by a Business that was then revoked", () => {
+  it("if rejected, goes back to Open for the Authority, who can offer it to another Business", async () => {
+    const leaving = await newOffice("Leaving Roads", 33.72, 73.05);
+    await staff(leaving, "leaving@gov.pk");
+    const n = await reportedTwice();
+    expect((await act.assign(n, leaving)).status).toBe(200);
+    signInAs("leaving@gov.pk");
+    expect((await act.start(n)).status).toBe(200);
+    expect((await act.fix(n)).status).toBe(200);
+    signInAs(SUPER_ADMIN);
+    expect((await revokeBusiness(new Request("http://test/x", { method: "DELETE" }), id(leaving))).status).toBe(200);
+    expect(await status(n)).toBe("fixed"); // the Citizens can still answer
+
+    signInAs(reporters()[0]);
+    expect((await act.reject(n)).status).toBe(200);
+    const { issue: after, events } = await issue(n);
+    expect(after).toMatchObject({ status: "open", office_id: null, after_image: null, fix_note: null, fixed_at: null });
+    expect(events.slice(-2).map((e: { kind: string }) => e.kind)).toEqual(["rejected", "sent_back"]);
+    expect((await act.assign(n)).status).toBe(200);
+    expect(await status(n)).toBe("assigned");
+
+    // The new Business is not shown the Rejection of somebody else's Fix.
+    crew();
+    expect((await act.start(n)).status).toBe(200);
+    const { jobs: list } = await (await jobs()).json();
+    expect(list.find((j: { id: number }) => j.id === n)).toMatchObject({ status: "in_progress", rejection: null });
   });
 });
