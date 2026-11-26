@@ -124,7 +124,7 @@ export async function sendContract(actor: Actor, issueId: number, officeId: numb
         `${result.issue.title} (${result.issue.severity})`,
         ...termLines(terms),
         "",
-        "Read it in Invisible City, then accept or decline:",
+        "Read it in Civora, then accept or decline:",
         `${site()}/office/contracts`,
         "",
         "The contract is attached as a PDF.",

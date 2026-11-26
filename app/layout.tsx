@@ -17,7 +17,7 @@ const googleSans = Google_Sans({ variable: "--font-google-sans", subsets: ["lati
 const urdu = Noto_Naskh_Arabic({ variable: "--font-urdu", subsets: ["arabic"], weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "INvisible City - See the unseen. Fix the forgotten.",
+  title: "Civora - See the unseen. Fix the forgotten.",
   description: "AI-powered civic issue reporting, triage and accountability for Islamabad.",
 };
 

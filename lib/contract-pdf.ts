@@ -143,13 +143,13 @@ async function embedPhoto(doc: PDFDocument, photo: Buffer | null): Promise<PDFIm
 export async function renderContractPdf(d: ContractPdfData, photo: Buffer | null): Promise<Buffer> {
   const doc = await PDFDocument.create();
   doc.setTitle(`Contract ${d.id}: ${d.issue.title}`.replace(/[^\x20-\x7e]/g, "?"));
-  doc.setProducer("Invisible City");
-  doc.setCreator("Invisible City");
+  doc.setProducer("Civora");
+  doc.setCreator("Civora");
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const w = new Writer(doc, font, bold);
 
-  w.text("Invisible City", { size: 9.5, color: MUTED });
+  w.text("Civora", { size: 9.5, color: MUTED });
   w.text("Contract for a city job", { size: 20, bold: true });
   w.text(`Contract ${d.id}  ·  Sent ${day(d.sentAt)}`, { color: MUTED });
   w.space(4);

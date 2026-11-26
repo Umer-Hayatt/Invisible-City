@@ -4,7 +4,8 @@ import { ArrowUpRight, CircleCheck, Clock, Download, FileSignature, MessagesSqua
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import JobChat from "@/components/JobChat";
-import { Card, CategoryChip, CriticalTag, Empty, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
+import { ViewTabs, useView } from "@/components/ViewTabs";
+import { Card, CriticalTag, Empty, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, formatDate, t } from "@/lib/i18n";
 import type { Category, Severity } from "@/lib/types";
@@ -182,7 +183,6 @@ function ContractCard({ c, side, onChanged, onError }: { c: Contract; side: "aut
     <Card className="space-y-4 p-5">
       <div>
         <div className="flex flex-wrap items-center gap-2">
-          <CategoryChip category={c.category} />
           <CriticalTag severity={c.severity} />
           <span className="text-sm text-muted">
             {t("contract.number", { n: c.id })} · {c.neighborhood} · {timeAgo(c.sent_at)}
@@ -224,7 +224,12 @@ function ContractCard({ c, side, onChanged, onError }: { c: Contract; side: "aut
   );
 }
 
-/** Every contract of one side: waiting first, then the answered ones. */
+/** The tabs of the Contracts page. Ended contracts were accepted first; withdrawn ones never got an answer. */
+const VIEWS = ["pending", "accepted", "declined"] as const;
+type View = (typeof VIEWS)[number];
+const viewOf = (c: Contract): View => (c.status === "sent" ? "pending" : c.status === "accepted" || c.status === "ended" ? "accepted" : "declined");
+
+/** Every contract of one side, one tab per answer. Must sit inside <Suspense> (the tab is in the address). */
 export default function ContractList({ side }: { side: "authority" | "office" }) {
   const [rows, setRows] = useState<Contract[] | null>(null);
   const [error, setError] = useState("");
@@ -238,32 +243,39 @@ export default function ContractList({ side }: { side: "authority" | "office" })
   }, []);
   useEffect(load, [load]);
 
-  const waiting = rows?.filter((c) => c.status === "sent") ?? [];
-  const answered = rows?.filter((c) => c.status !== "sent") ?? [];
-  const list = (items: Contract[]) => (
-    <div className="grid items-start gap-5 xl:grid-cols-2">
-      {items.map((c) => (
-        <ContractCard key={c.id} c={c} side={side} onChanged={load} onError={setError} />
-      ))}
-    </div>
-  );
+  const counts = rows && (Object.fromEntries(VIEWS.map((v) => [v, rows.filter((c) => viewOf(c) === v).length])) as Record<View, number>);
+  const [view, setView] = useView(VIEWS, counts);
+  const shown = rows?.filter((c) => viewOf(c) === view) ?? [];
+  const label: Record<View, string> = {
+    pending: t("contract.tabPending"),
+    accepted: t("contract.tabAccepted"),
+    declined: t("contract.tabDeclined"),
+  };
+  const empty: Record<View, string> = {
+    pending: t("contract.noneWaiting"),
+    accepted: t("contract.noneAccepted"),
+    declined: t("contract.noneDeclined"),
+  };
 
   return (
-    <div className="space-y-6">
+    <div>
       <PageHeader title={t("contract.title")} sub={side === "office" ? t("contract.subOffice") : t("contract.subAuthority")} />
-      {error && <div className="rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
+      {error && <div className="mb-5 rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
       {rows === null ? (
         <ListSkeleton />
       ) : rows.length === 0 ? (
         <Empty icon={FileSignature} title={t("contract.empty")} />
       ) : (
         <>
-          {waiting.length ? list(waiting) : <p className="text-muted">{t("contract.noneWaiting")}</p>}
-          {answered.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-2xl font-bold">{t("contract.answered")}</h2>
-              {list(answered)}
-            </section>
+          <ViewTabs label={t("contract.title")} value={view} onChange={setView} tabs={VIEWS.map((v) => ({ value: v, label: label[v], count: counts![v] }))} />
+          {shown.length === 0 ? (
+            <Empty icon={FileSignature} title={empty[view]} />
+          ) : (
+            <div className="grid items-start gap-5 xl:grid-cols-2">
+              {shown.map((c) => (
+                <ContractCard key={c.id} c={c} side={side} onChanged={load} onError={setError} />
+              ))}
+            </div>
           )}
         </>
       )}

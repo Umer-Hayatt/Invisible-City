@@ -24,16 +24,16 @@ function linksFor(role: Role | null) {
 const aiTitle = (mode: string) =>
   mode === "gemini" ? t("nav.aiGemini") : mode === "groq" ? t("nav.aiGroq") : t("nav.aiHeuristic");
 
-/** The mark: a lime map pin, then the name with "IN" in lime. Always on charcoal. */
+/** The mark: a lime map pin, then the name. Always on charcoal. */
 export function Logo() {
   return (
-    <Link href="/" dir="ltr" className="flex shrink-0 items-center gap-2 text-on-dark" aria-label="INvisible City">
+    <Link href="/" dir="ltr" className="flex shrink-0 items-center gap-2 text-on-dark" aria-label="Civora">
       <svg aria-hidden viewBox="0 0 24 32" className="h-7 w-auto">
         <path d="M12 0a12 12 0 0 0-12 12c0 8.5 12 20 12 20s12-11.5 12-20A12 12 0 0 0 12 0Z" fill="var(--color-lime)" />
         <path d="M6.8 12.4l3.7 3.7 6.9-7.4" fill="none" stroke="var(--color-char)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span aria-hidden className="text-xl font-semibold tracking-[-0.015em]">
-        <span className="text-lime">IN</span>visible City
+        Civora
       </span>
     </Link>
   );

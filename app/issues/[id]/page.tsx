@@ -20,8 +20,11 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import AssignPanel from "@/components/AssignPanel";
+import { BusinessPanel } from "@/components/BusinessJob";
 import CityMap from "@/components/CityMap";
-import { Card, CategoryChip, CriticalTag, IssueThumb, PageSkeleton, StatusBadge } from "@/components/ui";
+import RequestCard, { type JobRequest } from "@/components/RequestCard";
+import { Card, CriticalTag, IssueThumb, PageSkeleton, StatusBadge } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, formatDate, formatDateTime, t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
@@ -56,10 +59,17 @@ export default function IssuePage() {
   const router = useRouter();
   const { me } = useMe();
   const isAuthority = me?.role === "authority";
+  const isBusiness = me?.role === "office";
+  // Bumped after any action, so the panels below re-read what they show.
+  const [version, setVersion] = useState(0);
 
   const load = useCallback(() => {
     api<IssueData>(`/api/issues/${id}`).then(setData).catch((e) => setError(e.message));
   }, [id]);
+  const changed = () => {
+    load();
+    setVersion((v) => v + 1);
+  };
   useEffect(load, [load]);
 
   async function flagSpam(reportId: number) {
@@ -84,11 +94,17 @@ export default function IssuePage() {
   // Before/after appears from the moment an Office records a Fix.
   const showFix = issue.status === "fixed" || resolved || issue.status === "closed_unconfirmed";
   const afterDate = issue.resolved_at ?? issue.fixed_at ?? issue.closed_at;
+  const back = isBusiness
+    ? { href: "/office", label: t("business.jobs") }
+    : isAuthority
+      ? { href: "/admin/reports", label: t("authority.reports") }
+      : { href: "/", label: t("nav.map") };
+  const settled = resolved || issue.status === "closed_unconfirmed";
 
   return (
     <div className="space-y-6">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
-        <ArrowLeft size={16} className="rtl:rotate-180" /> {t("nav.map")}
+      <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
+        <ArrowLeft size={16} className="rtl:rotate-180" /> {back.label}
       </Link>
 
       {/* Header: over the photo while the Issue is still being worked on; plain once a Fix shows before and after. */}
@@ -106,7 +122,6 @@ export default function IssuePage() {
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-on-dark-2">#{issue.id}</span>
-              <CategoryChip category={issue.category} />
               <StatusBadge status={issue.status} />
               <CriticalTag severity={issue.severity} status={issue.status} />
             </div>
@@ -155,6 +170,8 @@ export default function IssuePage() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6">
+          {isBusiness && <BusinessPanel key={version} issueId={issue.id} onChanged={changed} />}
+          {isAuthority && !settled && <AuthorityPanel key={version} issue={issue} onChanged={changed} />}
           <Card className="p-5">
             <h2 className="flex items-center gap-2 text-xl font-semibold">
               <Sparkles size={18} className="text-brand" aria-hidden /> {t("issue.aiSummary")}
@@ -252,6 +269,50 @@ export default function IssuePage() {
           </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** For the Authority, on the Issue's page: give it to a Business, and answer the Businesses that asked for it. */
+function AuthorityPanel({ issue, onChanged }: { issue: Issue; onChanged: () => void }) {
+  const [requests, setRequests] = useState<JobRequest[]>([]);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    api<{ requests: JobRequest[] }>("/api/job-requests")
+      .then((d) => setRequests(d.requests.filter((r) => r.issue_id === issue.id)))
+      .catch(() => {});
+  }, [issue.id]);
+
+  async function decline(r: JobRequest) {
+    setErr("");
+    try {
+      await api(`/api/job-requests/${r.id}`, { method: "DELETE" });
+    } catch (e) {
+      setErr(errorText((e as Error).message));
+    }
+    onChanged();
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-5">
+        <AssignPanel issue={issue} onChanged={onChanged} />
+      </Card>
+      {requests.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold">
+            {t("requests.title")} <span className="text-muted">({requests.length})</span>
+          </h2>
+          {err && <p className="text-sm font-medium text-danger-ink">{err}</p>}
+          {requests.map((r) =>
+            r.status === "pending" ? (
+              <RequestCard key={r.id} r={r} compact onSent={onChanged} onDecline={() => decline(r)} />
+            ) : (
+              <RequestCard key={r.id} r={r} compact />
+            ),
+          )}
+        </section>
+      )}
     </div>
   );
 }

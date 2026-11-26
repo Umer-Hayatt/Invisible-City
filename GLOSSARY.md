@@ -1,4 +1,4 @@
-# Invisible City
+# Civora
 
 A platform where citizens of Islamabad report civic problems with a photo and location, officials route each problem to the office that can fix it, and the citizen who reported it confirms the fix.
 
@@ -13,7 +13,7 @@ A city official who reviews incoming Issues, flags spam, and agrees each Issue w
 _Avoid_: Admin, government, moderator
 
 **Super Admin**:
-A member of the Invisible City team who checks access requests and grants the Authority role.
+A member of the Civora team who checks access requests and grants the Authority role.
 _Avoid_: Platform admin, owner, root
 
 **Department**:

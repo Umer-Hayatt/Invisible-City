@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-11-24T00:00:00Z",
-  "title": "Design System: INvisible City",
+  "title": "Design System: Civora",
   "extensions": {
     "colorMeta": {
       "sign-green": { "role": "primary", "displayName": "Sign Green", "canonical": "#00653a", "tonalRamp": ["#00261a", "#004526", "#00562f", "#00653a", "#3fb57a", "#8ad8ae", "#bfdfcb", "#e1efe6"] },

@@ -49,10 +49,6 @@ function Dashboard() {
   const hoods = stats.neighborhoods.filter((n) => mine(n.name));
   const neglected = hoods.filter((n) => n.neglected);
   const urgent = active.slice(0, 5); // already sorted by priority
-  const areas = hoods
-    .filter((n) => n.total > 0)
-    .sort((a, b) => b.reports - a.reports)
-    .slice(0, 5);
   const offices = stats.offices.filter((o) => mine(o.sector)).sort((a, b) => b.assigned - a.assigned).slice(0, 4);
   const byCategory = area
     ? stats.overview.byCategory.map((c) => ({
@@ -136,31 +132,13 @@ function Dashboard() {
         </section>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2">
-        <section>
-          <SectionTitle title={t("insights.areasTitle")} />
-          <Card className="divide-y divide-line">
-            {areas.map((n) => (
-              <div key={n.name} className="flex items-center justify-between gap-3 p-4">
-                <span className="text-lg font-semibold">
-                  {n.name}
-                  {n.neglected && <TriangleAlert size={15} className="ms-2 inline text-danger-ink" aria-label={t("insights.neglected")} />}
-                </span>
-                <span className="text-end text-sm text-ink-2">
-                  <span className="block font-semibold tabular-nums text-ink">{t("insights.areaReports", { n: n.reports })}</span>
-                  {t("insights.areaDetail", { issues: n.total, open: n.open, pct: Math.round(n.resolutionRate * 100) })}
-                </span>
-              </div>
-            ))}
-          </Card>
-        </section>
-
-        <section>
+      <section>
           <SectionTitle title={t("insights.officesTitle")} right={<More href="/admin/offices" label={t("nav.offices")} />} />
-          <Card className="divide-y divide-line">
-            {offices.length === 0 && <p className="p-5 text-muted">{t("insights.officesEmpty")}</p>}
+          <Card className="overflow-hidden">
+            <div className="grid gap-px bg-line lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+            {offices.length === 0 && <p className="bg-surface p-5 text-muted">{t("insights.officesEmpty")}</p>}
             {offices.map((o) => (
-              <div key={o.officeId} className="flex items-center justify-between gap-3 p-4">
+              <div key={o.officeId} className="flex items-center justify-between gap-3 bg-surface p-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 truncate font-semibold">
                     <Building2 size={16} className="shrink-0 text-muted" /> {o.name}
@@ -175,9 +153,9 @@ function Dashboard() {
                 </div>
               </div>
             ))}
+            </div>
           </Card>
-        </section>
-      </div>
+      </section>
     </div>
   );
 }

@@ -70,8 +70,8 @@ export async function revokeAuthority(email: string, by: string | null, demo: bo
   if (rows.length && !demo)
     await sendQuietly({
       to: [email],
-      subject: "Your Authority access on Invisible City was revoked",
-      body: "The Invisible City team has revoked your Authority access. You can still use the app as a Citizen. Contact the team if you think this is a mistake.",
+      subject: "Your Authority access on Civora was revoked",
+      body: "The Civora team has revoked your Authority access. You can still use the app as a Citizen. Contact the team if you think this is a mistake.",
     });
   return rows.length > 0;
 }
@@ -108,8 +108,8 @@ export async function revokeBusiness(officeId: number, by: string | null, demo: 
   if (out && !demo)
     await sendQuietly({
       to: out.emails,
-      subject: `${out.name}: access to Invisible City was revoked`,
-      body: `The Invisible City team has revoked ${out.name}'s access as a Business. Jobs not yet fixed have gone back to the city.`,
+      subject: `${out.name}: access to Civora was revoked`,
+      body: `The Civora team has revoked ${out.name}'s access as a Business. Jobs not yet fixed have gone back to the city.`,
     });
   return out;
 }
@@ -125,8 +125,8 @@ export async function restoreBusiness(officeId: number, demo: boolean) {
     const emails = await sql().query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [officeId]);
     await sendQuietly({
       to: emails.map((e) => e.email),
-      subject: `${office.name}: access to Invisible City was restored`,
-      body: `The Invisible City team has given ${office.name} its access back. Sign in with this Google account to see its jobs.`,
+      subject: `${office.name}: access to Civora was restored`,
+      body: `The Civora team has given ${office.name} its access back. Sign in with this Google account to see its jobs.`,
     });
   }
   return office;

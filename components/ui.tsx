@@ -175,15 +175,6 @@ export function CategoryIcon({ category, size = 18, className = "" }: { category
   return <Icon size={size} strokeWidth={2} className={className} aria-hidden />;
 }
 
-export function CategoryChip({ category }: { category: Category }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-[4px] bg-sunken px-2 py-0.5 text-[13px] font-medium text-ink-2">
-      <CategoryIcon category={category} size={14} />
-      {categoryLabel(category)}
-    </span>
-  );
-}
-
 export function IssueThumb({ src, category, className = "" }: { src: string | null; category: Category; className?: string }) {
   if (src)
     // eslint-disable-next-line @next/next/no-img-element

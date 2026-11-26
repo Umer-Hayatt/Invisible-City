@@ -88,7 +88,7 @@ export async function requestJob(officeId: number, issueId: number, note: string
         `${o.name} would like to fix this Issue in ${job.neighborhood}.`,
         ...(note ? [`Their note: ${note}`] : []),
         "",
-        `Open Job requests in Invisible City to send them a contract, talk to them, or call them.`,
+        `Open Job requests in Civora to send them a contract, talk to them, or call them.`,
         `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/admin/requests`,
       ].join("\n"),
     });

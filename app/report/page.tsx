@@ -7,7 +7,7 @@ import { useRef, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { celebrate } from "@/components/Motion";
 import Gate from "@/components/Gate";
-import { Card, CategoryChip, CriticalTag, PageHeader, btn, categoryLabel, field } from "@/components/ui";
+import { Card, CriticalTag, PageHeader, btn, categoryLabel, field } from "@/components/ui";
 import VoiceInput from "@/components/VoiceInput";
 import { api, prepareImage } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
@@ -350,10 +350,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
               {a.source === "gemini" ? "Gemini" : a.source === "groq" ? "Groq" : t("report.aiOffline")})
             </div>
             <div className="text-xl font-bold leading-snug">{a.title}</div>
-            <div className="flex flex-wrap items-center gap-2">
-              <CategoryChip category={a.category} />
-              <CriticalTag severity={a.severity} />
-            </div>
+            <CriticalTag severity={a.severity} />
             <p className="text-base leading-relaxed text-ink-2">{a.summary}</p>
             {a.hazards.length > 0 && (
               <ul className="space-y-1 text-sm text-ink-2">

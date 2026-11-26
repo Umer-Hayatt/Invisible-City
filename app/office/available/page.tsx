@@ -1,46 +1,42 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Clock, FileSignature, Hand, MessagesSquare, SearchCheck, XCircle } from "lucide-react";
+import { ArrowUpRight, Hand, SearchCheck } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { AskActions, isRequested, type AvailableJob } from "@/components/BusinessJob";
 import Gate from "@/components/Gate";
-import JobChat from "@/components/JobChat";
-import { Card, CategoryChip, CriticalTag, Empty, IssueThumb, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
+import { Card, CriticalTag, Empty, IssueThumb, ListSkeleton, PageHeader } from "@/components/ui";
+import { ViewTabs, useView } from "@/components/ViewTabs";
 import { api, timeAgo } from "@/lib/client";
-import { errorText, t } from "@/lib/i18n";
-import type { Category, Severity } from "@/lib/types";
+import { t } from "@/lib/i18n";
 import { imageUrl } from "@/lib/uploads-url";
-
-interface Job {
-  id: number;
-  title: string;
-  category: Category;
-  severity: Severity;
-  neighborhood: string;
-  report_count: number;
-  cover_image: string | null;
-  created_at: string;
-  request: "pending" | "accepted" | "declined" | null;
-  contract: boolean;
-}
 
 export default function AvailablePage() {
   return (
     <Gate roles={["office"]} next="/office/available">
-      <Available />
+      <Suspense fallback={<ListSkeleton />}>
+        <Available />
+      </Suspense>
     </Gate>
   );
 }
 
-/** Open Issues of the Business's Department in its sector. It asks for one, then talks it over with the Authority. */
+/** Open jobs the Business can still ask for, and the ones it already asked for (or was offered a contract for). */
+const VIEWS = ["open", "requested"] as const;
+
 function Available() {
-  const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [jobs, setJobs] = useState<AvailableJob[] | null>(null);
   const load = useCallback(() => {
-    api<{ jobs: Job[] }>("/api/office/available")
+    api<{ jobs: AvailableJob[] }>("/api/office/available")
       .then((d) => setJobs(d.jobs))
       .catch(() => setJobs([]));
   }, []);
   useEffect(load, [load]);
+
+  const requested = jobs?.filter(isRequested) ?? [];
+  const open = jobs?.filter((j) => !isRequested(j)) ?? [];
+  const [view, setView] = useView(VIEWS, jobs && { open: open.length, requested: requested.length });
+  const shown = view === "open" ? open : requested;
 
   return (
     <div>
@@ -50,116 +46,48 @@ function Available() {
       ) : jobs.length === 0 ? (
         <Empty icon={SearchCheck} title={t("available.empty")} />
       ) : (
-        <div className="grid items-start gap-5 lg:grid-cols-2">
-          {jobs.map((j) => (
-            <AvailableCard key={j.id} job={j} onChanged={load} />
-          ))}
-        </div>
+        <>
+          <ViewTabs
+            label={t("available.title")}
+            value={view}
+            onChange={setView}
+            tabs={[
+              { value: "open", label: t("available.tabOpen"), count: open.length },
+              { value: "requested", label: t("available.tabRequested"), count: requested.length },
+            ]}
+          />
+          {shown.length === 0 ? (
+            <Empty icon={view === "open" ? SearchCheck : Hand} title={view === "open" ? t("available.emptyOpen") : t("available.emptyRequested")} />
+          ) : (
+            <div className="grid items-start gap-5 lg:grid-cols-2">
+              {shown.map((j) => (
+                <AvailableCard key={j.id} job={j} onChanged={load} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-function AvailableCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
-  const [asking, setAsking] = useState(false);
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [chat, setChat] = useState(false);
-
-  async function ask() {
-    setBusy(true);
-    setErr("");
-    try {
-      await api(`/api/office/available/${job.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note }),
-      });
-      setAsking(false);
-      setChat(true);
-      onChanged();
-    } catch (e) {
-      setErr(errorText((e as Error).message));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const status =
-    job.contract ? (
-      <Link href="/office/contracts" className="flex items-center gap-2 text-[15px] font-semibold text-brand hover:underline">
-        <FileSignature size={15} aria-hidden /> {t("contract.offered")}
-      </Link>
-    ) : job.request === "pending" ? (
-      <p className="flex items-center gap-2 text-[15px] font-medium text-ink-2">
-        <Clock size={15} aria-hidden /> {t("available.pending")}
-      </p>
-    ) : job.request === "declined" ? (
-      <p className="flex items-center gap-2 text-[15px] text-muted">
-        <XCircle size={15} aria-hidden /> {t("available.declined")}
-      </p>
-    ) : job.request === "accepted" ? (
-      <p className="flex items-center gap-2 text-[15px] font-medium text-brand">
-        <CircleCheck size={15} aria-hidden /> {t("available.accepted")}
-      </p>
-    ) : null;
-
+function AvailableCard({ job, onChanged }: { job: AvailableJob; onChanged: () => void }) {
   return (
     <Card className="overflow-hidden">
       <div className="flex gap-4 p-4">
         <IssueThumb src={imageUrl(job.cover_image)} category={job.category} className="h-24 w-28 shrink-0 rounded-[6px]" />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <CategoryChip category={job.category} />
-            <CriticalTag severity={job.severity} />
-          </div>
-          <Link href={`/issues/${job.id}`} className="mt-1.5 flex items-start gap-1 text-lg font-semibold leading-snug hover:underline">
-            {job.title} <ArrowUpRight size={16} className="mt-1 shrink-0" aria-hidden />
+          <Link href={`/issues/${job.id}`} className="flex items-start gap-1 text-lg font-semibold leading-snug hover:underline">
+            {job.title} <ArrowUpRight size={16} className="mt-1 shrink-0 rtl:-scale-x-100" aria-hidden />
           </Link>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
             {job.neighborhood} · {t("office.reports", { n: job.report_count })} · {timeAgo(job.created_at)}
+            <CriticalTag severity={job.severity} />
           </p>
         </div>
       </div>
-      <div className="space-y-3 border-t border-line p-4">
-        {status}
-        {job.request !== "pending" && !job.contract && !asking && (
-          <button type="button" disabled={busy} onClick={() => setAsking(true)} className={btn.primary}>
-            <Hand size={16} aria-hidden /> {t("available.ask")}
-          </button>
-        )}
-        {asking && (
-          <div className="space-y-2">
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              maxLength={500}
-              rows={2}
-              placeholder={t("available.notePlaceholder")}
-              aria-label={t("available.notePlaceholder")}
-              className={field}
-            />
-            <div className="flex gap-2">
-              <button type="button" disabled={busy} onClick={ask} className={btn.primary}>
-                {t("available.send")}
-              </button>
-              <button type="button" disabled={busy} onClick={() => setAsking(false)} className={btn.ghost}>
-                {t("office.cancel")}
-              </button>
-            </div>
-          </div>
-        )}
-        {err && <p className="text-sm font-medium text-danger-ink">{err}</p>}
-        <button
-          type="button"
-          onClick={() => setChat(!chat)}
-          aria-expanded={chat}
-          className="flex min-h-11 items-center gap-2 text-[15px] font-semibold text-brand hover:underline"
-        >
-          <MessagesSquare size={16} aria-hidden /> {chat ? t("chat.hide") : t("chat.withAuthority")}
-        </button>
-        {chat && <JobChat issueId={job.id} />}
+      <div className="border-t border-line p-4">
+        <AskActions job={job} onChanged={onChanged} />
       </div>
     </Card>
   );

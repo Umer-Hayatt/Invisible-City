@@ -1,4 +1,4 @@
-# Invisible City: Product Requirements
+# Civora: Product Requirements
 
 _See the unseen. Fix the forgotten._ Agreed with the team on 22 November 2026; hackathon deadline 28 November 2026. Terms in **bold** are defined in [`GLOSSARY.md`](../GLOSSARY.md).
 
@@ -19,7 +19,7 @@ The demo story: a Citizen reports a pothole in F-10 → the AI recognises road d
 | **Citizen** | Any member of the public | Signs in with Google and completes their profile |
 | **Authority** | A city official who reviews, flags spam and sends **Contracts**, for one **Area** or the whole city | Submits an **Access request** naming the Area (or the whole city); a **Super Admin** approves it |
 | **Office** | One Office of a **Department**, or a private business doing that Department's work, signing in with one email | Files an **Office registration** with the Google account it will use; an Authority of that Area (or of the whole city) approves it. An Authority can also add an Office and set its email |
-| **Super Admin** | The Invisible City team | Their Gmail is listed in the server setting `SUPER_ADMIN_EMAILS` |
+| **Super Admin** | The Civora team | Their Gmail is listed in the server setting `SUPER_ADMIN_EMAILS` |
 | **MNA** | Elected representative of a **Constituency** | Later release |
 
 Every screen calls an Office a **Business** (government or private); the code keeps the name Office. Authorities, Businesses and the Super Admin each work in a sidebar workspace with no top bar and no site footer: Businesses have Jobs and My Business (details and workers); the Super Admin has Access requests, Authorities, Businesses and Insights. Citizens and visitors see only the map (home), Report and My reports; Insights is for Authorities and the Super Admin only (24 November 2026).

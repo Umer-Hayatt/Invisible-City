@@ -15,20 +15,21 @@ export function Segmented<T extends string>({
 }: {
   value: T;
   onChange: (v: T) => void;
-  options: { value: T; label: string; icon?: LucideIcon }[];
+  /** `count`, when given, shows how many items the option holds. */
+  options: { value: T; label: string; icon?: LucideIcon; count?: number }[];
   /** On a navy band. */
   dark?: boolean;
 }) {
   const name = "seg-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
-    <div className={`inline-flex rounded-[6px] border p-0.5 ${dark ? "border-on-dark-2" : "border-muted bg-surface"}`}>
+    <div className={`inline-flex max-w-full overflow-x-auto rounded-[6px] border p-0.5 ${dark ? "border-on-dark-2" : "border-muted bg-surface"}`}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           aria-pressed={value === o.value}
           onClick={() => startTransition(() => onChange(o.value))}
-          className={`press relative isolate inline-flex min-h-11 items-center gap-1.5 rounded-[4px] px-3.5 text-[15px] font-semibold transition-colors ${
+          className={`press relative isolate inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] px-3.5 text-[15px] font-semibold transition-colors ${
             value === o.value ? "text-on-lime" : dark ? "text-on-dark-2 hover:text-on-dark" : "text-ink-2 hover:text-ink"
           }`}
         >
@@ -39,6 +40,15 @@ export function Segmented<T extends string>({
           )}
           {o.icon && <o.icon size={15} />}
           {o.label}
+          {o.count !== undefined && (
+            <span
+              className={`min-w-6 rounded-full px-1.5 text-center text-[13px] tabular-nums ${
+                value === o.value ? "bg-char/10" : dark ? "bg-on-dark/15" : "bg-sunken text-ink-2"
+              }`}
+            >
+              {o.count}
+            </span>
+          )}
         </button>
       ))}
     </div>

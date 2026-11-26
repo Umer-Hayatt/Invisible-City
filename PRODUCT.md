@@ -39,7 +39,7 @@ A closed loop with proof. An Issue is not done when an official says so: the Off
 
 ## Brand Commitments
 
-- Name: **INvisible City** (styled with "IN" emphasised). No other visual element is fixed; logo mark, palette, type and tagline are open to replacement.
+- Name: **Civora**. No other visual element is fixed; logo mark, palette, type and tagline are open to replacement.
 
 ## Evidence on Hand
 

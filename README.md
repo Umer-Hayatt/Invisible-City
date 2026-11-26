@@ -1,4 +1,4 @@
-# INvisible City - See the unseen. Fix the forgotten.
+# Civora - See the unseen. Fix the forgotten.
 
 Civic-problem reporting for Islamabad. A Citizen reports a problem with a photo and a location, AI reads and de-duplicates it, an Authority sends it to the Office that can fix it, the Office records a Fix with an after-repair photo, and the Citizen confirms it. Public pages show the map and neighbourhood insights without exposing who reported what.
 

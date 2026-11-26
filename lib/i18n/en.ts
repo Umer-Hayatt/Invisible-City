@@ -168,7 +168,7 @@ export const en = {
   "demo.accountOfficeElectrical": "Business: Electrical",
   "demo.accountSuperAdmin": "Super Admin",
 
-  "signin.title": "Sign in to Invisible City",
+  "signin.title": "Sign in to Civora",
   "signin.sub": "Use your Google account. Signing in lets you report problems and follow them until they are fixed.",
   "signin.google": "Continue with Google",
   "signin.working": "Opening Google…",
@@ -203,7 +203,7 @@ export const en = {
   "profile.saved": "Saved.",
 
   "access.title": "Request Authority access",
-  "access.sub": "For people who work for the city. A member of the Invisible City team checks each request before anyone is given official access.",
+  "access.sub": "For people who work for the city. A member of the Civora team checks each request before anyone is given official access.",
   "access.name": "Full name",
   "access.department": "Department",
   "access.pickDepartment": "Choose a Department",
@@ -569,6 +569,24 @@ export const en = {
   "office.workersLine": "{spare} spare, {active} jobs in hand. Keep this number current.",
   "office.workersNone": "Say how many workers your Business has, so the city can see spare hands.",
   "insights.idleReason": "{spare} of {workers} workers have no job while {stale} Issues wait more than 7 days",
+  "business.done": "Resolved",
+  "business.emptyAssigned": "No new jobs to start.",
+  "business.emptyInProgress": "No job is being worked on right now.",
+  "business.emptyFixed": "No Fix is waiting for Citizens to confirm.",
+  "business.emptyDone": "No resolved jobs yet.",
+  "business.findJobs": "See available jobs",
+  "business.yourJob": "Your job",
+  "business.openJob": "Open job",
+  "available.tabOpen": "Open",
+  "available.tabRequested": "Requested",
+  "available.emptyOpen": "Nothing new to ask for. Your requests are under Requested.",
+  "available.emptyRequested": "You have not asked for any job yet.",
+  "contract.tabPending": "Pending",
+  "contract.tabAccepted": "Accepted",
+  "contract.tabDeclined": "Declined",
+  "contract.noneAccepted": "No accepted contracts yet.",
+  "contract.noneDeclined": "No declined or withdrawn contracts.",
+  "requests.noneDecided": "No request has been answered yet.",
 } as const;
 
 export type MessageKey = keyof typeof en;

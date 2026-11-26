@@ -1,6 +1,6 @@
 # HANDOFF (25 November 2026). Read this first.
 
-Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invisible-City. Never push to `main`; one branch and one pull request per piece of work. The owner (Umer) reviews, merges, deploys and applies database migrations to the live Supabase.
+Hackathon deadline: 28 November 2026. Repo: https://github.com/Umer-Hayatt/Invisible-City. Commit and push straight to `main`. Make a branch or pull request only when the owner (Umer) asks for one. The owner deploys and applies database migrations to the live Supabase.
 
 ## Pull requests and what to do with each (in this order)
 

@@ -26,7 +26,7 @@ const AnalysisSchema = z.object({
   hazards: z.array(z.string()).describe("Up to 3 concrete risks, e.g. 'motorcycle accidents'."),
 });
 
-const SYSTEM_PROMPT = `You are the triage engine for "INvisible City", a civic issue reporting platform for Islamabad, Pakistan.
+const SYSTEM_PROMPT = `You are the triage engine for "Civora", a civic issue reporting platform for Islamabad, Pakistan.
 Citizens submit a photo and/or short description of a problem. Classify it so city departments can prioritise repairs.
 
 Categories:

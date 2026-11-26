@@ -1,5 +1,5 @@
 ---
-name: INvisible City
+name: Civora
 description: Hi-vis lime on charcoal and navy; a repair crew's vest as the interface.
 colors:
   lime: "#cdf22b"
@@ -36,7 +36,7 @@ rounded:
   panel: "8px"
 ---
 
-# Design System: INvisible City
+# Design System: Civora
 
 The team's reference picture (`fixes.docx`, 24 November 2026) sets this look. It replaces the road-signage design. All tokens live at the top of `app/globals.css`; screens use them by name and never branch by theme.
 

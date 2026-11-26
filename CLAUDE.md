@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Invisible City
+# Civora
 
 Civic-problem reporting for Islamabad. Hackathon deadline: 28 November 2026.
 

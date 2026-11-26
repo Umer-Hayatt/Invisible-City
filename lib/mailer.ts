@@ -40,7 +40,7 @@ function gmailMailer(user: string, pass: string): Mailer {
         greetingTimeout: 8_000,
         socketTimeout: 10_000,
       });
-      await transport.sendMail({ from: `Invisible City <${user}>`, to: mail.to, subject: mail.subject, text: mail.body,
+      await transport.sendMail({ from: `Civora <${user}>`, to: mail.to, subject: mail.subject, text: mail.body,
         attachments: mail.attachments,
       });
     },
