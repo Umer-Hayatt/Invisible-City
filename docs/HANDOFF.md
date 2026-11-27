@@ -49,15 +49,17 @@ Done (pushed to `civora-design`, commit 0fd547a and after):
 - [x] Super Admin Businesses page: table with status tabs, type filter, search, pagination, row action menu and confirm dialog.
 
 Still to do on this branch (in this order):
-- [ ] Super Admin Authorities page: same table pattern as Businesses (search, Active/Revoked tabs, pagination, ConfirmDialog instead of window.confirm).
-- [ ] Super Admin Access requests page: tabs Pending/Decided, approve/decline with ConfirmDialog.
-- [ ] Authority Businesses page (`app/admin/offices`): table with search and pagination; registrations list.
-- [ ] Authority Reports queue: add search and pagination; Job requests and Contracts lists: search and status tabs.
-- [ ] Business pages (Jobs, Available jobs, Contracts, My Business): check spacing on phone and laptop.
-- [ ] Home page: the "Active repairs" navy band could become a light section with white cards; check the hero buttons.
-- [ ] Replace remaining `window.confirm` calls with ConfirmDialog (grep window.confirm).
-- [ ] Check every role in the preview (phone 375px and laptop), run tsc, eslint, npm test, then open the PR into main (no migration needed).
-- [ ] Update DESIGN.md (still describes the lime theme) and refresh `.impeccable/`.
+- [x] Super Admin Authorities page: same table pattern as Businesses (search, Active/Revoked tabs, pagination, ConfirmDialog instead of window.confirm).
+- [x] Super Admin Access requests page: tabs Pending/Decided, approve/decline with ConfirmDialog.
+- [x] Authority Businesses page (`app/admin/offices`): table with search and pagination; registrations list.
+- [x] Authority Reports queue: search and pagination. Job requests and Contracts already had status tabs (Umer); no search yet (short lists).
+- [x] Business pages (Jobs, Available jobs, Contracts, My Business): check spacing on phone and laptop.
+- [x] Home page: the "Active repairs" navy band could become a light section with white cards; check the hero buttons.
+- [x] Replace remaining `window.confirm` calls with ConfirmDialog (grep window.confirm).
+- [x] Checked in the preview (phone 375px, laptop, dark mode); tsc, eslint, 253 tests pass; PR opened into main (no migration needed).
+- [x] DESIGN.md rewritten for the Civora system.
+- [ ] Refresh `.impeccable/` (still the old design).
+- [ ] Animations (later phase): reveals, counters, page transitions, map interactions.
 
 ## Remaining work
 

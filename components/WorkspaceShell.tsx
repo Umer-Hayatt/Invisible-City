@@ -77,7 +77,7 @@ export default function WorkspaceShell({ role, children }: { role: Role; childre
             <UserMenu />
           </div>
         </div>
-        <nav aria-label={t("authority.workspace")} className="flex gap-1 overflow-x-auto px-3 pb-2.5">
+        <nav aria-label={t("authority.workspace")} className="flex gap-1 overflow-x-auto px-3 pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {ITEMS.map((i) => link(i, true))}
         </nav>
       </header>
