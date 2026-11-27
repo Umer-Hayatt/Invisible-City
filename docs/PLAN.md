@@ -194,3 +194,13 @@ Still to do on this branch (in this order):
 - [x] Insights page (Super Admin): sections rise in, the finding columns arrive in turn, each sector has a fix-rate bar that grows under its name.
 - [x] Issue page: the title reveals word by word, the photo settles, before/after photos clip-reveal, the timeline steps arrive in turn.
 - [ ] Refresh `.impeccable/`.
+
+## Civora cinematic upgrade (27 November 2026), branch `civora-cinematic`
+
+- [x] Backgrounds: Magic UI grid and dot patterns (MIT); our own Aurora, MeshGradient and Beams. shadcn.io backgrounds need a sign-in and their licence is unclear for a public repo; Aceternity's licence forbids redistributing source; the user chose MIT libraries.
+- [x] Seven licensed photographs of Islamabad and Pakistan (Unsplash, Pexels) in `public/photos/islamabad`, with `public/photos/CREDITS.md` and footer credits.
+- [x] Home: aurora hero over Islamabad at night with BlurText and parallax; How it works on a grid; new bento features grid; statistics on a mesh gradient; closing call with beams over Daman-e-Koh.
+- [x] BlurText, ScrollReveal, ParallaxImage, BentoCard in `components/animate`.
+- [x] Brand scrollbar; sign-in page Islamabad panel; faint grid in every page header.
+- [ ] How it works steps 1 and 3 still use Wikimedia photos from New Orleans and Warsaw (no free licensed Islamabad pothole or repair photo exists on Unsplash, Pexels or Pixabay). Replace with the team's own Islamabad photos.
+- [ ] Demo Issue thumbnails are still placeholders (`scripts/placeholder-photos.ts`); real report photos come from Citizens.

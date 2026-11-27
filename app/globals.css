@@ -435,22 +435,33 @@ body {
   overflow-x: clip;
 }
 
-/* A slim scrollbar in the site's colours (Firefox, then Chrome/Edge/Safari). */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-muted) var(--color-sunken);
+/* The Civora scrollbar: a thin canvas track and a rounded navy-to-blue thumb that brightens towards teal on
+   hover. The native scrollbar stays (keyboard, touch and screen readers are untouched); only its look changes.
+   Chrome, Edge and Safari use the ::-webkit-scrollbar rules; Firefox gets the standard colours. (Chrome ignores
+   the webkit rules when scrollbar-color is set, hence the Firefox-only block.) */
+@supports (-moz-appearance: none) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-navy-2) var(--color-canvas);
+  }
 }
 ::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-sunken);
+  background: var(--color-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  border: 3px solid var(--color-sunken);
+  border: 2.5px solid var(--color-canvas);
   border-radius: 9999px;
-  background: var(--color-muted);
+  background: linear-gradient(180deg, var(--color-navy), var(--color-action));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--color-action), var(--color-teal));
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-canvas);
 }
 .scroll-navy {
   scrollbar-width: thin;
@@ -515,5 +526,79 @@ textarea {
 }
 .viewfinder::after {
   transform: scaleX(-1);
+}
+
+
+/* ======================================================================
+   Backgrounds (components/backgrounds). Transform-only keyframes; still for reduced motion.
+   ====================================================================== */
+.aurora-ribbon {
+  position: absolute;
+  width: 140%;
+  height: 80%;
+  left: -20%;
+  border-radius: 9999px;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.aurora-a {
+  top: -25%;
+  background: radial-gradient(closest-side, rgb(37 99 235 / 0.55), transparent);
+  animation: aurora-a 22s ease-in-out infinite alternate;
+}
+.aurora-b {
+  top: -10%;
+  background: radial-gradient(closest-side, rgb(20 184 166 / 0.28), transparent);
+  animation: aurora-b 28s ease-in-out infinite alternate;
+}
+.aurora-c {
+  top: 5%;
+  background: radial-gradient(closest-side, rgb(59 130 246 / 0.32), transparent);
+  animation: aurora-c 34s ease-in-out infinite alternate;
+}
+@keyframes aurora-a {
+  from { transform: translate3d(-12%, 0, 0) rotate(-8deg) scaleY(0.7); }
+  to { transform: translate3d(10%, 6%, 0) rotate(6deg) scaleY(0.9); }
+}
+@keyframes aurora-b {
+  from { transform: translate3d(14%, 4%, 0) rotate(10deg) scaleY(0.5); }
+  to { transform: translate3d(-10%, -4%, 0) rotate(-4deg) scaleY(0.75); }
+}
+@keyframes aurora-c {
+  from { transform: translate3d(-6%, 8%, 0) rotate(4deg) scaleY(0.6); }
+  to { transform: translate3d(8%, -2%, 0) rotate(-10deg) scaleY(0.8); }
+}
+
+.mesh-blob {
+  position: absolute;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.mesh-1 { top: -30%; left: -10%; background: radial-gradient(closest-side, rgb(37 99 235 / 0.55), transparent); animation: mesh-1 26s ease-in-out infinite alternate; }
+.mesh-2 { top: 20%; right: -15%; background: radial-gradient(closest-side, rgb(20 184 166 / 0.3), transparent); animation: mesh-2 30s ease-in-out infinite alternate; }
+.mesh-3 { bottom: -40%; left: 25%; background: radial-gradient(closest-side, rgb(33 57 106 / 0.9), transparent); animation: mesh-3 24s ease-in-out infinite alternate; }
+.mesh-4 { top: -20%; right: 20%; background: radial-gradient(closest-side, rgb(96 165 250 / 0.22), transparent); animation: mesh-4 32s ease-in-out infinite alternate; }
+@keyframes mesh-1 { to { transform: translate3d(18%, 14%, 0) scale(1.1); } }
+@keyframes mesh-2 { to { transform: translate3d(-20%, -10%, 0) scale(0.9); } }
+@keyframes mesh-3 { to { transform: translate3d(-14%, -18%, 0) scale(1.15); } }
+@keyframes mesh-4 { to { transform: translate3d(-10%, 16%, 0) scale(1.05); } }
+
+.beam-pulse {
+  stroke-dasharray: 0.12 1;
+  stroke-dashoffset: 1.12;
+  animation: beam-pulse 7s linear infinite;
+}
+@keyframes beam-pulse {
+  to { stroke-dashoffset: -0.12; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-ribbon,
+  .mesh-blob,
+  .beam-pulse {
+    animation: none !important;
+  }
 }
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { m, useReducedMotion, useScroll, useSpring, type HTMLMotionProps } from "motion/react";
+import { m, useReducedMotion, useScroll, useSpring, useTransform, type HTMLMotionProps } from "motion/react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useRef, type ReactNode } from "react";
 import { DURATION, EASE_OUT, RISE, SPRING, STAGGER, VIEWPORT, fadeUp, stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -220,5 +221,171 @@ export function ScrollProgress({ className }: { className?: string }) {
       style={{ scaleX }}
       className={cn("pointer-events-none fixed inset-x-0 top-0 z-[1002] h-0.5 origin-left bg-action rtl:origin-right", className)}
     />
+  );
+}
+
+/**
+ * Words appear one after another from left to right, each going from blurred and slightly low to sharp and in
+ * place. For major headings only. The blur is small (8px) and on short text; screen readers get the sentence.
+ */
+export function BlurText({
+  text,
+  as = "h2",
+  className,
+  delay = 0,
+  now = false,
+}: {
+  text: string;
+  as?: "h1" | "h2" | "h3" | "p" | "span";
+  className?: string;
+  delay?: number;
+  now?: boolean;
+}) {
+  const reduce = useReducedMotion();
+  const Tag = as;
+  if (reduce) return <Tag className={className}>{text}</Tag>;
+  const MotionTag = m[as];
+  const trigger = now ? { animate: "show" } : { whileInView: "show", viewport: VIEWPORT };
+  return (
+    <MotionTag aria-label={text} initial="hidden" {...trigger} variants={stagger(0.07, delay)} className={className}>
+      {text.split(/(\s+)/).map((w, i) =>
+        /^\s+$/.test(w) ? (
+          " "
+        ) : (
+          <m.span
+            key={i}
+            aria-hidden
+            className="inline-block will-change-[transform,filter,opacity]"
+            variants={{
+              hidden: { opacity: 0, y: "0.25em", filter: "blur(8px)" },
+              show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.7, ease: EASE_OUT } },
+            }}
+          >
+            {w}
+          </m.span>
+        ),
+      )}
+    </MotionTag>
+  );
+}
+
+type Direction = "up" | "down" | "left" | "right";
+const OFFSET: Record<Direction, { x?: number; y?: number }> = { up: { y: 32 }, down: { y: -32 }, left: { x: 40 }, right: { x: -40 } };
+
+/** A block that enters from a direction (it moves *towards* that direction) when it scrolls into view, once. */
+export function ScrollReveal({
+  children,
+  from = "up",
+  delay = 0,
+  className,
+  as = "div",
+}: {
+  children: ReactNode;
+  from?: Direction;
+  delay?: number;
+  className?: string;
+  as?: "div" | "section" | "li";
+}) {
+  const Tag = m[as] as typeof m.div;
+  return (
+    <Tag
+      initial={{ opacity: 0, ...OFFSET[from] }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={VIEWPORT}
+      transition={{ duration: DURATION.slow, ease: EASE_OUT, delay }}
+      className={className}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+/**
+ * An image that drifts a little slower than the page while it scrolls past (scroll-linked, on the compositor).
+ * The image is drawn a bit larger than its frame so the drift never shows an edge. Still for reduced motion.
+ */
+export function ParallaxImage({
+  src,
+  alt,
+  className,
+  imgClassName,
+  distance = 60,
+  priority = false,
+  sizes = "100vw",
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  imgClassName?: string;
+  distance?: number;
+  priority?: boolean;
+  sizes?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [-distance, distance]);
+  return (
+    <div ref={ref} className={cn("relative overflow-hidden", className)}>
+      <m.div className="absolute inset-x-0 -inset-y-[12%]" style={{ y }}>
+        <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className={cn("object-cover", imgClassName)} />
+      </m.div>
+    </div>
+  );
+}
+
+/**
+ * A bento tile: enters with its group (StaggerItem variants), lifts and lights its border on hover, and zooms its
+ * photograph slightly. `image` is optional; the tile can hold any content.
+ */
+export function BentoCard({
+  children,
+  className,
+  image,
+  imageAlt = "",
+  imagePosition = "center",
+  dark = false,
+  sizes = "(min-width: 1024px) 34vw, (min-width: 640px) 50vw, 100vw",
+}: {
+  children: ReactNode;
+  className?: string;
+  image?: string;
+  imageAlt?: string;
+  imagePosition?: string;
+  dark?: boolean;
+  /** How wide the tile is on each screen, so the photograph is fetched at the right size. */
+  sizes?: string;
+}) {
+  return (
+    <m.div
+      variants={fadeUp(RISE.story, DURATION.slow)}
+      whileHover={{ y: -4, transition: { duration: DURATION.fast } }}
+      className={cn(
+        "group relative isolate overflow-hidden rounded-xl border transition-[border-color,box-shadow] duration-300",
+        dark ? "border-on-dark/10 bg-navy text-on-dark hover:border-teal/50" : "border-line bg-surface hover:border-action/40",
+        "hover:shadow-[0_0_0_1px_rgb(37_99_235/0.15),0_18px_40px_-12px_rgb(15_23_42/0.35)]",
+        className,
+      )}
+    >
+      {image && (
+        <>
+          <Image
+            src={image}
+            alt={imageAlt}
+            fill
+            sizes={sizes}
+            className="-z-20 object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+            style={{ objectPosition: imagePosition }}
+          />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/55 to-navy/5" />
+        </>
+      )}
+      {/* The light that follows the border on hover. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -inset-px -z-10 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 [background:radial-gradient(400px_circle_at_50%_0%,rgb(20_184_166/0.18),transparent_60%)]"
+      />
+      {children}
+    </m.div>
   );
 }

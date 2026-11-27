@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { BlurText, SlideUp } from "@/components/animate";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, btn } from "@/components/ui";
@@ -47,9 +49,21 @@ function SignIn() {
   }
 
   return (
-    <div className="mx-auto mt-6 max-w-md space-y-4">
+    <div className="mx-auto mt-2 grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-stretch">
+      {/* The city it is all for: the road to Faisal Mosque under the Margalla Hills. Decorative beside the form. */}
+      <div className="on-dark relative isolate hidden min-h-[560px] overflow-hidden rounded-xl text-on-dark lg:block">
+        <Image src="/photos/islamabad/faisal-mosque-road.jpg" alt={t("signin.panelAlt")} fill priority sizes="50vw" className="-z-20 object-cover" />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(23_43_77/0.1),rgb(23_43_77/0.55)_55%,var(--color-navy))]" />
+        <div className="absolute inset-x-0 bottom-0 p-8">
+          <BlurText as="p" now text={t("signin.panelTitle")} className="max-w-[18ch] text-3xl font-semibold leading-tight tracking-[-0.03em]" />
+          <SlideUp now delay={0.5}>
+            <p className="mt-3 max-w-[40ch] text-[15px] text-on-dark-2">{t("signin.panelSub")}</p>
+          </SlideUp>
+        </div>
+      </div>
+      <div className="mx-auto w-full max-w-md space-y-4 lg:max-w-none">
       <Card className="p-8">
-        <h1 className="text-3xl font-semibold tracking-tight">{t("signin.title")}</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.02em] text-ink sm:text-3xl">{t("signin.title")}</h1>
         <p className="mt-2 text-base text-ink-2">{t("signin.sub")}</p>
         {!loading && me && (
           <p className="mt-4 rounded-[6px] bg-sunken px-3 py-2 text-base">
@@ -87,6 +101,7 @@ function SignIn() {
           </div>
         </Card>
       )}
+      </div>
     </div>
   );
 }
