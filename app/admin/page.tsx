@@ -4,6 +4,9 @@ import { ArrowRight, Building2, Flame, HardHat, Inbox, TriangleAlert, Wrench } f
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Gate from "@/components/Gate";
+import { m } from "motion/react";
+import { StaggerContainer, StaggerItem } from "@/components/animate";
+import { DURATION, EASE_OUT } from "@/lib/motion";
 import { Card, CategoryIcon, CriticalTag, PageHeader, PageSkeleton, SectionTitle, Stat, StatusBadge, categoryLabel } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { t } from "@/lib/i18n";
@@ -67,19 +70,21 @@ function Dashboard() {
         sub={t("authority.dashboardSub")}
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <Stat label={t("admin.statAwaiting")} value={active.filter((i) => i.status === "open").length} icon={Inbox} />
-        <Stat label={t("status.assigned")} value={active.filter((i) => i.status === "assigned").length} icon={HardHat} />
-        <Stat label={t("status.in_progress")} value={active.filter((i) => i.status === "in_progress").length} icon={Wrench} />
-        <Stat label={t("admin.statCritical")} value={active.filter((i) => i.severity === "critical").length} icon={Flame} tone="bad" />
-        <Stat
-          label={t("admin.statNeglected")}
-          value={neglected.length}
-          hint={neglected.map((n) => n.name).join(", ") || t("home.none")}
-          icon={TriangleAlert}
-          tone={neglected.length ? "bad" : "good"}
-        />
-      </div>
+      <StaggerContainer now className="grid grid-cols-2 gap-4 lg:grid-cols-5 [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1 [&>*>*]:h-full">
+        <StaggerItem><Stat label={t("admin.statAwaiting")} value={active.filter((i) => i.status === "open").length} icon={Inbox} /></StaggerItem>
+        <StaggerItem><Stat label={t("status.assigned")} value={active.filter((i) => i.status === "assigned").length} icon={HardHat} /></StaggerItem>
+        <StaggerItem><Stat label={t("status.in_progress")} value={active.filter((i) => i.status === "in_progress").length} icon={Wrench} /></StaggerItem>
+        <StaggerItem><Stat label={t("admin.statCritical")} value={active.filter((i) => i.severity === "critical").length} icon={Flame} tone="bad" /></StaggerItem>
+        <StaggerItem>
+          <Stat
+            label={t("admin.statNeglected")}
+            value={neglected.length}
+            hint={neglected.map((n) => n.name).join(", ") || t("home.none")}
+            icon={TriangleAlert}
+            tone={neglected.length ? "bad" : "good"}
+          />
+        </StaggerItem>
+      </StaggerContainer>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <section>
@@ -91,9 +96,17 @@ function Dashboard() {
                   <CategoryIcon category={c.category} size={16} className="text-muted" />
                   {categoryLabel(c.category)}
                 </span>
-                <div className="flex h-3 gap-0.5 overflow-hidden rounded-[3px] bg-sunken">
-                  <div className="bg-chart-open" style={{ width: `${(c.open / maxCat) * 100}%` }} title={t("insights.openN", { n: c.open })} />
-                  <div className="bg-action-600" style={{ width: `${(c.resolved / maxCat) * 100}%` }} title={t("insights.fixedN", { n: c.resolved })} />
+                <div className="h-2.5 overflow-hidden rounded-full bg-sunken">
+                  <m.div
+                    className="flex h-full origin-left gap-0.5 rtl:origin-right"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: DURATION.slow, ease: EASE_OUT }}
+                  >
+                    <div className="rounded-full bg-chart-open" style={{ width: `${(c.open / maxCat) * 100}%` }} title={t("insights.openN", { n: c.open })} />
+                    <div className="rounded-full bg-action" style={{ width: `${(c.resolved / maxCat) * 100}%` }} title={t("insights.fixedN", { n: c.resolved })} />
+                  </m.div>
                 </div>
                 <span className="text-sm tabular-nums text-ink-2 sm:w-32 sm:text-end">{t("insights.openFixed", { open: c.open, fixed: c.resolved })}</span>
               </div>

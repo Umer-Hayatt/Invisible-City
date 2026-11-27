@@ -183,3 +183,14 @@ Still to do on this branch (in this order):
 - [x] DESIGN.md rewritten for the Civora system.
 - [ ] Refresh `.impeccable/` (still the old design).
 - [ ] Animations (later phase): reveals, counters, page transitions, map interactions.
+
+## Civora motion (27 November 2026), branch `civora-motion`
+
+- [x] Animation system: `lib/motion.ts` tokens and `components/animate/` components; PageTransition on every route; Lenis on public pages only.
+- [x] Home page: word-by-word hero, photo ease-in and parallax, eyebrow labels, scroll reveals, clip-reveal step images, light figures section with count-up cards, closing call reveal, scroll progress bar.
+- [x] Citizen: report steps arrive in turn; My reports cards stagger and glide.
+- [x] Workspace: sliding sidebar indicator, dashboard figures and growing category bars, staggered request, contract and job lists, chat messages slide in.
+- [x] Fixed: the chart colour token renamed by mistake in #16 (grey "open" bars were invisible).
+- [x] Insights page (Super Admin): sections rise in, the finding columns arrive in turn, each sector has a fix-rate bar that grows under its name.
+- [x] Issue page: the title reveals word by word, the photo settles, before/after photos clip-reveal, the timeline steps arrive in turn.
+- [ ] Refresh `.impeccable/`.

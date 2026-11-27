@@ -34,6 +34,17 @@ Security: the Supabase database password, the Cloudinary secret and the Gemini k
 - Contracts: the app makes a formatted PDF the Business accepts in the app; payment is **recorded** (agreed, paid), never moved. The PDF does not claim to be legally binding by itself.
 - Calls are `tel:` links (the phone's dialer), not in-app calling.
 
+## Civora motion (27 November 2026), branch `civora-motion`
+
+- [x] Animation system: `lib/motion.ts` tokens and `components/animate/` components; PageTransition on every route; Lenis on public pages only.
+- [x] Home page: word-by-word hero, photo ease-in and parallax, eyebrow labels, scroll reveals, clip-reveal step images, light figures section with count-up cards, closing call reveal, scroll progress bar.
+- [x] Citizen: report steps arrive in turn; My reports cards stagger and glide.
+- [x] Workspace: sliding sidebar indicator, dashboard figures and growing category bars, staggered request, contract and job lists, chat messages slide in.
+- [x] Fixed: the chart colour token renamed by mistake in #16 (grey "open" bars were invisible).
+- [x] Insights page (Super Admin): sections rise in, the finding columns arrive in turn, each sector has a fix-rate bar that grows under its name.
+- [x] Issue page: the title reveals word by word, the photo settles, before/after photos clip-reveal, the timeline steps arrive in turn.
+- [ ] Refresh `.impeccable/`.
+
 ## Civora frontend redesign (27 November 2026), branch `civora-design`
 
 Asked by the user: premium SaaS look (Linear, Stripe, Vercel, Mercury), shadcn/ui, palette navy #172B4D, royal blue #2563EB actions, teal #14B8A6 accents, off-white #F8FAFC, white cards, text #0F172A / #64748B, borders #E2E8F0, Geist font, no new animation libraries (animations come later), no backend/API/auth changes. The user wrote "Civore"; the app is named **Civora** (Umer renamed it); ask before changing.

@@ -3,6 +3,7 @@
 import { Flame, MapPin } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { FadeIn, RevealText, ScrollProgress, SlideUp, StaggerContainer, StaggerItem } from "@/components/animate";
 import CityMap, { MapLayer, pinColor } from "@/components/CityMap";
 import { ClosingCall, Figures, Hero, HowItWorks, wrap } from "@/components/home/Landing";
 import { CriticalTag, Segmented, StatusBadge, categoryLabel } from "@/components/ui";
@@ -47,14 +48,27 @@ export default function Home() {
 
   return (
     <>
+      <ScrollProgress />
       <Hero />
       <HowItWorks issues={active} />
 
       <section id="map" aria-labelledby="map-title" className="scroll-mt-16 border-t border-line bg-canvas pb-16 pt-20 sm:pb-20 sm:pt-24">
         <div className={wrap}>
-          <h2 id="map-title" className="text-center text-3xl font-semibold tracking-[-0.02em] text-ink sm:text-4xl">
+          <div className="flex flex-col items-center">
+            <FadeIn>
+              <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-xs font-medium text-ink-2 ring-1 ring-inset ring-line">
+                <span aria-hidden className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-teal opacity-60 motion-reduce:hidden" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-teal" />
+                </span>
+                {t("home.mapEyebrow")}
+              </span>
+            </FadeIn>
+            <RevealText as="h2" text={t("home.mapTitle")} className="mt-4 text-center text-3xl font-semibold tracking-[-0.025em] text-ink sm:text-4xl" />
+          </div>
+          <span id="map-title" hidden>
             {t("home.mapTitle")}
-          </h2>
+          </span>
           {examples > 0 && <p className="mx-auto mt-3 max-w-[60ch] text-center text-[15px] text-muted">{t("home.examplesNote")}</p>}
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
@@ -93,18 +107,18 @@ export default function Home() {
           </div>
 
           <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
-            <div data-kind="product" className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+            <SlideUp data-kind="product" className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
               <CityMap issues={visible} layer={layer} className="h-[420px] sm:h-[540px]" />
               <Legend />
-            </div>
+            </SlideUp>
 
             <div className="flex min-w-0 flex-col lg:relative">
               <div className="max-h-[560px] overflow-y-auto pe-2 lg:absolute lg:inset-0 lg:max-h-none" tabIndex={0} role="region" aria-label={t("home.activeList")}>
-                <ul className="space-y-3">
+                <StaggerContainer as="ul" className="space-y-3">
                   {!loaded && [0, 1, 2, 3, 4].map((n) => <li key={n} className="skeleton h-[88px] rounded-lg" />)}
                   {loaded && active.length === 0 && <li className="rounded-lg border border-dashed border-line-strong p-5 text-sm text-muted">{t("home.noActive")}</li>}
                   {active.map((i) => (
-                    <li key={i.id}>
+                    <StaggerItem as="li" key={i.id}>
                       <Row issue={i}>
                         <span className="flex items-start justify-between gap-3">
                           <span className="min-w-0 text-[15px] font-semibold leading-snug text-ink">
@@ -120,9 +134,9 @@ export default function Home() {
                           <CriticalTag severity={i.severity} status={i.status} />
                         </span>
                       </Row>
-                    </li>
+                    </StaggerItem>
                   ))}
-                </ul>
+                </StaggerContainer>
               </div>
             </div>
           </div>

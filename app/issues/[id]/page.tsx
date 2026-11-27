@@ -22,6 +22,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import AssignPanel from "@/components/AssignPanel";
 import { BusinessPanel } from "@/components/BusinessJob";
+import { m } from "motion/react";
+import { FadeIn, ImageReveal, RevealText, SlideUp, StaggerContainer, StaggerItem } from "@/components/animate";
 import CityMap from "@/components/CityMap";
 import { Alert, ConfirmDialog } from "@/components/DataTools";
 import RequestCard, { type JobRequest } from "@/components/RequestCard";
@@ -127,22 +129,30 @@ export default function IssuePage() {
       >
         {!showFix && before && (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl(before)!} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+            <m.img
+              src={imageUrl(before)!}
+              alt=""
+              initial={{ scale: 1.08, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 -z-20 h-full w-full object-cover"
+            />
             <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/70 to-navy/25" />
           </>
         )}
         <div className={`flex h-full flex-col justify-end gap-5 p-6 sm:p-8 md:flex-row md:items-end md:justify-between ${showFix ? "" : "min-h-[340px]"}`}>
           <div className="max-w-3xl">
-            <div className="flex flex-wrap items-center gap-2">
+            <FadeIn now className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-on-dark-2">#{issue.id}</span>
               <StatusBadge status={issue.status} />
               <CriticalTag severity={issue.severity} status={issue.status} />
-            </div>
-            <h1 className="mt-3 text-3xl font-semibold leading-[1.08] tracking-[-0.02em] sm:text-5xl">{issue.title}</h1>
-            <p className="mt-3 text-base text-on-dark-2">
-              {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
-            </p>
+            </FadeIn>
+            <RevealText as="h1" now delay={0.1} text={issue.title} className="mt-3 text-3xl font-semibold leading-[1.08] tracking-[-0.025em] sm:text-5xl" />
+            <SlideUp now delay={0.4}>
+              <p className="mt-3 text-base text-on-dark-2">
+                {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
+              </p>
+            </SlideUp>
           </div>
         </div>
       </div>
@@ -151,15 +161,19 @@ export default function IssuePage() {
         <Card className="overflow-hidden">
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
-              <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
+              <ImageReveal className="h-72 rounded-none">
+                <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
+              </ImageReveal>
               <figcaption className="absolute start-3 top-3 rounded-[4px] bg-navy px-3 py-1 text-sm font-semibold text-on-dark">
                 {t("issue.before")}, {formatDate(issue.created_at)}
               </figcaption>
             </figure>
             <figure className="relative">
               {issue.after_image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-72 w-full object-cover" />
+                <ImageReveal className="h-72 rounded-none">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageUrl(issue.after_image)!} alt={t("issue.after")} className="h-72 w-full object-cover" />
+                </ImageReveal>
               ) : (
                 <div className="flex h-72 flex-col items-center justify-center gap-2 bg-brand-50 text-sm font-semibold text-brand">
                   <CircleCheck size={28} /> {t("issue.noAfter")}
@@ -262,12 +276,12 @@ export default function IssuePage() {
             <CityMap issues={[issue]} focus={[issue.lat, issue.lng]} zoom={16} className="h-[240px]" />
           </Card>
           <Card className="p-5">
-            <h2 className="mb-4 text-xl font-semibold">{t("issue.timeline")}</h2>
-            <ol className="stagger space-y-0">
+            <h2 className="mb-4 text-lg font-semibold text-ink">{t("issue.timeline")}</h2>
+            <StaggerContainer as="ol" className="space-y-0">
               {events.map((e, idx) => {
                 const st = EVENT_STYLE[e.kind] ?? EVENT_STYLE.created;
                 return (
-                  <li key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
+                  <StaggerItem as="li" key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
                     {idx < events.length - 1 && <span className="absolute start-[13px] top-7 h-full w-px bg-line" />}
                     <span className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${st.cls}`}>
                       <st.icon size={14} />
@@ -276,10 +290,10 @@ export default function IssuePage() {
                       <div className="font-medium leading-snug">{e.message}</div>
                       <div className="mt-0.5 text-sm text-muted">{formatDateTime(e.created_at)}</div>
                     </div>
-                  </li>
+                  </StaggerItem>
                 );
               })}
-            </ol>
+            </StaggerContainer>
           </Card>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { MotionRegister } from "@/components/animate";
 import WorkspaceShell, { WORKSPACE } from "@/components/WorkspaceShell";
 import { useMe } from "@/lib/me";
 
@@ -10,8 +11,20 @@ import { useMe } from "@/lib/me";
  * Authorities, Businesses and the Super Admin work inside a workspace with a sidebar instead of the site's top bar.
  */
 export default function PageShell({ children }: { children: ReactNode }) {
-  const home = usePathname() === "/";
+  const path = usePathname();
+  const home = path === "/";
   const { me } = useMe();
-  if (me && WORKSPACE[me.role]) return <WorkspaceShell role={me.role}>{children}</WorkspaceShell>;
-  return <main className={home ? "w-full flex-1" : "mx-auto w-full max-w-7xl flex-1 px-4 pb-20 pt-8 sm:px-6"}>{children}</main>;
+  if (me && WORKSPACE[me.role])
+    return (
+      <MotionRegister value="work">
+        <WorkspaceShell role={me.role}>{children}</WorkspaceShell>
+      </MotionRegister>
+    );
+  // Public storytelling pages get the longer "story" motion; the Citizen's working pages the quick "work" motion.
+  const story = home || path.startsWith("/issues/");
+  return (
+    <MotionRegister value={story ? "story" : "work"}>
+      <main className={home ? "w-full flex-1" : "mx-auto w-full max-w-7xl flex-1 px-4 pb-20 pt-8 sm:px-6"}>{children}</main>
+    </MotionRegister>
+  );
 }

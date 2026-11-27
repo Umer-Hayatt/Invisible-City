@@ -5,7 +5,9 @@ import Link from "next/link";
 import { AnimatePresence, m } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { celebrate } from "@/components/Motion";
+import { FadeIn, StaggerContainer } from "@/components/animate";
 import { Card, Empty, IssueThumb, ListSkeleton, PageHeader, StatusBadge, btn, field } from "@/components/ui";
+import { DURATION, RISE, fadeUp } from "@/lib/motion";
 import Gate from "@/components/Gate";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, formatDate, formatDateTime, t, type MessageKey } from "@/lib/i18n";
@@ -56,12 +58,14 @@ function TrackList() {
       <PageHeader title={t("track.title")} sub={t("track.sub")} />
 
       {impact && (
-        <dl className="mb-8 grid grid-cols-2 divide-line rounded-[8px] border border-line bg-surface sm:grid-cols-4 sm:divide-x">
+        <FadeIn now>
+        <dl className="mb-8 grid grid-cols-2 divide-line rounded-lg border border-line bg-surface shadow-card sm:grid-cols-4 sm:divide-x">
           <Mini label={t("track.statReports")} v={impact.reports} />
           <Mini label={t("track.statFirst")} v={impact.firstReports} />
           <Mini label={t("track.statBacked")} v={impact.corroborated} />
           <Mini label={t("track.statFixed")} v={impact.resolved} />
         </dl>
+        </FadeIn>
       )}
 
       {rows === null ? (
@@ -78,15 +82,15 @@ function TrackList() {
           </Empty>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <StaggerContainer now className="space-y-3">
           <AnimatePresence initial={false}>
             {rows.map((r) => (
-              <m.div key={r.id} layout exit={{ opacity: 0, height: 0 }}>
+              <m.div key={r.id} layout variants={fadeUp(RISE.work, DURATION.base)} exit={{ opacity: 0, height: 0 }}>
                 <ReportCard r={r} onChanged={load} />
               </m.div>
             ))}
           </AnimatePresence>
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );
@@ -96,7 +100,7 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
   const [showTimeline, setShowTimeline] = useState(false);
   const step = STEP_OF[r.issue_status];
   return (
-    <Card className="rise p-4">
+    <Card interactive className="p-4">
       <Link href={`/issues/${r.issue_id}`} className="group flex gap-4">
         <IssueThumb src={imageUrl(r.image)} category={r.ai_category as Category} className="h-20 w-20 shrink-0 rounded-[6px] sm:h-24 sm:w-24" />
         <div className="min-w-0 flex-1">

@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import CityMap from "@/components/CityMap";
 import { celebrate } from "@/components/Motion";
 import Gate from "@/components/Gate";
+import { SlideUp } from "@/components/animate";
 import { Card, CriticalTag, PageHeader, btn, categoryLabel, field } from "@/components/ui";
 import VoiceInput from "@/components/VoiceInput";
 import { api, prepareImage } from "@/lib/client";
@@ -30,16 +31,18 @@ const PRESETS: { name: string; lat: number; lng: number }[] = [
 
 function Step({ n, title, hint, children }: { n: number; title: string; hint?: string; children: React.ReactNode }) {
   return (
+    <SlideUp now delay={(n - 1) * 0.07}>
     <Card className="p-5">
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-action text-base font-semibold text-on-action">{n}</span>
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-50 text-sm font-semibold text-brand ring-1 ring-inset ring-brand/15">{n}</span>
         <div>
-          <h2 className="text-xl font-semibold">{title}</h2>
+          <h2 className="text-lg font-semibold text-ink">{title}</h2>
           {hint && <div className="text-sm text-muted">{hint}</div>}
         </div>
       </div>
       {children}
     </Card>
+    </SlideUp>
   );
 }
 
