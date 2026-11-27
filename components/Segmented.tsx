@@ -22,7 +22,7 @@ export function Segmented<T extends string>({
 }) {
   const name = "seg-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
-    <div className={`inline-flex max-w-full overflow-x-auto rounded-[6px] p-1 ${dark ? "border border-on-dark-2" : "bg-sunken"}`}>
+    <div className={`inline-flex max-w-full self-start overflow-x-auto rounded-[6px] p-1 ${dark ? "border border-on-dark-2" : "bg-sunken"}`}>
       {options.map((o) => (
         <button
           key={o.value}

@@ -101,7 +101,7 @@ function Businesses() {
         <Empty icon={Building2} title={t("superadmin.noBusinesses")} />
       ) : (
         <Card className="overflow-hidden">
-          <div className="flex flex-col gap-3 border-b border-line p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 border-b border-line p-4 xl:flex-row xl:items-center xl:justify-between">
             <Segmented<Show>
               value={show}
               onChange={setShow}
