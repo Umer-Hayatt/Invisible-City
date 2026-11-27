@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 import AssignPanel from "@/components/AssignPanel";
 import { BusinessPanel } from "@/components/BusinessJob";
 import CityMap from "@/components/CityMap";
+import { Alert, ConfirmDialog } from "@/components/DataTools";
 import RequestCard, { type JobRequest } from "@/components/RequestCard";
 import { Card, CriticalTag, IssueThumb, PageSkeleton, StatusBadge } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
@@ -62,6 +63,9 @@ export default function IssuePage() {
   const isBusiness = me?.role === "office";
   // Bumped after any action, so the panels below re-read what they show.
   const [version, setVersion] = useState(0);
+  // Spam flag: which Report is being asked about, and what happened after.
+  const [flagging, setFlagging] = useState<number | null>(null);
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   const load = useCallback(() => {
     api<IssueData>(`/api/issues/${id}`).then(setData).catch((e) => setError(e.message));
@@ -73,15 +77,15 @@ export default function IssuePage() {
   useEffect(load, [load]);
 
   async function flagSpam(reportId: number) {
-    if (!window.confirm(t("review.flagConfirm"))) return;
+    setNotice(null);
     try {
       const out = await api<{ issueRemoved: boolean; suspended: boolean }>(`/api/issues/${id}/reports/${reportId}/spam`, { method: "POST" });
       const extra = [out.issueRemoved ? t("review.issueRemoved") : "", out.suspended ? t("review.suspended") : ""].filter(Boolean).join(" ");
-      window.alert(t("review.flagged", { extra }));
+      setNotice({ tone: "success", text: t("review.flagged", { extra }) });
       if (out.issueRemoved) router.push("/admin/reports");
       else load();
     } catch (e) {
-      window.alert(errorText((e as Error).message));
+      setNotice({ tone: "error", text: errorText((e as Error).message) });
     }
   }
 
@@ -106,6 +110,16 @@ export default function IssuePage() {
       <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
         <ArrowLeft size={16} className="rtl:rotate-180" /> {back.label}
       </Link>
+      {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
+      <ConfirmDialog
+        open={flagging !== null}
+        onOpenChange={(o) => !o && setFlagging(null)}
+        title={t("review.flagSpam")}
+        body={t("review.flagConfirm")}
+        confirm={t("review.flagSpam")}
+        danger
+        onConfirm={() => (flagging !== null ? flagSpam(flagging) : undefined)}
+      />
 
       {/* Header: over the photo while the Issue is still being worked on; plain once a Fix shows before and after. */}
       <div
@@ -232,7 +246,7 @@ export default function IssuePage() {
                       </div>
                     )}
                     {isAuthority && (
-                      <button onClick={() => flagSpam(r.id)} className="mt-2 min-h-9 text-sm font-semibold text-danger-ink hover:underline">
+                      <button onClick={() => setFlagging(r.id)} className="mt-2 min-h-9 text-sm font-semibold text-danger-ink hover:underline">
                         {t("review.flagSpam")}
                       </button>
                     )}

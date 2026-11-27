@@ -50,12 +50,12 @@ export default function Home() {
       <Hero />
       <HowItWorks issues={active} />
 
-      <section id="map" aria-labelledby="map-title" className="on-dark scroll-mt-16 bg-navy pb-16 pt-20 text-on-dark sm:pb-20 sm:pt-24">
+      <section id="map" aria-labelledby="map-title" className="scroll-mt-16 border-t border-line bg-canvas pb-16 pt-20 sm:pb-20 sm:pt-24">
         <div className={wrap}>
-          <h2 id="map-title" className="text-center text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">
+          <h2 id="map-title" className="text-center text-3xl font-semibold tracking-[-0.02em] text-ink sm:text-4xl">
             {t("home.mapTitle")}
           </h2>
-          {examples > 0 && <p className="mx-auto mt-4 max-w-[60ch] text-center text-base text-on-dark-2">{t("home.examplesNote")}</p>}
+          {examples > 0 && <p className="mx-auto mt-3 max-w-[60ch] text-center text-[15px] text-muted">{t("home.examplesNote")}</p>}
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -63,7 +63,7 @@ export default function Home() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 aria-label={t("report.category")}
-                className="min-h-11 rounded-[6px] border border-on-dark-2 bg-navy px-3 text-[15px] font-medium text-on-dark"
+                className="h-9 rounded-md border border-line-strong bg-surface px-2.5 text-sm font-medium text-ink-2 shadow-card outline-none hover:border-muted focus-visible:border-action focus-visible:ring-3 focus-visible:ring-action/20"
               >
                 <option value="">{t("home.allCategories")}</option>
                 {CATEGORIES.map((c) => (
@@ -72,7 +72,7 @@ export default function Home() {
                   </option>
                 ))}
               </select>
-              <label className="flex min-h-11 cursor-pointer select-none items-center gap-2 text-[15px] font-medium">
+              <label className="flex min-h-9 cursor-pointer select-none items-center gap-2 text-sm font-medium text-ink-2">
                 <input
                   type="checkbox"
                   checked={showResolved}
@@ -83,7 +83,6 @@ export default function Home() {
               </label>
             </div>
             <Segmented
-              dark
               value={layer}
               onChange={setLayer}
               options={[
@@ -94,29 +93,29 @@ export default function Home() {
           </div>
 
           <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
-            <div data-kind="product" className="overflow-hidden rounded-[8px] border border-navy-line">
+            <div data-kind="product" className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
               <CityMap issues={visible} layer={layer} className="h-[420px] sm:h-[540px]" />
               <Legend />
             </div>
 
             <div className="flex min-w-0 flex-col lg:relative">
-              <div className="scroll-navy max-h-[560px] overflow-y-auto pe-2 lg:absolute lg:inset-0 lg:max-h-none" tabIndex={0} role="region" aria-label={t("home.activeList")}>
+              <div className="max-h-[560px] overflow-y-auto pe-2 lg:absolute lg:inset-0 lg:max-h-none" tabIndex={0} role="region" aria-label={t("home.activeList")}>
                 <ul className="space-y-3">
-                  {!loaded && [0, 1, 2, 3, 4].map((n) => <li key={n} className="h-[88px] rounded-[8px] border border-navy-line bg-navy-2" />)}
-                  {loaded && active.length === 0 && <li className="rounded-[8px] border border-navy-line p-5 text-on-dark-2">{t("home.noActive")}</li>}
+                  {!loaded && [0, 1, 2, 3, 4].map((n) => <li key={n} className="skeleton h-[88px] rounded-lg" />)}
+                  {loaded && active.length === 0 && <li className="rounded-lg border border-dashed border-line-strong p-5 text-sm text-muted">{t("home.noActive")}</li>}
                   {active.map((i) => (
                     <li key={i.id}>
                       <Row issue={i}>
                         <span className="flex items-start justify-between gap-3">
-                          <span className="min-w-0 text-[17px] font-semibold leading-snug">
+                          <span className="min-w-0 text-[15px] font-semibold leading-snug text-ink">
                             {i.title}
-                            {i.example && <span className="ms-2 rounded-[4px] border border-on-dark-2 px-1.5 py-0.5 text-xs font-medium text-on-dark-2">{t("home.example")}</span>}
+                            {i.example && <span className="ms-2 rounded-md bg-sunken px-1.5 py-0.5 text-xs font-medium text-muted ring-1 ring-inset ring-line">{t("home.example")}</span>}
                           </span>
                           <span className="shrink-0">
                             <StatusBadge status={i.status} />
                           </span>
                         </span>
-                        <span className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[15px] text-on-dark-2">
+                        <span className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
                           {t(i.report_count === 1 ? "home.reportedOnce" : "home.reportedBy", { n: i.report_count, place: i.neighborhood, when: timeAgo(i.created_at) })}
                           <CriticalTag severity={i.severity} status={i.status} />
                         </span>
@@ -128,7 +127,7 @@ export default function Home() {
             </div>
           </div>
           {me?.role === "authority" && (
-            <Link href="/admin/reports" className="mt-5 inline-block font-semibold text-action hover:text-on-dark">
+            <Link href="/admin/reports" className="mt-5 inline-block text-sm font-semibold text-brand hover:text-brand-700">
               {t("home.workQueue")}
             </Link>
           )}
@@ -143,10 +142,10 @@ export default function Home() {
 
 /** A real Issue opens its page; an Example Issue has none. */
 function Row({ issue, children }: { issue: Issue; children: ReactNode }) {
-  const look = "block rounded-[8px] border border-navy-line bg-navy-2 px-4 py-3.5";
+  const look = "block rounded-lg border border-line bg-surface px-4 py-3.5 shadow-card";
   if (issue.example) return <div className={look}>{children}</div>;
   return (
-    <Link href={`/issues/${issue.id}`} className={`${look} transition-colors hover:border-on-dark-2`}>
+    <Link href={`/issues/${issue.id}`} className={`${look} transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-raised`}>
       {children}
     </Link>
   );
@@ -161,10 +160,10 @@ function Legend() {
     { c: pinColor("open", true), l: t("severity.critical") },
   ];
   return (
-    <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-navy-line bg-navy-2 px-4 py-3 text-sm font-medium">
+    <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-line bg-surface px-4 py-3 text-xs font-medium text-ink-2">
       {items.map((x) => (
         <li key={x.l} className="inline-flex items-center gap-1.5">
-          <span aria-hidden className="h-3 w-3 rounded-full border-2 border-white" style={{ background: x.c }} />
+          <span aria-hidden className="size-2.5 rounded-full ring-2 ring-surface" style={{ background: x.c }} />
           {x.l}
         </li>
       ))}
