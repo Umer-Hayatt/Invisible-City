@@ -67,8 +67,13 @@ Every colour is a token in `app/globals.css`; components never hardcode a colour
 - Actions that are hard to undo (revoke, approve, decline, spam flag) always ask in a ConfirmDialog; never `window.confirm` or `window.alert`.
 - `components/UserMenu.tsx`: the avatar menu (name, email, role, Profile, Sign out).
 
-## Motion (later phase)
-Animations come in a later phase. Sections are separate components so reveals, counters, hover and page transitions can be added without moving layout. The existing light touches stay (count-up figures, the sliding tab highlight, view transitions); no new animation libraries.
+## Motion
+Motion for React (`motion/react`, loaded lazily) is the one animation library; Lenis smooths scrolling on public pages only; no GSAP (nothing needs it).
+- Tokens in `lib/motion.ts`: one ease-out curve, durations (fast 0.18s, base 0.32s, slow 0.6s, hero 0.9s), stagger gaps, springs, rise distances, the viewport rule (reveal once at 15% visible).
+- Components in `components/animate/`: FadeIn, SlideUp, RevealText (word by word behind a mask; screen readers get the sentence), StaggerContainer/StaggerItem, AnimatedCard, ImageReveal (clip and settle), PageTransition (every route, in `app/template.tsx`), ScrollProgress (home page), MotionRegister.
+- Two registers: **story** (home page, Issue pages: longer reveals while scrolling) and **work** (the workspace, the report form, My reports: short, near, never in the way). `components/PageShell.tsx` picks the register.
+- Workspace motion: the sidebar's active highlight slides between items, figures count up and arrive in turn, category bars grow, request/contract/job cards arrive in turn and glide when filtered, new chat messages slide in (history does not), dialogs, dropdowns and sheets fade and zoom (shadcn), the tab highlight slides.
+- Rules: transform and opacity only (clip-path for image reveals); no layout shift; map markers are never animated one by one; reduced motion turns movement off (MotionConfig `reducedMotion="user"`, RevealText shows plain text, Lenis and parallax off).
 
 ## Don'ts
 - No gradients beyond the hero photograph's scrim, no glassmorphism, no decorative shapes.
