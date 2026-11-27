@@ -156,7 +156,7 @@ export function HowItWorks({ issues }: { issues: Issue[] }) {
         >
           <StaggerItem as="li">
             <ImageReveal className={`${frame} viewfinder`}>
-              <Image src="/photos/pothole.webp" alt={t("home.step1Alt")} fill sizes="(min-width: 768px) 30vw, 100vw" className="object-cover" />
+              <Image src="/photos/islamabad/team-pothole.jpg" alt={t("home.step1Alt")} fill sizes="(min-width: 768px) 30vw, 100vw" className="object-cover object-[50%_60%]" />
               <span className="absolute inset-x-0 bottom-4 flex justify-center">
                 <span className="flex size-12 items-center justify-center rounded-full bg-action text-on-action shadow-float">
                   <Camera size={22} aria-hidden />
@@ -177,7 +177,7 @@ export function HowItWorks({ issues }: { issues: Issue[] }) {
           <Arrow />
           <StaggerItem as="li">
             <ImageReveal className={frame}>
-              <Image src="/photos/streetlight-repair.webp" alt={t("home.step3Alt")} fill sizes="(min-width: 768px) 30vw, 100vw" className="object-cover" />
+              <Image src="/photos/islamabad/team-road-repair.jpg" alt={t("home.step3Alt")} fill sizes="(min-width: 768px) 30vw, 100vw" className="object-cover" />
               <span className="absolute bottom-4 start-4 inline-flex items-center gap-2 rounded-lg bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-float">
                 <CircleCheck size={17} className="text-teal-700" aria-hidden /> {t("track.confirm")}
               </span>

@@ -14,8 +14,7 @@ const CREDITS = [
   { by: "Ahsan Elahi", licence: "Pexels", href: "https://www.pexels.com/photo/scenic-islamabad-street-lined-with-vibrant-flora-38647413/" },
   { by: "Qasim Ali", licence: "Pexels", href: "https://www.pexels.com/photo/man-cleaning-the-rubbish-on-the-road-13230182/" },
   { by: "HR Capture", licence: "Pexels", href: "https://www.pexels.com/photo/construction-worker-inspecting-pipe-installation-29931974/" },
-  { by: "Bart Everson", licence: "CC BY 2.0, Wikimedia", href: "https://commons.wikimedia.org/wiki/File:Hennessey_Street_Potholes_New_Orleans.jpg" },
-  { by: "Warszawa Stawki 2022", licence: "CC0, Wikimedia", href: "https://commons.wikimedia.org/wiki/File:2022_Warszawa_Stawki,_wymiana_opraw_o%C5%9Bwietleniowych,_2.jpg" },
+  { by: "the Civora team", licence: "own photos", href: "https://github.com/Umer-Hayatt/Invisible-City/blob/main/public/photos/CREDITS.md" },
 ];
 
 export default function Footer() {
