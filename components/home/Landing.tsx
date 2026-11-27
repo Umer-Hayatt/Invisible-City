@@ -20,7 +20,7 @@ const FACTS = [
 
 export function Hero() {
   return (
-    <section className="on-dark relative isolate flex min-h-[calc(100svh-6.75rem)] flex-col overflow-hidden bg-char text-on-dark lg:max-h-[860px]">
+    <section className="on-dark relative isolate flex min-h-[calc(100svh-6.75rem)] flex-col overflow-hidden bg-navy text-on-dark lg:max-h-[860px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/photos/crew-night.webp"
@@ -50,10 +50,10 @@ export function Hero() {
       </div>
 
       <div className={`${wrap} pb-8`}>
-        <ul className="grid divide-y divide-char-line rounded-[8px] border border-char-line bg-char/85 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <ul className="grid divide-y divide-navy-line rounded-[8px] border border-navy-line bg-navy/85 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           {FACTS.map((f) => (
             <li key={f.title} className="flex gap-3.5 px-5 py-4 sm:py-5">
-              <f.icon size={24} strokeWidth={1.75} className="mt-0.5 shrink-0 text-lime" aria-hidden />
+              <f.icon size={24} strokeWidth={1.75} className="mt-0.5 shrink-0 text-action" aria-hidden />
               <div>
                 <div className="text-[17px] font-semibold leading-snug">{t(f.title)}</div>
                 <p className="mt-1 text-[15px] leading-snug text-on-dark-2">{t(f.body)}</p>
@@ -92,7 +92,7 @@ export function HowItWorks({ issues }: { issues: Issue[] }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/photos/pothole.webp" alt={t("home.step1Alt")} loading="lazy" width={900} height={675} className="h-full w-full object-cover" />
             <span className="absolute inset-x-0 bottom-4 flex justify-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-lime text-on-lime">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-action text-on-action">
                 <Camera size={22} aria-hidden />
               </span>
             </span>
@@ -118,7 +118,7 @@ export function HowItWorks({ issues }: { issues: Issue[] }) {
               height={750}
               className="h-full w-full object-cover"
             />
-            <span className="absolute bottom-4 start-4 inline-flex items-center gap-2 rounded-[6px] bg-lime px-3 py-2 text-[15px] font-semibold text-on-lime">
+            <span className="absolute bottom-4 start-4 inline-flex items-center gap-2 rounded-[6px] bg-action px-3 py-2 text-[15px] font-semibold text-on-action">
               <CircleCheck size={18} aria-hidden /> {t("track.confirm")}
             </span>
           </div>
@@ -150,14 +150,14 @@ export function Figures({ figures, proofId }: { figures: CityFigures | null; pro
     { value: figures?.totalReports ?? null, label: t("home.figReports") },
   ];
   return (
-    <section aria-label={t("home.figLabel")} className="bg-[linear-gradient(to_bottom,var(--color-navy)_88px,var(--color-lime)_88px)] text-on-lime">
+    <section aria-label={t("home.figLabel")} className="bg-[linear-gradient(to_bottom,var(--color-navy)_88px,var(--color-action)_88px)] text-on-action">
       <div className={wrap}>
-        <dl className="grid overflow-hidden rounded-[8px] border-2 border-char bg-lime sm:grid-cols-3">
+        <dl className="grid overflow-hidden rounded-[8px] border-2 border-navy bg-action sm:grid-cols-3">
           {cells.map((c, i) => (
             <div
               key={c.label}
               className={`flex flex-col-reverse items-center px-6 py-8 text-center ${
-                i === 0 ? "bg-char text-on-dark" : "border-t-2 border-char sm:border-s-2 sm:border-t-0"
+                i === 0 ? "bg-navy text-on-dark" : "border-t-2 border-navy sm:border-s-2 sm:border-t-0"
               }`}
             >
               <dt className="mt-1 text-lg font-medium">{c.label}</dt>
@@ -168,7 +168,7 @@ export function Figures({ figures, proofId }: { figures: CityFigures | null; pro
         <div className="flex flex-col items-center gap-5 py-12 text-center sm:py-14">
           <p className="max-w-[34ch] text-2xl font-semibold leading-snug">{t("home.proofLine")}</p>
           {proofId !== null && (
-            <Link href={`/issues/${proofId}`} className={btn.char}>
+            <Link href={`/issues/${proofId}`} className={btn.navy}>
               {t("home.seeProof")}
             </Link>
           )}
@@ -180,7 +180,7 @@ export function Figures({ figures, proofId }: { figures: CityFigures | null; pro
 
 export function ClosingCall() {
   return (
-    <section className="on-dark relative isolate flex min-h-[520px] items-center bg-char text-on-dark">
+    <section className="on-dark relative isolate flex min-h-[520px] items-center bg-navy text-on-dark">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/photos/hill-road.webp"

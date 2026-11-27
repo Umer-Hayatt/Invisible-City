@@ -78,7 +78,7 @@ function Offices() {
         title={t("offices.title")}
         sub={t("offices.sub")}
         right={
-          <Link href="/admin/reports" className={btn.onDark}>
+          <Link href="/admin/reports" className={btn.ghost}>
             {t("offices.back")}
           </Link>
         }

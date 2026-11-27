@@ -32,7 +32,7 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint?: s
   return (
     <Card className="p-5">
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-lime text-base font-bold text-on-lime">{n}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-action text-base font-bold text-on-action">{n}</span>
         <div>
           <h2 className="text-xl font-semibold">{title}</h2>
           {hint && <div className="text-sm text-muted">{hint}</div>}
@@ -141,7 +141,7 @@ function ReportForm() {
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photo.preview} alt={t("report.selectedPhoto")} className="max-h-[340px] w-full object-cover" />
-                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-[4px] bg-char px-3 py-1.5 text-sm font-semibold text-on-dark">
+                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-[4px] bg-navy px-3 py-1.5 text-sm font-semibold text-on-dark">
                     <Camera size={14} /> {t("office.changePhoto")}
                   </span>
                 </>
@@ -288,7 +288,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           initial={{ scale: 0, rotate: -40 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 16 }}
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-lime text-on-lime"
+          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-action text-on-action"
         >
           <CircleCheck size={30} />
         </m.div>

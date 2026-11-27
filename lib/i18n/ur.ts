@@ -18,6 +18,7 @@ export const ur: Record<MessageKey, string> = {
   "nav.profile": "پروفائل",
   "nav.requestAccess": "اتھارٹی رسائی کی درخواست",
   "nav.menu": "مینو",
+  "nav.account": "اکاؤنٹ مینو",
   "nav.aiGemini": "تصاویر کا تجزیہ Gemini کرتا ہے",
   "nav.aiGroq": "تصاویر کا تجزیہ Groq (Qwen) کرتا ہے",
   "nav.aiHeuristic": "AI کلید موجود نہیں: آف لائن اندازہ استعمال ہو رہا ہے",

@@ -77,7 +77,7 @@ export default function Home() {
                   type="checkbox"
                   checked={showResolved}
                   onChange={(e) => setShowResolved(e.target.checked)}
-                  className="h-4.5 w-4.5 accent-lime"
+                  className="h-4.5 w-4.5 accent-action"
                 />
                 {t("home.showFinished")}
               </label>
@@ -128,7 +128,7 @@ export default function Home() {
             </div>
           </div>
           {me?.role === "authority" && (
-            <Link href="/admin/reports" className="mt-5 inline-block font-semibold text-lime hover:text-on-dark">
+            <Link href="/admin/reports" className="mt-5 inline-block font-semibold text-action hover:text-on-dark">
               {t("home.workQueue")}
             </Link>
           )}

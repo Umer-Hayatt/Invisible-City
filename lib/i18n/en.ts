@@ -13,6 +13,7 @@ export const en = {
   "nav.requestAccess": "Request Authority access",
 
   "nav.menu": "Menu",
+  "nav.account": "Account menu",
   "nav.aiGemini": "Photos are analysed by Gemini vision",
   "nav.aiGroq": "Photos are analysed by Groq (Qwen vision)",
   "nav.aiHeuristic": "No AI key set: using the offline keyword guess",

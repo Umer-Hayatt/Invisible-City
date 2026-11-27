@@ -43,7 +43,7 @@ const EVENT_STYLE: Record<string, { icon: LucideIcon; cls: string }> = {
   escalated: { icon: ArrowUp, cls: "bg-danger text-on-status" },
   assigned: { icon: HardHat, cls: "bg-st-assigned text-on-status" },
   in_progress: { icon: Wrench, cls: "bg-st-work text-on-status" },
-  fixed: { icon: Hammer, cls: "bg-lime text-on-lime" },
+  fixed: { icon: Hammer, cls: "bg-action text-on-action" },
   rejected: { icon: ThumbsDown, cls: "bg-danger text-on-status" },
   sent_back: { icon: Undo2, cls: "bg-sunken text-ink" },
   closed_unconfirmed: { icon: Clock, cls: "bg-sunken text-ink" },
@@ -109,13 +109,13 @@ export default function IssuePage() {
 
       {/* Header: over the photo while the Issue is still being worked on; plain once a Fix shows before and after. */}
       <div
-        className={`on-dark relative isolate overflow-hidden rounded-[8px] text-on-dark ${showFix ? "bg-navy" : "min-h-[340px] bg-char"}`}
+        className={`on-dark relative isolate overflow-hidden rounded-[8px] text-on-dark ${showFix ? "bg-navy" : "min-h-[340px] bg-navy"}`}
       >
         {!showFix && before && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageUrl(before)!} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
-            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-char via-char/70 to-char/25" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/70 to-navy/25" />
           </>
         )}
         <div className={`flex h-full flex-col justify-end gap-5 p-6 sm:p-8 md:flex-row md:items-end md:justify-between ${showFix ? "" : "min-h-[340px]"}`}>
@@ -138,7 +138,7 @@ export default function IssuePage() {
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
               <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
-              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-char px-3 py-1 text-sm font-semibold text-on-dark">
+              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-navy px-3 py-1 text-sm font-semibold text-on-dark">
                 {t("issue.before")}, {formatDate(issue.created_at)}
               </figcaption>
             </figure>
@@ -151,7 +151,7 @@ export default function IssuePage() {
                   <CircleCheck size={28} /> {t("issue.noAfter")}
                 </div>
               )}
-              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-lime px-3 py-1 text-sm font-semibold text-on-lime">
+              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-action px-3 py-1 text-sm font-semibold text-on-action">
                 {t("issue.after")}
                 {afterDate ? `, ${formatDate(afterDate)}` : ""}
               </figcaption>

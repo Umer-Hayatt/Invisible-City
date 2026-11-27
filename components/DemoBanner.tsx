@@ -27,15 +27,15 @@ export default function DemoBanner() {
   }
 
   return (
-    <div className="on-dark bg-char-2 text-on-dark-2">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5 text-sm font-medium sm:px-6">
-        <span>{t("demo.banner")}</span>
-        <label className="flex items-center gap-2">
+    <div data-demo-banner className="on-dark sticky top-0 z-[1001] h-(--banner) bg-navy text-on-dark-2">
+      <div className="flex h-full items-center justify-between gap-4 px-4 text-xs font-medium sm:px-6">
+        <span className="truncate">{t("demo.banner")}</span>
+        <label className="flex shrink-0 items-center gap-2">
           {t("demo.switchTo")}
           <select
             value={me?.demoKey ?? ""}
             onChange={(e) => pick(e.target.value || null)}
-            className="min-h-8 rounded-[4px] border border-on-dark-2 bg-char px-2 text-sm text-on-dark"
+            className="min-h-7 rounded-md border border-navy-line bg-navy px-2 text-xs text-on-dark"
           >
             <option value="">{me ? t("demo.leave") : t("demo.none")}</option>
             {demoAccounts.map((a) => (

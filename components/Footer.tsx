@@ -20,7 +20,7 @@ export default function Footer() {
       <ul className="mt-3 space-y-2.5 text-base text-on-dark-2">
         {links.map((l) => (
           <li key={l.href}>
-            <Link href={l.href} className="whitespace-nowrap hover:text-lime">
+            <Link href={l.href} className="whitespace-nowrap hover:text-action">
               {l.label}
             </Link>
           </li>
@@ -31,11 +31,11 @@ export default function Footer() {
   // The staff workspaces are tools, not pages to browse: no site footer there.
   if (me && me.role !== "citizen") return null;
   return (
-    <footer className="on-dark bg-char text-on-dark">
+    <footer className="on-dark bg-navy text-on-dark">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-10 pt-14 sm:px-6 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div className="sm:col-span-2 lg:col-span-1">
           <div className="flex">
-            <Logo />
+            <Logo inverted />
           </div>
           <p className="mt-4 max-w-[34ch] text-base leading-relaxed text-on-dark-2">{t("footer.about")}</p>
         </div>
@@ -51,14 +51,14 @@ export default function Footer() {
         ])}
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="space-y-1.5 border-t border-char-line py-6 text-[13px] leading-relaxed text-on-dark-2">
+        <div className="space-y-1.5 border-t border-navy-line py-6 text-[13px] leading-relaxed text-on-dark-2">
           <p dir="ltr">Map tiles © Esri, data © OpenStreetMap contributors</p>
           <p dir="ltr" data-credits>
             Photographs, Wikimedia Commons:{" "}
             {CREDITS.map((c, i) => (
               <span key={c.href}>
                 {i > 0 && ", "}
-                <a href={c.href} className="hover:text-lime">
+                <a href={c.href} className="hover:text-action">
                   {c.by}
                 </a>{" "}
                 ({c.licence})

@@ -120,7 +120,7 @@ function RegisterOffice() {
           </label>
         </div>
         <label className="flex items-start gap-3 text-base">
-          <input type="checkbox" checked={form.isPrivate} onChange={set("isPrivate")} className="mt-1 size-5 accent-[var(--color-lime)]" />
+          <input type="checkbox" checked={form.isPrivate} onChange={set("isPrivate")} className="mt-1 size-5 accent-[var(--color-action)]" />
           <span>
             <span className="font-semibold">{t("register.private")}</span>
             <span className="block text-sm text-muted">{t("register.privateHint")}</span>

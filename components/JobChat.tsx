@@ -104,13 +104,13 @@ export default function JobChat({ issueId, officeId }: { issueId: number; office
             <div key={m.id} className={`flex ${mine(m) ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[85%] rounded-[8px] px-3 py-2 text-[15px] ${
-                  mine(m) ? "bg-lime text-on-lime" : "border border-line bg-surface text-ink"
+                  mine(m) ? "bg-action text-on-action" : "border border-line bg-surface text-ink"
                 }`}
               >
                 <div className="whitespace-pre-wrap break-words" dir="auto">
                   {m.body}
                 </div>
-                <div className={`mt-1 text-xs ${mine(m) ? "text-on-lime/75" : "text-muted"}`}>
+                <div className={`mt-1 text-xs ${mine(m) ? "text-on-action/75" : "text-muted"}`}>
                   {m.sender_name ?? t(`role.${m.sender_role}`)} · {timeAgo(m.created_at)}
                 </div>
               </div>

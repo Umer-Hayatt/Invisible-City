@@ -116,7 +116,7 @@ function ReportCard({ r, onChanged }: { r: Row; onChanged: () => void }) {
           <div className="mt-4 grid grid-cols-5 gap-1.5">
             {STEP_LABEL.map((l, i) => (
               <div key={l}>
-                <div className={`h-1.5 rounded-[2px] ${i <= step ? "bg-lime-600" : "bg-sunken"}`} />
+                <div className={`h-1.5 rounded-[2px] ${i <= step ? "bg-action-600" : "bg-sunken"}`} />
                 <div className={`mt-1.5 text-xs leading-tight sm:text-sm ${i <= step ? "font-semibold text-ink" : "text-muted"}`}>{t(l)}</div>
               </div>
             ))}

@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { startTransition, useId, ViewTransition } from "react";
 
 /**
- * A row of mutually exclusive options. The choice is made inside a transition, so the lime highlight slides
+ * A row of mutually exclusive options. The choice is made inside a transition, so the white highlight slides
  * from the old option to the new one (a named view transition) instead of jumping.
  */
 export function Segmented<T extends string>({
@@ -22,20 +22,20 @@ export function Segmented<T extends string>({
 }) {
   const name = "seg-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
-    <div className={`inline-flex max-w-full overflow-x-auto rounded-[6px] border p-0.5 ${dark ? "border-on-dark-2" : "border-muted bg-surface"}`}>
+    <div className={`inline-flex max-w-full overflow-x-auto rounded-[6px] p-1 ${dark ? "border border-on-dark-2" : "bg-sunken"}`}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           aria-pressed={value === o.value}
           onClick={() => startTransition(() => onChange(o.value))}
-          className={`press relative isolate inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] px-3.5 text-[15px] font-semibold transition-colors ${
-            value === o.value ? "text-on-lime" : dark ? "text-on-dark-2 hover:text-on-dark" : "text-ink-2 hover:text-ink"
+          className={`press relative isolate inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[5px] px-3 text-sm font-medium transition-colors ${
+            value === o.value ? (dark ? "text-navy" : "text-ink") : dark ? "text-on-dark-2 hover:text-on-dark" : "text-muted hover:text-ink"
           }`}
         >
           {value === o.value && (
             <ViewTransition name={name} share="nav-pill">
-              <span aria-hidden className="absolute inset-0 -z-10 rounded-[4px] bg-lime" />
+              <span aria-hidden className="absolute inset-0 -z-10 rounded-[5px] bg-surface shadow-raised ring-1 ring-line" />
             </ViewTransition>
           )}
           {o.icon && <o.icon size={15} />}
@@ -43,7 +43,7 @@ export function Segmented<T extends string>({
           {o.count !== undefined && (
             <span
               className={`min-w-6 rounded-full px-1.5 text-center text-[13px] tabular-nums ${
-                value === o.value ? "bg-char/10" : dark ? "bg-on-dark/15" : "bg-sunken text-ink-2"
+                value === o.value ? "bg-navy/10" : dark ? "bg-on-dark/15" : "bg-sunken text-ink-2"
               }`}
             >
               {o.count}

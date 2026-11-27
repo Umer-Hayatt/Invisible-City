@@ -93,7 +93,7 @@ function Dashboard() {
                 </span>
                 <div className="flex h-3 gap-0.5 overflow-hidden rounded-[3px] bg-sunken">
                   <div className="bg-chart-open" style={{ width: `${(c.open / maxCat) * 100}%` }} title={t("insights.openN", { n: c.open })} />
-                  <div className="bg-lime-600" style={{ width: `${(c.resolved / maxCat) * 100}%` }} title={t("insights.fixedN", { n: c.resolved })} />
+                  <div className="bg-action-600" style={{ width: `${(c.resolved / maxCat) * 100}%` }} title={t("insights.fixedN", { n: c.resolved })} />
                 </div>
                 <span className="text-sm tabular-nums text-ink-2 sm:w-32 sm:text-end">{t("insights.openFixed", { open: c.open, fixed: c.resolved })}</span>
               </div>
@@ -104,7 +104,7 @@ function Dashboard() {
                 {t("status.open")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-[2px] bg-lime-600" />
+                <span className="h-3 w-3 rounded-[2px] bg-action-600" />
                 {t("home.statFixed")}
               </span>
             </div>

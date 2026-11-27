@@ -57,7 +57,7 @@ function Jobs() {
     <div>
       <PageHeader title={t("office.title")} sub={t("office.sub")} />
       {offers > 0 && (
-        <Link href="/office/contracts?view=pending" className="mb-5 flex items-center gap-3 rounded-[8px] bg-lime px-4 py-3 text-base font-semibold text-on-lime hover:bg-lime-600">
+        <Link href="/office/contracts?view=pending" className="mb-5 flex items-center gap-3 rounded-[8px] bg-action px-4 py-3 text-base font-semibold text-on-action hover:bg-action-600">
           <FileSignature size={20} className="shrink-0" aria-hidden />
           {offers === 1 ? t("contract.oneWaiting") : t("contract.manyWaiting", { n: offers })}
           <ArrowUpRight size={18} className="ms-auto shrink-0 rtl:-scale-x-100" aria-hidden />
