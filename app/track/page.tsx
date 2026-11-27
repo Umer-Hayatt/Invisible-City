@@ -222,7 +222,7 @@ function Mini({ label, v }: { label: string; v: number }) {
   return (
     <div className="flex flex-col-reverse p-5">
       <dt className="text-sm text-muted">{label}</dt>
-      <dd className="text-3xl font-bold tabular-nums">{v}</dd>
+      <dd className="text-3xl font-semibold tabular-nums">{v}</dd>
     </div>
   );
 }

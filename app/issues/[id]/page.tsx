@@ -125,7 +125,7 @@ export default function IssuePage() {
               <StatusBadge status={issue.status} />
               <CriticalTag severity={issue.severity} status={issue.status} />
             </div>
-            <h1 className="mt-3 text-3xl font-bold leading-[1.08] tracking-[-0.02em] sm:text-5xl">{issue.title}</h1>
+            <h1 className="mt-3 text-3xl font-semibold leading-[1.08] tracking-[-0.02em] sm:text-5xl">{issue.title}</h1>
             <p className="mt-3 text-base text-on-dark-2">
               {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
             </p>

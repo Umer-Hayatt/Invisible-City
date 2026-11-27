@@ -34,7 +34,7 @@ export function Hero() {
       <div aria-hidden className="photo-dim absolute inset-0 -z-10 lg:hidden" />
 
       <div className={`${wrap} flex flex-1 flex-col justify-center py-12`}>
-        <h1 className="max-w-[13ch] text-[clamp(2.75rem,6vw,5rem)] font-bold leading-[1.02] tracking-[-0.025em]">
+        <h1 className="max-w-[13ch] text-[clamp(2.75rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em]">
           <span className="block">{t("home.heroLine1")}</span>
           <span className="block">{t("home.heroLine2")}</span>
         </h1>
@@ -83,7 +83,7 @@ const frame = "relative aspect-[4/3] overflow-hidden rounded-[8px] bg-sunken";
 export function HowItWorks({ issues }: { issues: Issue[] }) {
   return (
     <section aria-labelledby="how-title" className={`${wrap} py-20 sm:py-28`}>
-      <h2 id="how-title" className="text-center text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
+      <h2 id="how-title" className="text-center text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">
         {t("home.howTitle")}
       </h2>
       <ol className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-12 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-5">
@@ -161,7 +161,7 @@ export function Figures({ figures, proofId }: { figures: CityFigures | null; pro
               }`}
             >
               <dt className="mt-1 text-lg font-medium">{c.label}</dt>
-              <dd className="text-5xl font-bold tracking-[-0.02em] tabular-nums sm:text-6xl">{c.value === null ? "-" : <CountUp value={c.value} />}</dd>
+              <dd className="text-5xl font-semibold tracking-[-0.02em] tabular-nums sm:text-6xl">{c.value === null ? "-" : <CountUp value={c.value} />}</dd>
             </div>
           ))}
         </dl>
@@ -192,7 +192,7 @@ export function ClosingCall() {
       />
       <div aria-hidden className="photo-dim absolute inset-0 -z-10" />
       <div className={`${wrap} flex flex-col items-center py-20 text-center`}>
-        <h2 className="max-w-[16ch] text-4xl font-bold leading-[1.08] tracking-[-0.02em] sm:text-6xl">{t("home.ctaTitle")}</h2>
+        <h2 className="max-w-[16ch] text-4xl font-semibold leading-[1.08] tracking-[-0.02em] sm:text-6xl">{t("home.ctaTitle")}</h2>
         <Link href="/report" className={`${btn.primary} mt-8 min-h-14 px-10 text-lg`}>
           <MapPin size={20} aria-hidden /> {t("nav.reportLong")}
         </Link>

@@ -79,13 +79,13 @@ function Requests() {
         <div className="space-y-6">
           {pending.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-2xl font-bold">{t("superadmin.pending")}</h2>
+              <h2 className="text-2xl font-semibold">{t("superadmin.pending")}</h2>
               {pending.map(row)}
             </section>
           )}
           {done.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-2xl font-bold">{t("superadmin.decided")}</h2>
+              <h2 className="text-2xl font-semibold">{t("superadmin.decided")}</h2>
               {done.map(row)}
             </section>
           )}

@@ -107,7 +107,7 @@ function Insights() {
                         })}
                   </div>
                 </div>
-                <span className="text-2xl font-bold tabular-nums text-danger-ink">{Math.round(n.resolutionRate * 100)}%</span>
+                <span className="text-2xl font-semibold tabular-nums text-danger-ink">{Math.round(n.resolutionRate * 100)}%</span>
                 {n.waiting.length > 0 && <Evidence label={t("insights.evidenceWaiting")} issues={n.waiting} />}
               </li>
             ))}
@@ -215,7 +215,7 @@ function Insights() {
 function InsightList({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
       <p className="mt-2 text-base text-ink-2">{sub}</p>
       <ul className="mt-4 divide-y divide-line border-y border-line">{children}</ul>
     </div>

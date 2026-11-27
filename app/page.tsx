@@ -52,7 +52,7 @@ export default function Home() {
 
       <section id="map" aria-labelledby="map-title" className="on-dark scroll-mt-16 bg-navy pb-16 pt-20 text-on-dark sm:pb-20 sm:pt-24">
         <div className={wrap}>
-          <h2 id="map-title" className="text-center text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
+          <h2 id="map-title" className="text-center text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">
             {t("home.mapTitle")}
           </h2>
           {examples > 0 && <p className="mx-auto mt-4 max-w-[60ch] text-center text-base text-on-dark-2">{t("home.examplesNote")}</p>}

@@ -72,7 +72,7 @@ function RegisterOffice() {
     return (
       <Card className="mx-auto mt-10 max-w-md p-8 text-center">
         <Icon className={`mx-auto ${r.decision === "pending" ? "text-brand" : "text-danger-ink"}`} size={32} aria-hidden />
-        <h1 className="mt-4 text-2xl font-bold tracking-tight">{r.name}</h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight">{r.name}</h1>
         <p className="mt-1 text-base text-ink-2">
           {r.department} · {r.sector}
         </p>

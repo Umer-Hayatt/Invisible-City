@@ -89,7 +89,7 @@ function Authorities() {
           <section className="space-y-3">{active.map(card)}</section>
           {revoked.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-2xl font-bold">{t("superadmin.revoked")}</h2>
+              <h2 className="text-2xl font-semibold">{t("superadmin.revoked")}</h2>
               {revoked.map(card)}
             </section>
           )}
