@@ -45,12 +45,20 @@ export function FadeIn({ children, delay = 0, now = false, className, ...rest }:
 }
 
 /** Rises a little and fades in when it scrolls into view (or at once when `now`). */
-export function SlideUp({ children, delay = 0, now = false, className, ...rest }: DivProps & { delay?: number; now?: boolean }) {
+export function SlideUp({
+  children,
+  delay = 0,
+  now = false,
+  as = "div",
+  className,
+  ...rest
+}: DivProps & { delay?: number; now?: boolean; as?: "div" | "section" }) {
   const reg = useRegister();
   const v = fadeUp(RISE[reg], reg === "work" ? DURATION.base : DURATION.slow);
   const trigger = now ? { animate: "show" } : { whileInView: "show", viewport: VIEWPORT };
+  const Tag = m[as] as typeof m.div;
   return (
-    <m.div
+    <Tag
       initial="hidden"
       {...trigger}
       variants={{ hidden: v.hidden, show: { ...(v.show as object), transition: { duration: reg === "work" ? DURATION.base : DURATION.slow, ease: EASE_OUT, delay } } }}
@@ -58,7 +66,7 @@ export function SlideUp({ children, delay = 0, now = false, className, ...rest }
       {...rest}
     >
       {children}
-    </m.div>
+    </Tag>
   );
 }
 

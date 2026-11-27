@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import CityMap from "@/components/CityMap";
 import Gate from "@/components/Gate";
+import { m } from "motion/react";
+import { SlideUp } from "@/components/animate";
 import { Card, CategoryIcon, PageHeader, PageSkeleton, SectionTitle, categoryLabel } from "@/components/ui";
+import { DURATION, EASE_OUT } from "@/lib/motion";
 import { api } from "@/lib/client";
 import { MessageKey, t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
@@ -55,16 +58,16 @@ function Insights() {
     <div className="space-y-16">
       <PageHeader title={t("insights.title")} sub={t("insights.sub")} />
 
-      <section>
+      <SlideUp as="section">
         <SectionTitle title={t("insights.sectorsTitle")} sub={t("insights.sectorsSub")} />
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="overflow-hidden rounded-[8px]">
+          <div className="overflow-hidden rounded-lg border border-line shadow-card">
             <CityMap neighborhoods={s.neighborhoods} layer="sectors" className="h-[520px]" />
           </div>
           <Card className="overflow-hidden">
             <div className="max-h-[520px] overflow-y-auto">
               <table className="w-full text-base">
-                <thead className="sticky top-0 bg-surface text-sm font-semibold text-muted">
+                <thead className="sticky top-0 bg-sunken text-xs font-medium text-muted">
                   <tr className="border-b border-line">
                     <th className="px-5 py-3 text-start">{t("insights.colSector")}</th>
                     <th className="px-3 py-3 text-end">{t("insights.colFixed")}</th>
@@ -74,8 +77,20 @@ function Insights() {
                 <tbody className="divide-y divide-line">
                   {hoods.map((n) => (
                     <tr key={n.name}>
-                      <td className="px-5 py-3 font-semibold">{n.name}</td>
-                      <td className="px-3 py-3 text-end text-lg font-semibold tabular-nums">{Math.round(n.resolutionRate * 100)}%</td>
+                      <td className="px-5 py-3">
+                        <div className="font-medium text-ink">{n.name}</div>
+                        {/* How much of the sector's problems are fixed, as a bar that grows in under the name. */}
+                        <span aria-hidden className="mt-1.5 block h-1 w-full max-w-28 overflow-hidden rounded-full bg-sunken">
+                          <m.span
+                            className="block h-full origin-left rounded-full bg-action rtl:origin-right"
+                            style={{ width: `${Math.round(n.resolutionRate * 100)}%` }}
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: 1 }}
+                            transition={{ duration: DURATION.slow, ease: EASE_OUT, delay: 0.2 }}
+                          />
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-end font-semibold tabular-nums">{Math.round(n.resolutionRate * 100)}%</td>
                       <td className="py-3 pe-5 text-end tabular-nums text-ink-2">
                         {n.avgResolutionDays !== null ? t("insights.days", { n: n.avgResolutionDays }) : "-"}
                       </td>
@@ -86,7 +101,7 @@ function Insights() {
             </div>
           </Card>
         </div>
-      </section>
+      </SlideUp>
 
       <section className={`grid grid-cols-[minmax(0,1fr)] gap-10 ${["", "", "lg:grid-cols-2", "lg:grid-cols-3"][columns]}`}>
         {official && (
@@ -114,7 +129,7 @@ function Insights() {
           </InsightList>
         )}
 
-        <InsightList title={t("insights.predictTitle")} sub={t("insights.predictSub")}>
+        <InsightList order={1} title={t("insights.predictTitle")} sub={t("insights.predictSub")}>
           {s.predictive.length === 0 && <li className="py-3 text-muted">{t("insights.predictNone")}</li>}
           {s.predictive.map((p) => (
             <li key={p.neighborhood + p.category} className="flex gap-3 py-3">
@@ -128,7 +143,7 @@ function Insights() {
           ))}
         </InsightList>
 
-        <InsightList title={t("insights.areasTitle")} sub={t("insights.areasSub")}>
+        <InsightList order={2} title={t("insights.areasTitle")} sub={t("insights.areasSub")}>
           {busiest.map((n, i) => (
             <li key={n.name} className="flex items-center justify-between gap-3 py-3">
               <span className="flex items-baseline gap-3">
@@ -144,7 +159,7 @@ function Insights() {
         </InsightList>
       </section>
 
-      <section>
+      <SlideUp as="section">
         <SectionTitle title={t("insights.officesTitle")} sub={t("insights.officesSub")} />
         <Card className="overflow-hidden">
           {s.offices.length === 0 ? (
@@ -206,19 +221,20 @@ function Insights() {
             </>
           )}
         </Card>
-      </section>
+      </SlideUp>
 
     </div>
   );
 }
 
-function InsightList({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
+/** One column of findings; the columns rise in one after another (`order`). */
+function InsightList({ title, sub, children, order = 0 }: { title: string; sub: string; children: React.ReactNode; order?: number }) {
   return (
-    <div className="min-w-0">
-      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
-      <p className="mt-2 text-base text-ink-2">{sub}</p>
+    <SlideUp delay={order * 0.08} className="min-w-0">
+      <h2 className="text-lg font-semibold tracking-tight text-ink sm:text-xl">{title}</h2>
+      <p className="mt-1 text-sm text-muted">{sub}</p>
       <ul className="mt-4 divide-y divide-line border-y border-line">{children}</ul>
-    </div>
+    </SlideUp>
   );
 }
 

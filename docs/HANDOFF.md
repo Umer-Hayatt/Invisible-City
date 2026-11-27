@@ -41,8 +41,8 @@ Security: the Supabase database password, the Cloudinary secret and the Gemini k
 - [x] Citizen: report steps arrive in turn; My reports cards stagger and glide.
 - [x] Workspace: sliding sidebar indicator, dashboard figures and growing category bars, staggered request, contract and job lists, chat messages slide in.
 - [x] Fixed: the chart colour token renamed by mistake in #16 (grey "open" bars were invisible).
-- [ ] Insights page (Super Admin): reveal its sections and bars like the dashboard.
-- [ ] Issue page: reveal the before/after photos and the timeline with the shared components (it still uses the older CSS `stagger` class).
+- [x] Insights page (Super Admin): sections rise in, the finding columns arrive in turn, each sector has a fix-rate bar that grows under its name.
+- [x] Issue page: the title reveals word by word, the photo settles, before/after photos clip-reveal, the timeline steps arrive in turn.
 - [ ] Refresh `.impeccable/`.
 
 ## Civora frontend redesign (27 November 2026), branch `civora-design`
