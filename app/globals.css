@@ -435,22 +435,33 @@ body {
   overflow-x: clip;
 }
 
-/* A slim scrollbar in the site's colours (Firefox, then Chrome/Edge/Safari). */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-muted) var(--color-sunken);
+/* The Civora scrollbar: a thin canvas track and a rounded navy-to-blue thumb that brightens towards teal on
+   hover. The native scrollbar stays (keyboard, touch and screen readers are untouched); only its look changes.
+   Chrome, Edge and Safari use the ::-webkit-scrollbar rules; Firefox gets the standard colours. (Chrome ignores
+   the webkit rules when scrollbar-color is set, hence the Firefox-only block.) */
+@supports (-moz-appearance: none) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-navy-2) var(--color-canvas);
+  }
 }
 ::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-sunken);
+  background: var(--color-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  border: 3px solid var(--color-sunken);
+  border: 2.5px solid var(--color-canvas);
   border-radius: 9999px;
-  background: var(--color-muted);
+  background: linear-gradient(180deg, var(--color-navy), var(--color-action));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--color-action), var(--color-teal));
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-canvas);
 }
 .scroll-navy {
   scrollbar-width: thin;

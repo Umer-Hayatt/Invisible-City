@@ -12,6 +12,7 @@ import {
   Waves,
 } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { GridPattern } from "@/components/primitives/grid-pattern";
 import { cn } from "@/lib/utils";
 import { CountUp } from "./Motion";
 import { Category, isActive, Severity, Status } from "@/lib/types";
@@ -118,7 +119,13 @@ export function SectionTitle({ title, sub, right }: { title: string; sub?: strin
 /** The top of a working page: title, one sentence and the page's actions, over a hairline. */
 export function PageHeader({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
   return (
-    <header className="mb-8 flex flex-col justify-between gap-4 border-b border-line pb-6 md:flex-row md:items-end">
+    <header className="relative isolate mb-8 flex flex-col justify-between gap-4 border-b border-line pb-6 md:flex-row md:items-end">
+      {/* A faint grid fading in from the top right: texture for working pages, never behind the text's start. */}
+      <GridPattern
+        width={32}
+        height={32}
+        className="-z-10 -mt-8 fill-transparent stroke-line [mask-image:radial-gradient(60%_90%_at_100%_0%,black,transparent)]"
+      />
       <div className="min-w-0 max-w-3xl">
         <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-[1.75rem]">{title}</h1>
         {sub && <p className="mt-2 max-w-[65ch] text-[15px] leading-relaxed text-muted">{sub}</p>}

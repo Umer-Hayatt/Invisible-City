@@ -5,11 +5,17 @@ import { useMe } from "@/lib/me";
 import { Logo } from "@/components/Nav";
 import { t } from "@/lib/i18n";
 
+// The photographs on the site, with their licences (full list in public/photos/CREDITS.md).
 const CREDITS = [
-  { by: "Ka23 13", licence: "CC BY-SA 4.0", href: "https://commons.wikimedia.org/wiki/File:RailroadSwitch_20200801_014921.jpg" },
-  { by: "Obaid747", licence: "CC BY-SA 3.0", href: "https://commons.wikimedia.org/wiki/File:A_sunny_evening_at_Hill_Road_Islamabad_(Sector_F6).JPG" },
-  { by: "Bart Everson", licence: "CC BY 2.0", href: "https://commons.wikimedia.org/wiki/File:Hennessey_Street_Potholes_New_Orleans.jpg" },
-  { by: "Warszawa Stawki 2022", licence: "CC0", href: "https://commons.wikimedia.org/wiki/File:2022_Warszawa_Stawki,_wymiana_opraw_o%C5%9Bwietleniowych,_2.jpg" },
+  { by: "Ehtesham Chaudhary", licence: "Unsplash", href: "https://unsplash.com/photos/a-view-of-a-city-at-night-from-a-hill-jjvYJreVKm4" },
+  { by: "muhammad asif", licence: "Unsplash", href: "https://unsplash.com/photos/a-view-of-a-city-from-a-hill-mfJdv0nLf3o" },
+  { by: "Saleh Kaleem", licence: "Unsplash", href: "https://unsplash.com/photos/a-city-street-with-mountains-in-the-background-CQ7QkfMVwY0" },
+  { by: "Tahamie Farooqui", licence: "Unsplash", href: "https://unsplash.com/photos/modern-mosque-with-mountains-in-the-background-at-sunset-X9e5A0zcqvY" },
+  { by: "Ahsan Elahi", licence: "Pexels", href: "https://www.pexels.com/photo/scenic-islamabad-street-lined-with-vibrant-flora-38647413/" },
+  { by: "Qasim Ali", licence: "Pexels", href: "https://www.pexels.com/photo/man-cleaning-the-rubbish-on-the-road-13230182/" },
+  { by: "HR Capture", licence: "Pexels", href: "https://www.pexels.com/photo/construction-worker-inspecting-pipe-installation-29931974/" },
+  { by: "Bart Everson", licence: "CC BY 2.0, Wikimedia", href: "https://commons.wikimedia.org/wiki/File:Hennessey_Street_Potholes_New_Orleans.jpg" },
+  { by: "Warszawa Stawki 2022", licence: "CC0, Wikimedia", href: "https://commons.wikimedia.org/wiki/File:2022_Warszawa_Stawki,_wymiana_opraw_o%C5%9Bwietleniowych,_2.jpg" },
 ];
 
 export default function Footer() {
@@ -54,7 +60,7 @@ export default function Footer() {
         <div className="space-y-1.5 border-t border-navy-line py-6 text-[13px] leading-relaxed text-on-dark-2">
           <p dir="ltr">Map tiles © Esri, data © OpenStreetMap contributors</p>
           <p dir="ltr" data-credits>
-            Photographs, Wikimedia Commons:{" "}
+            Photographs:{" "}
             {CREDITS.map((c, i) => (
               <span key={c.href}>
                 {i > 0 && ", "}
