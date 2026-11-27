@@ -53,7 +53,6 @@ export function Hero() {
       className="on-dark relative isolate flex min-h-[calc(100svh-6.75rem)] flex-col overflow-hidden bg-navy text-on-dark lg:max-h-[860px]"
     >
       <m.div aria-hidden className="absolute inset-y-0 end-0 -z-20 h-full w-full lg:w-[78%]" style={{ y: photoY }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <m.img
           src="/photos/crew-night.webp"
           alt=""
@@ -242,7 +241,6 @@ export function Figures({ figures, proofId }: { figures: CityFigures | null; pro
 export function ClosingCall() {
   return (
     <section className="on-dark relative isolate flex min-h-[520px] items-center overflow-hidden bg-navy text-on-dark">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <m.img
         src="/photos/hill-road.webp"
         alt={t("home.closeAlt")}
