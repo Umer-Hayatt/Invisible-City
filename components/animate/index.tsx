@@ -345,6 +345,7 @@ export function BentoCard({
   imageAlt = "",
   imagePosition = "center",
   dark = false,
+  sizes = "(min-width: 1024px) 34vw, (min-width: 640px) 50vw, 100vw",
 }: {
   children: ReactNode;
   className?: string;
@@ -352,6 +353,8 @@ export function BentoCard({
   imageAlt?: string;
   imagePosition?: string;
   dark?: boolean;
+  /** How wide the tile is on each screen, so the photograph is fetched at the right size. */
+  sizes?: string;
 }) {
   return (
     <m.div
@@ -370,7 +373,7 @@ export function BentoCard({
             src={image}
             alt={imageAlt}
             fill
-            sizes="(min-width: 1024px) 40vw, 100vw"
+            sizes={sizes}
             className="-z-20 object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             style={{ objectPosition: imagePosition }}
           />

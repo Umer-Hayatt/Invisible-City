@@ -222,11 +222,12 @@ export function Features() {
           </SlideUp>
         </div>
 
-        <StaggerContainer className="mt-14 grid auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+        <StaggerContainer className="mt-14 grid auto-rows-[minmax(240px,auto)] grid-cols-1 gap-4 sm:grid-cols-2 lg:auto-rows-[220px] lg:grid-cols-6">
           <BentoCard
             dark
             image="/photos/islamabad/islamabad-avenue.jpg"
             imagePosition="50% 85%"
+            sizes="(min-width: 1024px) 66vw, 100vw"
             imageAlt={t("home.featRoadsAlt")}
             className="flex flex-col justify-end p-6 sm:col-span-2 lg:col-span-4 lg:row-span-2"
           >

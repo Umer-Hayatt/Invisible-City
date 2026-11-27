@@ -75,6 +75,22 @@ Motion for React (`motion/react`, loaded lazily) is the one animation library; L
 - Workspace motion: the sidebar's active highlight slides between items, figures count up and arrive in turn, category bars grow, request/contract/job cards arrive in turn and glide when filtered, new chat messages slide in (history does not), dialogs, dropdowns and sheets fade and zoom (shadcn), the tab highlight slides.
 - Rules: transform and opacity only (clip-path for image reveals); no layout shift; map markers are never animated one by one; reduced motion turns movement off (MotionConfig `reducedMotion="user"`, RevealText shows plain text, Lenis and parallax off).
 
+## Backgrounds and photography
+- One background system (`components/backgrounds`, plus Magic UI's MIT grid and dot patterns in `components/primitives`):
+  **Aurora** for the home hero only; **GridPattern** for How it works, the live map and (very faint) every page header;
+  **DotPattern** for the features bento; **MeshGradient** for the statistics; **Beams** for the closing call.
+  Aurora, MeshGradient and Beams are our own code (the shadcn.io and Aceternity versions are not under a licence we
+  can commit to a public repo). All animate transform only, sit behind content, ignore the pointer, and stop for
+  reduced motion.
+- Photographs are real Islamabad (or Pakistan, labelled so) from Unsplash and Pexels, listed with photographer, source
+  and licence in `public/photos/CREDITS.md` and credited in the footer. Served through Next.js `Image` (responsive,
+  WebP/AVIF, fixed frames). Evidence photos on Issue pages are never animated in a way that hides them.
+- Text effects: `BlurText` (blur to sharp, word by word) for major headings; `RevealText` (words rise behind a mask)
+  elsewhere. `ScrollReveal` enters from a direction, `ParallaxImage` drifts with the scroll, `BentoCard` lifts,
+  lights its border and zooms its photo on hover.
+- Scrollbar: thin canvas track, rounded navy-to-blue thumb, teal-blue on hover (Firefox gets the standard colours);
+  the native scrollbar is kept. A blue scroll progress bar runs along the top of the home page.
+
 ## Don'ts
 - No gradients beyond the hero photograph's scrim, no glassmorphism, no decorative shapes.
 - No new colours outside the tokens; no colour that carries meaning without a word next to it.

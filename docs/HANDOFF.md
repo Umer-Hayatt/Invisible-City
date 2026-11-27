@@ -34,6 +34,16 @@ Security: the Supabase database password, the Cloudinary secret and the Gemini k
 - Contracts: the app makes a formatted PDF the Business accepts in the app; payment is **recorded** (agreed, paid), never moved. The PDF does not claim to be legally binding by itself.
 - Calls are `tel:` links (the phone's dialer), not in-app calling.
 
+## Civora cinematic upgrade (27 November 2026), branch `civora-cinematic`
+
+- [x] Backgrounds: Magic UI grid and dot patterns (MIT); our own Aurora, MeshGradient and Beams. shadcn.io backgrounds need a sign-in and their licence is unclear for a public repo; Aceternity's licence forbids redistributing source; the user chose MIT libraries.
+- [x] Seven licensed photographs of Islamabad and Pakistan (Unsplash, Pexels) in `public/photos/islamabad`, with `public/photos/CREDITS.md` and footer credits.
+- [x] Home: aurora hero over Islamabad at night with BlurText and parallax; How it works on a grid; new bento features grid; statistics on a mesh gradient; closing call with beams over Daman-e-Koh.
+- [x] BlurText, ScrollReveal, ParallaxImage, BentoCard in `components/animate`.
+- [x] Brand scrollbar; sign-in page Islamabad panel; faint grid in every page header.
+- [ ] How it works steps 1 and 3 still use Wikimedia photos from New Orleans and Warsaw (no free licensed Islamabad pothole or repair photo exists on Unsplash, Pexels or Pixabay). Replace with the team's own Islamabad photos.
+- [ ] Demo Issue thumbnails are still placeholders (`scripts/placeholder-photos.ts`); real report photos come from Citizens.
+
 ## Civora motion (27 November 2026), branch `civora-motion`
 
 - [x] Animation system: `lib/motion.ts` tokens and `components/animate/` components; PageTransition on every route; Lenis on public pages only.
