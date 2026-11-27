@@ -16,6 +16,10 @@ export interface ContractPdfData {
   decidedBy: string | null;
   declineReason: string | null;
   endedAt: string | null;
+  /** When the city recorded the payment, by whom, and its reference; null while unpaid. */
+  paidAt: string | null;
+  paidBy: string | null;
+  paymentReference: string | null;
   scope: string;
   pricePkr: number | null;
   startDate: string | null;
@@ -202,6 +206,13 @@ export async function renderContractPdf(d: ContractPdfData, photo: Buffer | null
   if (d.declineReason) w.field("Reason", d.declineReason);
   if (d.endedAt) w.field("Ended", moment(d.endedAt));
 
+  if (d.status === "accepted" || d.paidAt) {
+    w.heading("Payment");
+    w.field("Agreed", d.pricePkr === null ? "Price not stated" : `PKR ${d.pricePkr.toLocaleString("en-US")}`);
+    w.field("Status", d.paidAt ? `Paid ${moment(d.paidAt)}${d.paidBy ? ` (recorded by ${d.paidBy})` : ""}` : "Not paid yet. Paid once the Citizen confirms the Fix.");
+    if (d.paymentReference) w.field("Reference", d.paymentReference);
+  }
+
   w.need(150);
   w.space(40);
   const colW = (A4[0] - 2 * MARGIN - 40) / 2;
@@ -230,6 +241,9 @@ async function loadContract(id: number) {
     decided_by: string | null;
     decline_reason: string | null;
     ended_at: string | null;
+    paid_at: string | null;
+    paid_by: string | null;
+    payment_reference: string | null;
     scope: string;
     price_pkr: number | null;
     start_date: string | null;
@@ -251,7 +265,7 @@ async function loadContract(id: number) {
     department: string;
     office_email: string | null;
   }>(
-    `SELECT c.id, c.status, c.sent_at, c.decided_at, c.decided_by, c.decline_reason, c.ended_at, c.scope, c.price_pkr,
+    `SELECT c.id, c.status, c.sent_at, c.decided_at, c.decided_by, c.decline_reason, c.ended_at, c.paid_at, c.paid_by, c.payment_reference, c.scope, c.price_pkr,
             to_char(c.start_date, 'YYYY-MM-DD') AS start_date, to_char(c.finish_date, 'YYYY-MM-DD') AS finish_date,
             c.payment_terms, c.authority_name, p.email AS authority_email, p.phone AS authority_phone,
             i.id AS issue_id, i.title, i.category, i.neighborhood, i.cover_image, i.is_demo,
@@ -279,6 +293,9 @@ async function loadContract(id: number) {
     decidedBy: c.decided_by,
     declineReason: c.decline_reason,
     endedAt: c.ended_at,
+    paidAt: c.paid_at,
+    paidBy: c.paid_by,
+    paymentReference: c.payment_reference,
     scope: c.scope,
     pricePkr: c.price_pkr,
     startDate: c.start_date,

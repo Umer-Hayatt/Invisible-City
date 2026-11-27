@@ -1,9 +1,18 @@
 "use client";
 
-import { ArrowUpRight, CircleCheck, Clock, Download, FileSignature, MessagesSquare, Undo2, XCircle } from "lucide-react";
+import { ArrowUpRight, Banknote, CircleCheck, Clock, Download, FileSignature, MessagesSquare, Undo2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import JobChat from "@/components/JobChat";
+import { Button } from "@/components/primitives/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/primitives/dialog";
 import { ViewTabs, useView } from "@/components/ViewTabs";
 import { StaggerContainer, StaggerItem } from "@/components/animate";
 import { Card, CriticalTag, Empty, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
@@ -32,6 +41,10 @@ export interface Contract {
   decided_at: string | null;
   ended_at: string | null;
   decline_reason: string | null;
+  issue_status: string;
+  paid_at: string | null;
+  paid_by: string | null;
+  payment_reference: string | null;
 }
 
 const day = (d: string) => formatDate(`${d}T00:00:00`);
@@ -90,6 +103,98 @@ export function ContractState({ c, side }: { c: Contract; side: "authority" | "o
         <p className="mt-1 text-sm text-ink-2" dir="auto">
           “{c.decline_reason}”
         </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Payment for an accepted contract: agreed (the price), then paid. The Authority marks it paid once the Citizen has
+ * confirmed the Fix; both sides see when and the reference. Civora records payments; it never moves money.
+ */
+export function ContractPayment({ c, side, onChanged, onError }: { c: Contract; side: "authority" | "office"; onChanged: () => void; onError: (text: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [reference, setReference] = useState("");
+  const [busy, setBusy] = useState(false);
+  if (c.status !== "accepted" && !c.paid_at) return null;
+  const amount = c.price_pkr === null ? t("contract.noPrice") : t("contract.pkr", { n: c.price_pkr.toLocaleString("en-US") });
+  const resolved = c.issue_status === "resolved";
+
+  async function pay() {
+    setBusy(true);
+    try {
+      await api(`/api/contracts/${c.id}/paid`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference }),
+      });
+      setOpen(false);
+    } catch (e) {
+      onError(errorText((e as Error).message));
+    }
+    setBusy(false);
+    onChanged();
+  }
+
+  return (
+    <div className="rounded-lg border border-line px-3 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm">
+          <Banknote size={16} className="text-muted" aria-hidden />
+          <span className="text-muted">{t("contract.payAgreed")}</span>
+          <span className="font-semibold text-ink tabular-nums">{amount}</span>
+        </div>
+        {c.paid_at ? (
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-st-done-50 px-2 py-0.5 text-xs font-semibold text-st-done ring-1 ring-inset ring-st-done/25">
+            <CircleCheck size={13} aria-hidden /> {t("contract.paidOn", { date: formatDate(c.paid_at) })}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-st-open-50 px-2 py-0.5 text-xs font-semibold text-st-open ring-1 ring-inset ring-st-open/25">
+            <Clock size={13} aria-hidden /> {t("contract.unpaid")}
+          </span>
+        )}
+      </div>
+      {c.paid_at ? (
+        c.payment_reference && (
+          <p className="mt-1.5 text-xs text-muted" dir="auto">
+            {t("contract.payReference")}: {c.payment_reference}
+          </p>
+        )
+      ) : (
+        <p className="mt-1.5 text-xs text-muted">{resolved ? t("contract.payReady") : t("contract.payAfterFix")}</p>
+      )}
+      {side === "authority" && !c.paid_at && c.status === "accepted" && resolved && (
+        <>
+          <Button size="sm" className="mt-2.5" onClick={() => setOpen(true)}>
+            <Banknote /> {t("contract.markPaid")}
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t("contract.markPaidTitle", { n: c.id })}</DialogTitle>
+                <DialogDescription>{t("contract.markPaidBody", { amount, office: c.office })}</DialogDescription>
+              </DialogHeader>
+              <label className="grid gap-1.5 text-sm font-medium text-ink-2">
+                {t("contract.payReferenceLabel")}
+                <input
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  maxLength={120}
+                  placeholder={t("contract.payReferencePlaceholder")}
+                  className={field}
+                />
+              </label>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+                  {t("office.cancel")}
+                </Button>
+                <Button onClick={pay} disabled={busy}>
+                  {t("contract.markPaid")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
     </div>
   );
@@ -198,6 +303,7 @@ function ContractCard({ c, side, onChanged, onError }: { c: Contract; side: "aut
       </div>
       <ContractTerms c={c} />
       <ContractState c={c} side={side} />
+      <ContractPayment c={c} side={side} onChanged={onChanged} onError={onError} />
       <a href={`/api/contracts/${c.id}/pdf`} download className={btn.ghost}>
         <Download size={16} aria-hidden /> {t("contract.downloadPdf")}
       </a>
