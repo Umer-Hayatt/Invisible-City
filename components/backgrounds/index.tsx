@@ -25,15 +25,25 @@ import { cn } from "@/lib/utils";
  * radial gradient on its own layer, moved and turned by CSS keyframes, blended with "screen" so they light each
  * other where they cross.
  */
-export function Aurora({ className, children, intensity = 1 }: { className?: string; children?: ReactNode; intensity?: number }) {
+export function Aurora({
+  className,
+  children,
+  intensity = 1,
+  floor = true,
+}: {
+  className?: string;
+  children?: ReactNode;
+  intensity?: number;
+  /** A dark floor under the light, for text near the bottom; off when a photograph sits underneath. */
+  floor?: boolean;
+}) {
   return (
     <div className={cn("relative isolate overflow-hidden bg-navy", className)}>
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10" style={{ opacity: intensity }}>
         <div className="aurora-ribbon aurora-a" />
         <div className="aurora-ribbon aurora-b" />
         <div className="aurora-ribbon aurora-c" />
-        {/* A dark floor so text near the bottom stays readable. */}
-        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_120%,var(--color-navy)_35%,transparent_70%)]" />
+        {floor && <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_120%,var(--color-navy)_35%,transparent_70%)]" />}
       </div>
       {children}
     </div>

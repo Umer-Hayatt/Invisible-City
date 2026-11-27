@@ -5,7 +5,8 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { FadeIn, RevealText, ScrollProgress, SlideUp, StaggerContainer, StaggerItem } from "@/components/animate";
 import CityMap, { MapLayer, pinColor } from "@/components/CityMap";
-import { ClosingCall, Figures, Hero, HowItWorks, wrap } from "@/components/home/Landing";
+import { ClosingCall, Features, Figures, Hero, HowItWorks, wrap } from "@/components/home/Landing";
+import { GridPattern } from "@/components/primitives/grid-pattern";
 import { CriticalTag, Segmented, StatusBadge, categoryLabel } from "@/components/ui";
 import type { CityFigures } from "@/lib/city";
 import { api, timeAgo } from "@/lib/client";
@@ -51,8 +52,14 @@ export default function Home() {
       <ScrollProgress />
       <Hero />
       <HowItWorks issues={active} />
+      <Features />
 
-      <section id="map" aria-labelledby="map-title" className="scroll-mt-16 border-t border-line bg-canvas pb-16 pt-20 sm:pb-20 sm:pt-24">
+      <section id="map" aria-labelledby="map-title" className="relative isolate scroll-mt-16 overflow-hidden border-t border-line bg-surface pb-16 pt-24 sm:pb-24 sm:pt-28">
+        <GridPattern
+          width={56}
+          height={56}
+          className="-z-10 fill-transparent stroke-line/80 [mask-image:linear-gradient(to_bottom,black,transparent_70%)]"
+        />
         <div className={wrap}>
           <div className="flex flex-col items-center">
             <FadeIn>
