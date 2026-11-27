@@ -157,6 +157,12 @@ export interface ContractRow {
   decided_at: string | null;
   ended_at: string | null;
   decline_reason: string | null;
+  /** The Issue's status now: a contract can be marked Paid once its Issue is Resolved. */
+  issue_status: string;
+  /** When the city paid, by whom and with what reference; null while unpaid. */
+  paid_at: string | null;
+  paid_by: string | null;
+  payment_reference: string | null;
 }
 
 /**
@@ -169,7 +175,8 @@ export function listContracts(actor: Actor, issueId: number | null = null) {
     `SELECT c.id, c.issue_id, i.title, i.category, i.severity, i.neighborhood, i.cover_image, c.office_id, o.name AS office,
             EXISTS (SELECT 1 FROM office_staff s WHERE s.office_id = o.id) AS can_answer, c.authority_name, c.scope, c.price_pkr,
             to_char(c.start_date, 'YYYY-MM-DD') AS start_date, to_char(c.finish_date, 'YYYY-MM-DD') AS finish_date,
-            c.payment_terms, c.status, c.sent_at, c.decided_at, c.ended_at, c.decline_reason
+            c.payment_terms, c.status, c.sent_at, c.decided_at, c.ended_at, c.decline_reason,
+            i.status AS issue_status, c.paid_at, c.paid_by, c.payment_reference
      FROM contracts c JOIN issues i ON i.id = c.issue_id JOIN offices o ON o.id = c.office_id
      WHERE i.is_demo = $1 AND i.deleted_at IS NULL
        AND ($2::int IS NULL OR c.office_id = $2) AND ($3::text IS NULL OR i.neighborhood = $3) AND ($4::int IS NULL OR c.issue_id = $4)
@@ -277,4 +284,48 @@ export async function withdrawContract(actor: Actor, id: number): Promise<Answer
   if (!done.length) return "conflict";
   if (!actor.isDemo) await emailWithdrawn({ ...c, emails: await staffEmails(c.office_id) });
   return "ok";
+}
+
+
+export type PayOutcome = "ok" | "not_found" | "conflict" | "not_resolved";
+
+/**
+ * The Authority records that the city paid the Business for an accepted contract. Only once the Citizen has
+ * confirmed the Fix (the Issue is Resolved), only by an Authority of the Issue's area, and only once. Civora records
+ * the payment; it never moves money. The Business is told by email. Not on the public timeline: it is a payment.
+ */
+export async function markContractPaid(actor: Actor, id: number, reference: string | null): Promise<PayOutcome> {
+  const out = await sql().tx(async (q: Sql) => {
+    const [c] = await q.query<{ status: string; paid_at: string | null; issue_status: string; neighborhood: string; office_id: number; title: string; price_pkr: number | null; issue_id: number }>(
+      `SELECT c.status, c.paid_at, i.status AS issue_status, i.neighborhood, c.office_id, i.title, c.price_pkr, c.issue_id
+       FROM contracts c JOIN issues i ON i.id = c.issue_id
+       WHERE c.id = $1 AND i.is_demo = $2 AND i.deleted_at IS NULL FOR UPDATE OF c`,
+      [id, actor.isDemo],
+    );
+    if (!c || (actor.area && c.neighborhood !== actor.area)) return { outcome: "not_found" as const };
+    if (c.status !== "accepted" || c.paid_at) return { outcome: "conflict" as const };
+    if (c.issue_status !== "resolved") return { outcome: "not_resolved" as const };
+    await q.query("UPDATE contracts SET paid_at = $1, paid_by = $2, payment_reference = $3 WHERE id = $4", [
+      nowIso(),
+      actor.displayName || actor.email || "Authority",
+      reference,
+      id,
+    ]);
+    return { outcome: "ok" as const, c };
+  });
+  if (out.outcome === "ok" && !actor.isDemo) {
+    const staff = await sql().query<{ email: string }>("SELECT email FROM office_staff WHERE office_id = $1", [out.c.office_id]);
+    const amount = out.c.price_pkr === null ? "" : ` PKR ${out.c.price_pkr.toLocaleString("en-US")}`;
+    await sendQuietly({
+      to: staff.map((s) => s.email),
+      subject: `Payment recorded for contract ${id}: ${out.c.title}`,
+      body: [
+        `The city has recorded the payment${amount} for contract ${id} (${out.c.title}).`,
+        ...(reference ? [`Reference: ${reference}`] : []),
+        "",
+        `${site()}/office/contracts`,
+      ].join("\n"),
+    });
+  }
+  return out.outcome;
 }

@@ -124,11 +124,11 @@ Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (applied to the liv
 
 ## Businesses, part 3: the rest of contracts (not started)
 
-- [ ] Migration 0008: payment status (agreed, paid, paid at) on contracts.
+- [x] Migration 0008: payment on contracts (paid at, paid by, reference); agreed = the price.
 - [ ] Send a contract from the chat too.
 - [x] Contract PDF on the server (A4, both parties, Issue with photo, terms, price, dates, acceptance record, signature lines; "not legally binding by itself").
 - [x] PDF emailed to both sides on Send and on Accept (mailer attachments).
-- [ ] Payment recorded: the Authority marks it Paid after the Fix is confirmed.
+- [x] Payment recorded: the Authority marks it Paid after the Fix is confirmed (confirm dialog, reference, email to the Business, Payment section in the PDF).
 
 ## Demo of one area (agreed 25 November 2026)
 

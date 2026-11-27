@@ -28,6 +28,10 @@ _Avoid_: Office (on screen), team, crew, contractor, field unit
 A Business asking an Authority to be given an Open Issue of its Department in its sector. The Authority answers with a Contract; the request is accepted when the Business accepts that Contract.
 _Avoid_: Bid, application
 
+**Payment** (of a Contract):
+The city's record that it paid the Business the agreed price, made by an Authority once the Citizen has confirmed the Fix. Civora records payments; it never moves money.
+_Avoid_: Transaction, invoice
+
 **Contract**:
 An Authority's written offer of one Open Issue to one Business: the work, price, dates and payment terms. The Business accepts or declines it; the Authority can withdraw it while it waits. Accepting makes the Assignment. An accepted Contract ends when its Issue leaves the Business. Either side can download it as a **Contract PDF** (not legally binding by itself); it is also emailed when sent and when accepted.
 _Avoid_: Work order, tender, agreement (as a noun for the record)
