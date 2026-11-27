@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 import AssignPanel from "@/components/AssignPanel";
 import { BusinessPanel } from "@/components/BusinessJob";
 import CityMap from "@/components/CityMap";
+import { Alert, ConfirmDialog } from "@/components/DataTools";
 import RequestCard, { type JobRequest } from "@/components/RequestCard";
 import { Card, CriticalTag, IssueThumb, PageSkeleton, StatusBadge } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
@@ -43,7 +44,7 @@ const EVENT_STYLE: Record<string, { icon: LucideIcon; cls: string }> = {
   escalated: { icon: ArrowUp, cls: "bg-danger text-on-status" },
   assigned: { icon: HardHat, cls: "bg-st-assigned text-on-status" },
   in_progress: { icon: Wrench, cls: "bg-st-work text-on-status" },
-  fixed: { icon: Hammer, cls: "bg-lime text-on-lime" },
+  fixed: { icon: Hammer, cls: "bg-action text-on-action" },
   rejected: { icon: ThumbsDown, cls: "bg-danger text-on-status" },
   sent_back: { icon: Undo2, cls: "bg-sunken text-ink" },
   closed_unconfirmed: { icon: Clock, cls: "bg-sunken text-ink" },
@@ -62,6 +63,9 @@ export default function IssuePage() {
   const isBusiness = me?.role === "office";
   // Bumped after any action, so the panels below re-read what they show.
   const [version, setVersion] = useState(0);
+  // Spam flag: which Report is being asked about, and what happened after.
+  const [flagging, setFlagging] = useState<number | null>(null);
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   const load = useCallback(() => {
     api<IssueData>(`/api/issues/${id}`).then(setData).catch((e) => setError(e.message));
@@ -73,15 +77,15 @@ export default function IssuePage() {
   useEffect(load, [load]);
 
   async function flagSpam(reportId: number) {
-    if (!window.confirm(t("review.flagConfirm"))) return;
+    setNotice(null);
     try {
       const out = await api<{ issueRemoved: boolean; suspended: boolean }>(`/api/issues/${id}/reports/${reportId}/spam`, { method: "POST" });
       const extra = [out.issueRemoved ? t("review.issueRemoved") : "", out.suspended ? t("review.suspended") : ""].filter(Boolean).join(" ");
-      window.alert(t("review.flagged", { extra }));
+      setNotice({ tone: "success", text: t("review.flagged", { extra }) });
       if (out.issueRemoved) router.push("/admin/reports");
       else load();
     } catch (e) {
-      window.alert(errorText((e as Error).message));
+      setNotice({ tone: "error", text: errorText((e as Error).message) });
     }
   }
 
@@ -106,16 +110,26 @@ export default function IssuePage() {
       <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
         <ArrowLeft size={16} className="rtl:rotate-180" /> {back.label}
       </Link>
+      {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
+      <ConfirmDialog
+        open={flagging !== null}
+        onOpenChange={(o) => !o && setFlagging(null)}
+        title={t("review.flagSpam")}
+        body={t("review.flagConfirm")}
+        confirm={t("review.flagSpam")}
+        danger
+        onConfirm={() => (flagging !== null ? flagSpam(flagging) : undefined)}
+      />
 
       {/* Header: over the photo while the Issue is still being worked on; plain once a Fix shows before and after. */}
       <div
-        className={`on-dark relative isolate overflow-hidden rounded-[8px] text-on-dark ${showFix ? "bg-navy" : "min-h-[340px] bg-char"}`}
+        className={`on-dark relative isolate overflow-hidden rounded-[8px] text-on-dark ${showFix ? "bg-navy" : "min-h-[340px] bg-navy"}`}
       >
         {!showFix && before && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageUrl(before)!} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
-            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-char via-char/70 to-char/25" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/70 to-navy/25" />
           </>
         )}
         <div className={`flex h-full flex-col justify-end gap-5 p-6 sm:p-8 md:flex-row md:items-end md:justify-between ${showFix ? "" : "min-h-[340px]"}`}>
@@ -125,7 +139,7 @@ export default function IssuePage() {
               <StatusBadge status={issue.status} />
               <CriticalTag severity={issue.severity} status={issue.status} />
             </div>
-            <h1 className="mt-3 text-3xl font-bold leading-[1.08] tracking-[-0.02em] sm:text-5xl">{issue.title}</h1>
+            <h1 className="mt-3 text-3xl font-semibold leading-[1.08] tracking-[-0.02em] sm:text-5xl">{issue.title}</h1>
             <p className="mt-3 text-base text-on-dark-2">
               {t("issue.meta", { place: issue.neighborhood, n: issue.report_count, when: timeAgo(issue.created_at) })}
             </p>
@@ -138,7 +152,7 @@ export default function IssuePage() {
           <div className="grid sm:grid-cols-2">
             <figure className="relative">
               <IssueThumb src={imageUrl(before)} category={issue.category} className="h-72 w-full" />
-              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-char px-3 py-1 text-sm font-semibold text-on-dark">
+              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-navy px-3 py-1 text-sm font-semibold text-on-dark">
                 {t("issue.before")}, {formatDate(issue.created_at)}
               </figcaption>
             </figure>
@@ -151,7 +165,7 @@ export default function IssuePage() {
                   <CircleCheck size={28} /> {t("issue.noAfter")}
                 </div>
               )}
-              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-lime px-3 py-1 text-sm font-semibold text-on-lime">
+              <figcaption className="absolute start-3 top-3 rounded-[4px] bg-action px-3 py-1 text-sm font-semibold text-on-action">
                 {t("issue.after")}
                 {afterDate ? `, ${formatDate(afterDate)}` : ""}
               </figcaption>
@@ -232,7 +246,7 @@ export default function IssuePage() {
                       </div>
                     )}
                     {isAuthority && (
-                      <button onClick={() => flagSpam(r.id)} className="mt-2 min-h-9 text-sm font-semibold text-danger-ink hover:underline">
+                      <button onClick={() => setFlagging(r.id)} className="mt-2 min-h-9 text-sm font-semibold text-danger-ink hover:underline">
                         {t("review.flagSpam")}
                       </button>
                     )}

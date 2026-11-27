@@ -72,7 +72,7 @@ function RegisterOffice() {
     return (
       <Card className="mx-auto mt-10 max-w-md p-8 text-center">
         <Icon className={`mx-auto ${r.decision === "pending" ? "text-brand" : "text-danger-ink"}`} size={32} aria-hidden />
-        <h1 className="mt-4 text-2xl font-bold tracking-tight">{r.name}</h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight">{r.name}</h1>
         <p className="mt-1 text-base text-ink-2">
           {r.department} · {r.sector}
         </p>
@@ -120,7 +120,7 @@ function RegisterOffice() {
           </label>
         </div>
         <label className="flex items-start gap-3 text-base">
-          <input type="checkbox" checked={form.isPrivate} onChange={set("isPrivate")} className="mt-1 size-5 accent-[var(--color-lime)]" />
+          <input type="checkbox" checked={form.isPrivate} onChange={set("isPrivate")} className="mt-1 size-5 accent-[var(--color-action)]" />
           <span>
             <span className="font-semibold">{t("register.private")}</span>
             <span className="block text-sm text-muted">{t("register.privateHint")}</span>

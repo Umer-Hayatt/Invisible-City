@@ -34,6 +34,33 @@ Security: the Supabase database password, the Cloudinary secret and the Gemini k
 - Contracts: the app makes a formatted PDF the Business accepts in the app; payment is **recorded** (agreed, paid), never moved. The PDF does not claim to be legally binding by itself.
 - Calls are `tel:` links (the phone's dialer), not in-app calling.
 
+## Civora frontend redesign (27 November 2026), branch `civora-design`
+
+Asked by the user: premium SaaS look (Linear, Stripe, Vercel, Mercury), shadcn/ui, palette navy #172B4D, royal blue #2563EB actions, teal #14B8A6 accents, off-white #F8FAFC, white cards, text #0F172A / #64748B, borders #E2E8F0, Geist font, no new animation libraries (animations come later), no backend/API/auth changes. The user wrote "Civore"; the app is named **Civora** (Umer renamed it); ask before changing.
+
+Done (pushed to `civora-design`, commit 0fd547a and after):
+- [x] Colour tokens in `app/globals.css` (old lime/charcoal names renamed to action/navy everywhere); dark mode from the same navy.
+- [x] Geist and Geist Mono in `app/layout.tsx`.
+- [x] shadcn/ui primitives in `components/primitives/` (not components/ui: `components/ui.tsx` already exists); `lib/utils.ts` cn(); `components.json`. Overlay z-index raised to 1100 (above the map and bars).
+- [x] `components/ui.tsx` restyled: light PageHeader, cards, buttons, fields, soft status badges, Stat, Empty, new Tag.
+- [x] Light top bar for Citizens (shadcn Sheet on phones, avatar menu `components/UserMenu.tsx`); light sidebar `components/WorkspaceShell.tsx` for Authority, Business, Super Admin. Demo banner pinned with `--banner` height.
+- [x] Headings semibold instead of bold.
+- [x] `components/DataTools.tsx`: SearchInput, matches(), usePaged + Pager, ConfirmDialog, Alert.
+- [x] Super Admin Businesses page: table with status tabs, type filter, search, pagination, row action menu and confirm dialog.
+
+Still to do on this branch (in this order):
+- [x] Super Admin Authorities page: same table pattern as Businesses (search, Active/Revoked tabs, pagination, ConfirmDialog instead of window.confirm).
+- [x] Super Admin Access requests page: tabs Pending/Decided, approve/decline with ConfirmDialog.
+- [x] Authority Businesses page (`app/admin/offices`): table with search and pagination; registrations list.
+- [x] Authority Reports queue: search and pagination. Job requests and Contracts already had status tabs (Umer); no search yet (short lists).
+- [x] Business pages (Jobs, Available jobs, Contracts, My Business): check spacing on phone and laptop.
+- [x] Home page: the "Active repairs" navy band could become a light section with white cards; check the hero buttons.
+- [x] Replace remaining `window.confirm` calls with ConfirmDialog (grep window.confirm).
+- [x] Checked in the preview (phone 375px, laptop, dark mode); tsc, eslint, 253 tests pass; PR opened into main (no migration needed).
+- [x] DESIGN.md rewritten for the Civora system.
+- [ ] Refresh `.impeccable/` (still the old design).
+- [ ] Animations (later phase): reveals, counters, page transitions, map interactions.
+
 ## Remaining work
 
 ### Part 3: the rest of contracts (next)

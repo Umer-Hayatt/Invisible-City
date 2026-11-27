@@ -29,7 +29,7 @@ export default function Gate({
   const box = (title: string, body: string, action: { href: string; label: string }) => (
     <Card className="mx-auto mt-10 max-w-md p-8 text-center">
       <Lock size={28} className="mx-auto text-muted" aria-hidden />
-      <h1 className="mt-4 text-2xl font-bold tracking-tight">{title}</h1>
+      <h1 className="mt-4 text-2xl font-semibold tracking-tight">{title}</h1>
       <p className="mt-2 text-base text-ink-2">{body}</p>
       <Link href={action.href} className={`${btn.primary} mt-6`}>
         {action.label}

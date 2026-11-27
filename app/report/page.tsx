@@ -32,7 +32,7 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint?: s
   return (
     <Card className="p-5">
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-lime text-base font-bold text-on-lime">{n}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-action text-base font-semibold text-on-action">{n}</span>
         <div>
           <h2 className="text-xl font-semibold">{title}</h2>
           {hint && <div className="text-sm text-muted">{hint}</div>}
@@ -141,7 +141,7 @@ function ReportForm() {
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photo.preview} alt={t("report.selectedPhoto")} className="max-h-[340px] w-full object-cover" />
-                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-[4px] bg-char px-3 py-1.5 text-sm font-semibold text-on-dark">
+                  <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-[4px] bg-navy px-3 py-1.5 text-sm font-semibold text-on-dark">
                     <Camera size={14} /> {t("office.changePhoto")}
                   </span>
                 </>
@@ -288,7 +288,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           initial={{ scale: 0, rotate: -40 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 16 }}
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-lime text-on-lime"
+          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-action text-on-action"
         >
           <CircleCheck size={30} />
         </m.div>
@@ -296,7 +296,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mt-4 text-4xl font-bold tracking-tight"
+          className="mt-4 text-4xl font-semibold tracking-tight"
         >
           {t("report.received")}
         </m.h1>
@@ -313,7 +313,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
           <div className="flex items-start gap-3">
             <Copy size={22} className="mt-0.5 shrink-0" aria-hidden />
             <div>
-              <div className="text-lg font-bold">{t("report.duplicateTitle")}</div>
+              <div className="text-lg font-semibold">{t("report.duplicateTitle")}</div>
               <p className="mt-1 text-sm leading-relaxed text-ink-2">
                 {t("report.duplicateBody", { id: r.duplicate.issueId, title: r.duplicate.title, n: r.issue.report_count })}
               </p>
@@ -349,7 +349,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
               <Sparkles size={14} aria-hidden /> {t("report.aiAnalysis")} (
               {a.source === "gemini" ? "Gemini" : a.source === "groq" ? "Groq" : t("report.aiOffline")})
             </div>
-            <div className="text-xl font-bold leading-snug">{a.title}</div>
+            <div className="text-xl font-semibold leading-snug">{a.title}</div>
             <CriticalTag severity={a.severity} />
             <p className="text-base leading-relaxed text-ink-2">{a.summary}</p>
             {a.hazards.length > 0 && (
@@ -384,7 +384,7 @@ function ResultView({ r, preview, onAnother }: { r: SubmitResult; preview: strin
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-s border-note-line ps-3">
-      <div className="text-xl font-bold tabular-nums">{value}</div>
+      <div className="text-xl font-semibold tabular-nums">{value}</div>
       <div className="text-sm text-ink-2">{label}</div>
     </div>
   );

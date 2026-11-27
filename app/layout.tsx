@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Google_Sans, Noto_Naskh_Arabic } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Naskh_Arabic } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "next-themes";
 import DemoBanner from "@/components/DemoBanner";
@@ -12,7 +12,8 @@ import PageShell from "@/components/PageShell";
 import { dirOf, isLocale, LANG_COOKIE, setLocale } from "@/lib/i18n";
 import "./globals.css";
 
-const googleSans = Google_Sans({ variable: "--font-google-sans", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 // Naskh rather than Nastaliq: it keeps the compact line heights the screens were designed with.
 const urdu = Noto_Naskh_Arabic({ variable: "--font-urdu", subsets: ["arabic"], weight: ["400", "500", "600", "700"] });
 
@@ -26,7 +27,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = isLocale(saved) ? saved : "en";
   setLocale(lang); // for the text this server layout renders itself
   return (
-    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${googleSans.variable} ${urdu.variable} h-full antialiased`}>
+    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${geist.variable} ${geistMono.variable} ${urdu.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-canvas text-ink">
         <LocaleSync lang={lang} />
         <MotionEffects />

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { m } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AssignPanel from "@/components/AssignPanel";
+import { Pager, SearchInput, matches, usePaged } from "@/components/DataTools";
 import Gate from "@/components/Gate";
 import { t } from "@/lib/i18n";
 import {
@@ -45,6 +46,7 @@ function Queue() {
   const [status, setStatus] = useState("unresolved");
   const [category, setCategory] = useState("");
   const [hood, setHood] = useState("");
+  const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
 
   const load = useCallback(() => {
@@ -59,10 +61,12 @@ function Queue() {
         (i) =>
           (status === "unresolved" ? isActive(i.status) : !status || i.status === status) &&
           (!category || i.category === category) &&
-          (!hood || i.neighborhood === hood),
+          (!hood || i.neighborhood === hood) &&
+          matches(query, i.title, `#${i.id}`, i.neighborhood, categoryLabel(i.category)),
       ),
-    [issues, status, category, hood],
+    [issues, status, category, hood, query],
   );
+  const paged = usePaged(filtered, 12);
   const sel = issues.find((i) => i.id === selected) ?? null;
   const neglected = hoods.filter((n) => n.neglected).map((n) => n.name);
 
@@ -74,6 +78,7 @@ function Queue() {
         <div className="space-y-4">
           <Card className="overflow-hidden">
             <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">
+              <SearchInput value={query} onChange={setQuery} placeholder={t("admin.search")} className="sm:w-64" />
               <Pill value={status} onChange={setStatus}>
                 <option value="unresolved">{t("admin.allUnresolved")}</option>
                 <option value="">{t("admin.allStatuses")}</option>
@@ -104,7 +109,7 @@ function Queue() {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[680px] text-start text-[15px]">
-                <thead className="text-sm font-semibold text-muted">
+                <thead className="bg-sunken/60 text-xs font-medium text-muted">
                   <tr className="border-b border-line">
                     <th className="px-4 py-3 text-start">{t("admin.colPriority")}</th>
                     <th className="py-3 text-start">{t("admin.colIssue")}</th>
@@ -115,7 +120,7 @@ function Queue() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {filtered.map((i) => (
+                  {paged.slice.map((i) => (
                     // Rows glide into place when a filter changes the queue.
                     <m.tr
                       key={i.id}
@@ -126,7 +131,7 @@ function Queue() {
                       className={`cursor-pointer transition-colors ${selected === i.id ? "bg-brand-50" : "hover:bg-sunken"}`}
                     >
                       <td className="px-4 py-3">
-                        <span className="text-lg font-semibold tabular-nums">{i.priority}</span>
+                        <span className="inline-flex min-w-9 justify-center rounded-md bg-sunken px-1.5 py-0.5 text-sm font-semibold tabular-nums text-ink">{i.priority}</span>
                       </td>
                       <td className="max-w-[320px] py-3 pe-3">
                         <div className="flex items-center gap-2.5">
@@ -151,7 +156,7 @@ function Queue() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3">
+                      <td className="whitespace-nowrap py-3">
                         <span className="font-medium">{i.neighborhood}</span>
                         {neglected.includes(i.neighborhood) && <TriangleAlert size={14} className="ms-1 inline text-danger-ink" aria-label={t("insights.neglected")} />}
                       </td>
@@ -164,7 +169,9 @@ function Queue() {
                   ))}
                 </tbody>
               </table>
+              {filtered.length === 0 && <p className="px-4 py-12 text-center text-sm text-muted">{t("data.noMatch")}</p>}
             </div>
+            <Pager {...paged} />
           </Card>
         </div>
 
@@ -189,7 +196,7 @@ function Pill({ value, onChange, children }: { value: string; onChange: (v: stri
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="min-h-10 rounded-[6px] border border-muted bg-surface px-3 text-[15px] font-medium"
+      className="h-9 rounded-md border border-line-strong bg-surface px-2.5 text-sm font-medium text-ink-2 shadow-card outline-none hover:border-muted focus-visible:border-action focus-visible:ring-3 focus-visible:ring-action/20"
     >
       {children}
     </select>

@@ -49,7 +49,7 @@ function SignIn() {
   return (
     <div className="mx-auto mt-6 max-w-md space-y-4">
       <Card className="p-8">
-        <h1 className="text-3xl font-bold tracking-tight">{t("signin.title")}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("signin.title")}</h1>
         <p className="mt-2 text-base text-ink-2">{t("signin.sub")}</p>
         {!loading && me && (
           <p className="mt-4 rounded-[6px] bg-sunken px-3 py-2 text-base">

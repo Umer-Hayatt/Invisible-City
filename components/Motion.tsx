@@ -140,7 +140,7 @@ export function Parallax({ children, className = "", distance = 80 }: { children
 export async function celebrate() {
   if (reducedMotion()) return;
   const confetti = (await import("canvas-confetti")).default;
-  const colors = ["#cdf22b", "#bae012", "#242b3a", "#fdfdfe"]; // lime, lime-600, navy, surface (confetti draws on a canvas)
+  const colors = ["#2563eb", "#14b8a6", "#172b4d", "#ffffff"]; // action, teal, navy, surface (confetti draws on a canvas)
   const shot = (angle: number, x: number) =>
     confetti({ particleCount: 70, angle, spread: 62, startVelocity: 48, origin: { x, y: 0.75 }, colors, disableForReducedMotion: true, zIndex: 2000 });
   shot(60, 0);

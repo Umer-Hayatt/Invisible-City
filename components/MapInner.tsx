@@ -179,7 +179,7 @@ export default function MapInner({
                 key={n.name}
                 center={[n.lat, n.lng]}
                 radius={850}
-                pathOptions={{ color: "var(--color-lime)", weight: 1.5, fillColor: "var(--color-lime-600)", fillOpacity: 0.12 + 0.68 * n.resolutionRate }}
+                pathOptions={{ color: "var(--color-action)", weight: 1.5, fillColor: "var(--color-action-600)", fillOpacity: 0.12 + 0.68 * n.resolutionRate }}
               >
                 <Tooltip direction="center" permanent className="area-label">
                   {n.name} {pct}%

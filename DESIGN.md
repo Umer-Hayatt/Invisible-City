@@ -1,72 +1,77 @@
 ---
 name: Civora
-description: Hi-vis lime on charcoal and navy; a repair crew's vest as the interface.
+description: A calm, premium civic SaaS. Deep navy brand, royal-blue actions, a touch of teal, on off-white with white cards.
 colors:
-  lime: "#cdf22b"
-  lime-600: "#bae012"
-  on-lime: "#171a0c"
-  char: "#1b1b1c"
-  char-2: "#2a2b2d"
-  char-line: "#3d3f43"
-  navy: "#242b3a"
-  navy-2: "#2d3547"
-  navy-line: "#434d63"
-  on-dark: "#f6f7f9"
-  on-dark-2: "#bcc3cf"
-  canvas: "#f3f4f7"
-  surface: "#fdfdfe"
-  sunken: "#e7e9ee"
-  ink: "#171a20"
-  ink-2: "#3a404b"
-  muted: "#5c6370"
-  line: "#d3d7df"
-  brand: "#47600a"
-  st-open: "#2763c4"
-  st-assigned: "#52617d"
-  st-work: "#b9540a"
-  st-done: "#1d7443"
-  st-closed: "#5d6471"
-  danger: "#cc2a21"
+  navy: "#172B4D"
+  navy-2: "#21396A"
+  action: "#2563EB"
+  action-600: "#1D4ED8"
+  brand: "#1D4ED8"
+  brand-50: "#EFF6FF"
+  teal: "#14B8A6"
+  teal-700: "#0F766E"
+  canvas: "#F8FAFC"
+  surface: "#FFFFFF"
+  sunken: "#F1F5F9"
+  ink: "#0F172A"
+  ink-2: "#334155"
+  muted: "#64748B"
+  line: "#E2E8F0"
+  line-strong: "#CBD5E1"
+  st-open: "#B45309"
+  st-assigned: "#475569"
+  st-work: "#1D4ED8"
+  st-fixed: "#0F766E"
+  st-done: "#15803D"
+  st-closed: "#64748B"
+  danger: "#DC2626"
 typography:
-  family: "Google Sans"
+  family: "Geist"
+  mono: "Geist Mono"
   urdu: "Noto Naskh Arabic"
 rounded:
-  tag: "4px"
+  tag: "6px"
   control: "6px"
-  panel: "8px"
+  card: "8px"
 ---
 
 # Design System: Civora
 
-The team's reference picture (`fixes.docx`, 24 November 2026) sets this look. It replaces the road-signage design. All tokens live at the top of `app/globals.css`; screens use them by name and never branch by theme.
+Inspired by Linear, Stripe, Vercel and Mercury: quiet surfaces, one clear action per screen, dense but calm data.
+Every colour is a token in `app/globals.css`; components never hardcode a colour.
 
 ## Colour
-
-- **Lime** is a fill with `on-lime` lettering: the primary button, the figures band, the current choice, step numbers, the Fixed badge. It is never text on a light ground.
-- **Brand** is the lime family where it must be read: dark olive by day, lime by night. Links and small icons.
-- **Charcoal** holds the nav, the footer and the dark cell of the figures. **Navy** holds the map section and every working page's header. Both are the same day and night.
-- **Status** colours are solid tags with white lettering (Fixed is lime). Map dots use the brighter `pin-*` tokens.
-- **Danger** red means Critical, a Rejection or an error, and nothing else.
+- **Navy** (`navy`) is the brand: the logo tile, the Demo banner, the footer, the hero over its photograph.
+- **Royal blue** (`action`) is for the primary button of a screen, the active navigation item (`brand-50` fill, `brand` text) and links. One primary button per view.
+- **Teal** (`teal`) is a small highlight only: the tick in the logo, the Private tag, the Fixed status.
+- Ground: `canvas` page, `surface` (white) cards with a `line` border and a hairline shadow, `sunken` for table heads, hovers and quiet fills.
+- Text: `ink` for content, `ink-2` for secondary content, `muted` for labels and metadata.
+- Red, amber and green appear only for statuses, alerts and feedback. Statuses are soft badges: a tinted fill, a dot and the status ink (`StatusBadge`). Map dots use the brighter `pin-*` tokens.
+- Dark mode (`.dark`) swaps the ground tokens for the same navy family; brand, statuses and shadows adjust.
 
 ## Type
-
-Google Sans throughout, 400 prose, 500 to 600 labels and actions, 700 heads. Sentence case, never tracked capitals. Body 16px. Numbers that are data use tabular figures. Urdu uses Noto Naskh Arabic with looser lines.
+- Geist for everything Latin, Noto Naskh Arabic for Urdu (right to left).
+- Weights: 600 for headings and table names, 500 for labels, buttons and navigation, 400 for prose. No 700 except the home hero.
+- Page title 28px, section title 18–20px, body 15px, metadata 13px, table head 12px.
 
 ## Layout
-
-Home is full-width bands: photo hero, How it works, the navy map with its list, the figures strip over lime, a closing photo. Content is capped at 1280px. Every other page sits in that column and opens with `PageHeader`, a navy band to both screen edges. Authorities get a charcoal sidebar (Dashboard, Reports, Offices, Insights) instead of the top bar, and the navy band runs only across the content beside it.
+- **Citizens and visitors**: a white top bar (logo, City map, My reports, theme, language, avatar menu, Report a problem). On phones the links move into a right-hand sheet.
+- **Authority, Business, Super Admin**: a white sidebar (logo, the role, its sections with icons, theme and language, the avatar menu) and a content column up to 72rem. On phones the sidebar becomes a slim header with scrolling tabs.
+- The Demo banner sits above everything at a fixed height (`--banner`); the bars and the sidebar sit below it.
+- Every page starts with `PageHeader`: title, one sentence, and its actions on the right, over a hairline.
 
 ## Components
+- `components/ui.tsx`: Card, PageHeader, SectionTitle, Stat, StatusBadge, CriticalTag, Tag, Empty, skeletons, `btn` and `field` looks.
+- `components/primitives/`: shadcn/ui (button, input, select, dialog, sheet, dropdown menu, tabs, table, badge, avatar, tooltip, pagination, popover, command, checkbox, scroll area), mapped onto the tokens. Overlays sit at z-index 1100, above the map and the bars.
+- `components/DataTools.tsx`: SearchInput, `matches()`, `usePaged` + Pager, ConfirmDialog, Alert. Every list page uses the same toolbar: status tabs (`Segmented`), filters, search, then a table with pagination.
+- Actions that are hard to undo (revoke, approve, decline, spam flag) always ask in a ConfirmDialog; never `window.confirm` or `window.alert`.
+- `components/UserMenu.tsx`: the avatar menu (name, email, role, Profile, Sign out).
 
-- **Buttons** (`btn` in `components/ui.tsx`): primary lime, ghost, dark, char (on lime), onDark (on navy, charcoal and photographs). 6px corners, 44px or taller.
-- **Cards**: 8px corners, 1px line, no nested cards.
-- **StatusBadge** and **CriticalTag**: 4px solid tags. Severity is never shown except Critical, and only while the Issue is still waiting.
-- **Issue list item**: headline, status, one sentence (who reported, where, when). No thumbnails, meters or scores.
-- **Map**: round dots with a white ring, sized by how many Reports an Issue has, filled by stage (`pin-*`); only a Critical Issue still waiting stands out, in red with a slow pulse; finished Issues fade. Tiles follow the theme: Esri street map by day, dark grey by night. No severity colours or legend for Citizens. Authorities work without a map (sidebar workspace).
-- **Offices**: one row and one email per Office.
+## Motion (later phase)
+Animations come in a later phase. Sections are separate components so reveals, counters, hover and page transitions can be added without moving layout. The existing light touches stay (count-up figures, the sliding tab highlight, view transitions); no new animation libraries.
 
 ## Don'ts
-
-- No underlined nav or headings, no painted lines under titles, no progress bars for health or priority.
-- No middle-dot strings, decorative status dots, eyebrows, gradients on surfaces, glows or glass.
-- No health score, priority number or neglected sector on a Citizen's screen.
+- No gradients beyond the hero photograph's scrim, no glassmorphism, no decorative shapes.
+- No new colours outside the tokens; no colour that carries meaning without a word next to it.
+- No more than one primary (blue) button in a view; other actions are white bordered buttons.
+- No bold display type in working pages; no rounded corners above 12px.

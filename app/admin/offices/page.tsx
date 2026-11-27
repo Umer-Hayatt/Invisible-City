@@ -2,10 +2,13 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, Pager, SearchInput, matches, usePaged } from "@/components/DataTools";
 import Gate from "@/components/Gate";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/primitives/dialog";
 import { Card, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
+import { NEIGHBORHOODS } from "@/lib/geo";
 import { errorText, t } from "@/lib/i18n";
 
 interface OfficeRow {
@@ -48,6 +51,7 @@ function Offices() {
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
 
   const load = useCallback(() => {
     api<{ offices: OfficeRow[]; departments: { id: number; name: string }[] }>("/api/offices")
@@ -61,6 +65,12 @@ function Offices() {
       .catch(() => setRegistrations([]));
   }, []);
   useEffect(load, [load]);
+
+  const shown = useMemo(
+    () => (offices ?? []).filter((o) => matches(query, o.name, o.department, o.sector, ...o.staff.map((x) => x.email))),
+    [offices, query],
+  );
+  const paged = usePaged(shown, 10);
 
   async function run(call: () => Promise<unknown>) {
     setError("");
@@ -78,12 +88,15 @@ function Offices() {
         title={t("offices.title")}
         sub={t("offices.sub")}
         right={
-          <Link href="/admin/reports" className={btn.onDark}>
-            {t("offices.back")}
-          </Link>
+          <>
+            <Link href="/admin/reports" className={btn.ghost}>
+              {t("offices.back")}
+            </Link>
+            <NewOffice departments={departments} onCreate={(body) => run(() => api("/api/offices", { method: "POST", ...json(body) }))} />
+          </>
         }
       />
-      {error && <div className="rounded-[6px] bg-danger-50 px-4 py-3 text-base font-medium text-danger-ink">{error}</div>}
+      {error && <Alert tone="error">{error}</Alert>}
 
       {registrations.length > 0 && (
         <Registrations
@@ -92,30 +105,32 @@ function Offices() {
         />
       )}
 
-      <NewOffice departments={departments} onCreate={(body) => run(() => api("/api/offices", { method: "POST", ...json(body) }))} />
-
       {offices === null ? (
         <ListSkeleton />
       ) : (
         <Card className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4">
+            <SearchInput value={query} onChange={setQuery} placeholder={t("offices.search")} />
+            <span className="text-sm text-muted">{t("offices.count", { n: shown.length })}</span>
+          </div>
           <div className="overflow-x-auto">
             <table className="block w-full text-base lg:table">
-              <thead className="hidden text-sm font-semibold text-muted lg:table-header-group">
+              <thead className="hidden bg-sunken/60 text-xs font-medium text-muted lg:table-header-group">
                 <tr className="border-b border-line">
                   <th className="px-5 py-3 text-start">{t("insights.colOffice")}</th>
                   <th className="py-3 text-start">{t("offices.department")}</th>
                   <th className="py-3 text-start">{t("insights.colSector")}</th>
-                  <th className="w-[420px] py-3 pe-5 text-start">{t("offices.email")}</th>
+                  <th className="py-3 pe-5 text-start">{t("offices.email")}</th>
                 </tr>
               </thead>
               <tbody className="block divide-y divide-line lg:table-row-group">
-                {offices.map((o) => (
+                {paged.slice.map((o) => (
                   <tr key={o.id} className="block px-5 py-4 lg:table-row">
-                    <td className="block font-semibold lg:table-cell lg:px-5 lg:py-3">{o.name}</td>
+                    <td className="block font-medium text-ink lg:table-cell lg:min-w-48 lg:px-5 lg:py-3">{o.name}</td>
                     <td className="inline-block pe-3 text-ink-2 lg:table-cell lg:py-3">{o.department}</td>
                     <td className="inline-block text-ink-2 lg:table-cell lg:py-3">
                       {o.sector}
-                      <span className="block text-sm text-muted">
+                      <span className="block whitespace-nowrap text-xs text-muted">
                         {[o.workers ? t("offices.workers", { n: o.workers }) : t("offices.noWorkers"), o.is_private ? t("offices.private") : null]
                           .filter(Boolean)
                           .join(" · ")}
@@ -128,7 +143,9 @@ function Offices() {
                 ))}
               </tbody>
             </table>
+            {shown.length === 0 && <p className="px-4 py-12 text-center text-sm text-muted">{t("data.noMatch")}</p>}
           </div>
+          <Pager {...paged} />
         </Card>
       )}
     </div>
@@ -224,36 +241,92 @@ function Registrations({ rows, onDecide }: { rows: Registration[]; onDecide: (id
   );
 }
 
-function NewOffice({ departments, onCreate }: { departments: { id: number; name: string }[]; onCreate: (body: object) => void }) {
-  const [f, setF] = useState({ name: "", departmentId: "", sector: "", lat: "33.69", lng: "73.05" });
+/**
+ * Adding a Business by hand, in a dialog. Choosing the sector fills in its map position (the centre of the sector),
+ * which can still be adjusted; the API receives the same fields as before.
+ */
+function NewOffice({ departments, onCreate }: { departments: { id: number; name: string }[]; onCreate: (body: object) => Promise<void> }) {
+  const empty = { name: "", departmentId: "", sector: "", lat: "", lng: "" };
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState(empty);
+  const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
+  const pickSector = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const hood = NEIGHBORHOODS.find((n) => n.name === e.target.value);
+    setF({ ...f, sector: e.target.value, lat: hood ? String(hood.lat) : f.lat, lng: hood ? String(hood.lng) : f.lng });
+  };
+  const label = "grid gap-1.5 text-sm font-medium text-ink-2";
   return (
-    <Card className="p-5">
-      <form
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1.4fr_1fr_1fr_1fr_auto]"
-        onSubmit={(e) => {
-          e.preventDefault();
-          onCreate({ ...f, departmentId: Number(f.departmentId), lat: Number(f.lat), lng: Number(f.lng) });
-          setF({ ...f, name: "", sector: "" });
-        }}
-      >
-        <h2 className="text-xl font-semibold sm:col-span-2 lg:col-span-6">{t("offices.add")}</h2>
-        <input required value={f.name} onChange={set("name")} placeholder={t("offices.name")} aria-label={t("offices.name")} className={field} />
-        <select required value={f.departmentId} onChange={set("departmentId")} className={field} aria-label={t("offices.department")}>
-          <option value="">{t("offices.department")}</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        <input required value={f.sector} onChange={set("sector")} placeholder={t("offices.sector")} aria-label={t("offices.sector")} className={field} />
-        <input required value={f.lat} onChange={set("lat")} placeholder={t("offices.lat")} aria-label={t("offices.lat")} inputMode="decimal" className={field} />
-        <input required value={f.lng} onChange={set("lng")} placeholder={t("offices.lng")} aria-label={t("offices.lng")} inputMode="decimal" className={field} />
-        <button className={btn.primary}>
-          <Plus size={16} /> {t("offices.create")}
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button type="button" className={btn.primary}>
+          <Plus size={16} /> {t("offices.add")}
         </button>
-      </form>
-    </Card>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("offices.add")}</DialogTitle>
+          <DialogDescription>{t("offices.addSub")}</DialogDescription>
+        </DialogHeader>
+        <form
+          className="grid gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            await onCreate({ ...f, departmentId: Number(f.departmentId), lat: Number(f.lat), lng: Number(f.lng) });
+            setBusy(false);
+            setF(empty);
+            setOpen(false);
+          }}
+        >
+          <label className={label}>
+            {t("offices.name")}
+            <input required minLength={2} maxLength={120} value={f.name} onChange={set("name")} className={field} />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className={label}>
+              {t("offices.department")}
+              <select required value={f.departmentId} onChange={set("departmentId")} className={field}>
+                <option value="">{t("access.pickDepartment")}</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={label}>
+              {t("register.sector")}
+              <select required value={f.sector} onChange={pickSector} className={field}>
+                <option value="">{t("register.pickSector")}</option>
+                {NEIGHBORHOODS.map((n) => (
+                  <option key={n.name} value={n.name}>
+                    {n.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className={label}>
+              {t("offices.lat")}
+              <input required type="number" step="any" min={-90} max={90} value={f.lat} onChange={set("lat")} inputMode="decimal" className={field} />
+            </label>
+            <label className={label}>
+              {t("offices.lng")}
+              <input required type="number" step="any" min={-180} max={180} value={f.lng} onChange={set("lng")} inputMode="decimal" className={field} />
+            </label>
+          </div>
+          <DialogFooter>
+            <button type="button" onClick={() => setOpen(false)} className={btn.ghost}>
+              {t("office.cancel")}
+            </button>
+            <button disabled={busy} className={btn.primary}>
+              {t("offices.create")}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
