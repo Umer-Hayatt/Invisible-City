@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import JobChat from "@/components/JobChat";
 import { ViewTabs, useView } from "@/components/ViewTabs";
+import { StaggerContainer, StaggerItem } from "@/components/animate";
 import { Card, CriticalTag, Empty, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, formatDate, t } from "@/lib/i18n";
@@ -271,11 +272,13 @@ export default function ContractList({ side }: { side: "authority" | "office" })
           {shown.length === 0 ? (
             <Empty icon={FileSignature} title={empty[view]} />
           ) : (
-            <div className="grid items-start gap-5 xl:grid-cols-2">
+            <StaggerContainer now key={view} className="grid items-start gap-5 xl:grid-cols-2">
               {shown.map((c) => (
-                <ContractCard key={c.id} c={c} side={side} onChanged={load} onError={setError} />
+                <StaggerItem key={c.id}>
+                  <ContractCard c={c} side={side} onChanged={load} onError={setError} />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           )}
         </>
       )}

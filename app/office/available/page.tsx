@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { AskActions, isRequested, type AvailableJob } from "@/components/BusinessJob";
 import Gate from "@/components/Gate";
+import { StaggerContainer, StaggerItem } from "@/components/animate";
 import { Card, CriticalTag, Empty, IssueThumb, ListSkeleton, PageHeader } from "@/components/ui";
 import { ViewTabs, useView } from "@/components/ViewTabs";
 import { api, timeAgo } from "@/lib/client";
@@ -59,11 +60,13 @@ function Available() {
           {shown.length === 0 ? (
             <Empty icon={view === "open" ? SearchCheck : Hand} title={view === "open" ? t("available.emptyOpen") : t("available.emptyRequested")} />
           ) : (
-            <div className="grid items-start gap-5 lg:grid-cols-2">
+            <StaggerContainer now key={view} className="grid items-start gap-5 lg:grid-cols-2">
               {shown.map((j) => (
-                <AvailableCard key={j.id} job={j} onChanged={load} />
+                <StaggerItem key={j.id}>
+                  <AvailableCard job={j} onChanged={load} />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           )}
         </>
       )}

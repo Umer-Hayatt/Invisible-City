@@ -2,6 +2,7 @@
 
 import { BarChart3, Briefcase, Building2, ClipboardList, FileSignature, Hand, Inbox, LayoutDashboard, ListChecks, SearchCheck, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { m } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -11,6 +12,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { t, type MessageKey } from "@/lib/i18n";
 import UserMenu from "@/components/UserMenu";
 import type { Role } from "@/lib/roles-list";
+import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -55,11 +57,19 @@ export default function WorkspaceShell({ role, children }: { role: Role; childre
         href={i.href}
         aria-current={on ? "page" : undefined}
         className={cn(
-          "flex items-center gap-2.5 rounded-md text-sm font-medium transition-colors",
+          "relative isolate flex items-center gap-2.5 rounded-md text-sm font-medium transition-colors",
           compact ? "shrink-0 px-3 py-2" : "px-2.5 py-2",
-          on ? "bg-brand-50 text-brand" : "text-ink-2 hover:bg-sunken hover:text-ink",
+          on ? "text-brand" : "text-ink-2 hover:bg-sunken hover:text-ink",
         )}
       >
+        {on && (
+          <m.span
+            aria-hidden
+            layoutId={compact ? "ws-active-tab" : "ws-active-side"}
+            transition={SPRING.snappy}
+            className="absolute inset-0 -z-10 rounded-md bg-brand-50"
+          />
+        )}
         <i.icon size={17} strokeWidth={on ? 2.25 : 2} aria-hidden className={on ? "text-action" : "text-muted"} />
         {t(i.label)}
       </Link>

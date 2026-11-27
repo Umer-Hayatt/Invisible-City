@@ -2,7 +2,9 @@
 
 import { Mail, Phone, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, m } from "motion/react";
 import { btn, field } from "@/components/ui";
+import { DURATION, EASE_OUT } from "@/lib/motion";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
 import { useMe } from "@/lib/me";
@@ -100,22 +102,30 @@ export default function JobChat({ issueId, officeId }: { issueId: number; office
         ) : messages.length === 0 ? (
           <p className="text-sm text-muted">{t("chat.empty")}</p>
         ) : (
-          messages.map((m) => (
-            <div key={m.id} className={`flex ${mine(m) ? "justify-end" : "justify-start"}`}>
+          <AnimatePresence initial={false}>
+          {messages.map((msg) => (
+            <m.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: DURATION.base, ease: EASE_OUT }}
+              className={`flex ${mine(msg) ? "justify-end" : "justify-start"} ${mine(msg) ? "origin-bottom-right" : "origin-bottom-left"}`}
+            >
               <div
                 className={`max-w-[85%] rounded-[8px] px-3 py-2 text-[15px] ${
-                  mine(m) ? "bg-action text-on-action" : "border border-line bg-surface text-ink"
+                  mine(msg) ? "bg-action text-on-action" : "border border-line bg-surface text-ink"
                 }`}
               >
                 <div className="whitespace-pre-wrap break-words" dir="auto">
-                  {m.body}
+                  {msg.body}
                 </div>
-                <div className={`mt-1 text-xs ${mine(m) ? "text-on-action/75" : "text-muted"}`}>
-                  {m.sender_name ?? t(`role.${m.sender_role}`)} · {timeAgo(m.created_at)}
+                <div className={`mt-1 text-xs ${mine(msg) ? "text-on-action/75" : "text-muted"}`}>
+                  {msg.sender_name ?? t(`role.${msg.sender_role}`)} · {timeAgo(msg.created_at)}
                 </div>
               </div>
-            </div>
-          ))
+            </m.div>
+          ))}
+          </AnimatePresence>
         )}
       </div>
       <form onSubmit={send} className="mt-3 flex gap-2">

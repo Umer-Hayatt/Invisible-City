@@ -4,6 +4,7 @@ import { Hand } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Gate from "@/components/Gate";
 import RequestCard, { type JobRequest } from "@/components/RequestCard";
+import { StaggerContainer, StaggerItem } from "@/components/animate";
 import { Empty, ListSkeleton, PageHeader } from "@/components/ui";
 import { ViewTabs, useView } from "@/components/ViewTabs";
 import { api } from "@/lib/client";
@@ -72,11 +73,13 @@ function Requests() {
           {shown.length === 0 ? (
             <Empty icon={Hand} title={view === "pending" ? t("requests.noneWaiting") : t("requests.noneDecided")} />
           ) : (
-            <div className="space-y-4">
-              {shown.map((r) =>
-                r.status === "pending" ? <RequestCard key={r.id} r={r} onSent={load} onDecline={() => decline(r)} /> : <RequestCard key={r.id} r={r} />,
-              )}
-            </div>
+            <StaggerContainer now key={view} className="space-y-4">
+              {shown.map((r) => (
+                <StaggerItem key={r.id}>
+                  {r.status === "pending" ? <RequestCard r={r} onSent={load} onDecline={() => decline(r)} /> : <RequestCard r={r} />}
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
           )}
         </>
       )}
