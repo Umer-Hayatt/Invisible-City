@@ -37,6 +37,9 @@ export interface BusinessEntry {
   department: string;
   sector: string;
   is_private: boolean;
+  is_ngo: boolean;
+  registration_number: string | null;
+  website: string | null;
   workers: number;
   phone: string | null;
   email: string | null;
@@ -48,7 +51,7 @@ export interface BusinessEntry {
 /** Every Business with its one email, the jobs it holds now and the Fixes it has made (its track record in Insights). */
 export async function listBusinesses(demo: boolean): Promise<BusinessEntry[]> {
   const rows = await sql().query<Omit<BusinessEntry, "fixes">>(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.is_private, o.workers, o.phone, o.revoked_at,
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.is_private, o.is_ngo, o.registration_number, o.website, o.workers, o.phone, o.revoked_at,
             (SELECT s.email FROM office_staff s WHERE s.office_id = o.id ORDER BY s.id LIMIT 1) AS email,
             (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
                AND i.status IN ('assigned', 'in_progress'))::int AS active

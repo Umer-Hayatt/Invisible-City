@@ -44,10 +44,11 @@ describe("the seeded demo story", () => {
     expect(wrong.map((i) => i.category)).toEqual([]);
   });
 
-  it("shows the Demo Authority only G-9, with its three Businesses", async () => {
+  it("shows the Demo Authority only G-9, with its three Businesses and its NGO", async () => {
     signInDemo("authority");
-    const { offices: all } = (await (await offices()).json()) as { offices: { sector: string; department: string }[] };
-    expect(all.filter((o) => ["Roads", "Sanitation", "Electrical"].includes(o.department)).length).toBe(3);
+    const { offices: all } = (await (await offices()).json()) as { offices: { sector: string; department: string; is_ngo: boolean }[] };
+    expect(all.filter((o) => !o.is_ngo && ["Roads", "Sanitation", "Electrical"].includes(o.department)).length).toBe(3);
+    expect(all.filter((o) => o.is_ngo).length).toBe(1);
     expect([...new Set(all.map((o) => o.sector))]).toEqual(["G-9"]);
     const { issues } = (await (await listIssues(new Request("http://test/api/issues"))).json()) as { issues: { neighborhood: string }[] };
     expect(issues.length).toBeGreaterThan(0);

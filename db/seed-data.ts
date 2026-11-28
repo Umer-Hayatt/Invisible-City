@@ -174,6 +174,31 @@ export async function seedDemoData(q: Sql, opts: { now?: Date; photos?: SeedPhot
     [DEMO_ACCOUNTS.authority.name, DEMO_ACCOUNTS.authority.email, DEMO_ACCOUNTS.authority.phone, DEMO_ACCOUNTS.superAdmin.email, now.toISOString(), DEMO_AREA],
   );
 
+  // NGOs: one the Super Admin approved, working in G-9 (it is suggested for G-9's rubbish), and one waiting for the
+  // Super Admin to check its registration number. Neither holds an Issue, so the rest of the Demo is unchanged.
+  const g9 = NEIGHBORHOODS.find((n) => n.name === DEMO_AREA)!;
+  await q.query(
+    `INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, phone, is_ngo, registration_number, website)
+     VALUES ($1, (SELECT id FROM departments WHERE name = 'Sanitation'), $2, $3, $4, true, 25, $5, true, $6, $7)`,
+    ["Clean Islamabad Trust", DEMO_AREA, g9.lat - 0.002, g9.lng + 0.002, "+92 51 9133330", "ICT-SWD-2019-0412", "https://example.org/clean-islamabad"],
+  );
+  await q.query(
+    `INSERT INTO office_registrations (name, department_id, sector, workers, contact_name, email, phone, is_demo, created_at,
+                                       is_ngo, registration_number, website, about)
+     VALUES ($1, (SELECT id FROM departments WHERE name = 'Sanitation'), $2, 40, $3, $4, $5, true, $6, true, $7, $8, $9)`,
+    [
+      "Green Hands Foundation",
+      DEMO_AREA,
+      "Ayesha Siddiqui",
+      "greenhands.demo@invisible.city",
+      "+92 300 0000007",
+      new Date(now.getTime() - 2 * 3_600_000).toISOString(),
+      "SECP-NPO-2021-1187",
+      "https://example.org/green-hands",
+      "Volunteers who clear rubbish and blocked drains in G-9 and G-10 every weekend.",
+    ],
+  );
+
   // The database decides which Department handles a Category, as it does for real Issues.
   const departments = await q.query<{ key: Category; department: string }>(
     "SELECT c.key, d.name AS department FROM categories c JOIN departments d ON d.id = c.department_id",

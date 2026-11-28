@@ -9,7 +9,7 @@ export async function GET() {
   const actor = await requireRole("office");
   if (actor instanceof Response) return actor;
   const [office] = await sql().query(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.workers, o.is_private, o.phone,
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.workers, o.is_private, o.is_ngo, o.registration_number, o.website, o.phone,
             (SELECT COUNT(*) FROM issues i WHERE i.office_id = o.id AND i.deleted_at IS NULL
                AND i.status IN ('assigned', 'in_progress'))::int AS active
      FROM offices o JOIN departments d ON d.id = o.department_id WHERE o.id = $1`,

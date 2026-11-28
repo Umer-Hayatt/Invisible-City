@@ -124,7 +124,7 @@ Branch `review-bug-fixes`, migration `0007_review_fixes.sql` (applied to the liv
 
 ## Businesses, part 3: the rest of contracts (not started)
 
-- [x] Migration 0008: payment on contracts (paid at, paid by, reference); agreed = the price.
+- [x] Migration 0008: payment on contracts (paid at, paid by, reference); agreed = the price. (Applied to the live Supabase 28 November.)
 - [ ] Send a contract from the chat too.
 - [x] Contract PDF on the server (A4, both parties, Issue with photo, terms, price, dates, acceptance record, signature lines; "not legally binding by itself").
 - [x] PDF emailed to both sides on Send and on Accept (mailer attachments).
@@ -204,3 +204,12 @@ Still to do on this branch (in this order):
 - [x] Brand scrollbar; sign-in page Islamabad panel; faint grid in every page header.
 - [ ] How it works steps 1 and 3 still use Wikimedia photos from New Orleans and Warsaw (no free licensed Islamabad pothole or repair photo exists on Unsplash, Pexels or Pixabay). Replace with the team's own Islamabad photos.
 - [ ] Demo Issue thumbnails are still placeholders (`scripts/placeholder-photos.ts`); real report photos come from Citizens.
+
+## NGOs (28 November 2026), branch `ngos`
+
+- [x] Migration `0009_ngos.sql` (additive): `is_ngo`, `registration_number`, `website` on offices and registrations, `about` on registrations. **Apply it to Supabase before merging.**
+- [x] Register form: choose City Department office, Private business or NGO; an NGO adds its registration number, website and what it does. "Register your NGO" on the sign-in page and footer (`/register-office?type=ngo`).
+- [x] Super Admin decides NGO registrations on `/super-admin/ngos` (`GET /api/super-admin/ngos`, `POST /api/super-admin/ngos/[id]`); Authorities neither see nor decide them.
+- [x] An approved NGO is a Business of kind NGO: same jobs, contracts and Fixes; NGO tag on Businesses lists, Job requests, My Business (with registration number and website) and the suggested Businesses; NGO filter on the Super Admin's Businesses.
+- [x] Demo: Clean Islamabad Trust (approved, G-9 Sanitation) and Green Hands Foundation (waiting for the Super Admin). Reseed after merging.
+- [x] Tests: `tests/ngos.api.test.ts`; English and Urdu text.

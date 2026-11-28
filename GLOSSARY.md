@@ -21,8 +21,12 @@ A type of public service responsible for a set of Categories, such as Electrical
 _Avoid_: Team, agency
 
 **Business**:
-Whoever carries out repairs for a Department in one sector: a government office (such as a CDA depot) or a private firm. A Business signs in with one email. Called "Office" in the code and database (`offices`, role `office`); every screen says Business (renamed 24 November 2026).
+Whoever carries out repairs for a Department in one sector: a government office (such as a CDA depot), a private firm or an NGO. A Business signs in with one email. Called "Office" in the code and database (`offices`, role `office`); every screen says Business (renamed 24 November 2026).
 _Avoid_: Office (on screen), team, crew, contractor, field unit
+
+**NGO**:
+A registered non-profit that works on Issues as a third kind of Business, beside government offices and private firms. It registers with its government registration number (Social Welfare Department, SECP or similar), and the Super Admin, not an Authority, approves it. Once approved it works exactly like a Business of its sector and Department: Available jobs, Job requests, Contracts (often with no price), Fixes. Stored as an Office with `is_ngo` (28 November 2026).
+_Avoid_: Charity, volunteer group (on screen), non-profit Business
 
 **Job request**:
 A Business asking an Authority to be given an Open Issue of its Department in its sector. The Authority answers with a Contract; the request is accepted when the Business accepts that Contract.
@@ -115,7 +119,7 @@ _Avoid_: Auto-resolve
 A person asking to be made an Authority for an Area or the whole city, which a Super Admin approves or declines after checking they are a real official.
 
 **Office registration**:
-A Business (government or private) asking to join, with its Department, sector and workers, under the Google email it will sign in with. An Authority of that Area or of the whole city approves or declines it.
+A Business (government, private or NGO) asking to join, with its Department, sector and workers, under the Google email it will sign in with. An Authority of that Area or of the whole city approves or declines a government or private one; the Super Admin approves or declines an NGO, after checking its registration number.
 
 **Demo account**:
 A made-up Citizen, Authority, Business (Roads, Sanitation or Electrical) or Super Admin login with seeded data, the Authority and Businesses all in one area, G-9, used to show the app without real accounts. Never mixed with real people's data: a Demo account sees only Demo data, a real account only real data.

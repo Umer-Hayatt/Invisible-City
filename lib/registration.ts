@@ -6,9 +6,10 @@ import { normalizePhone } from "./profile";
 import { Sql, sql } from "./sql";
 
 /**
- * Office registration: an Office (a city Department's office, or a private business doing the same work) registers
- * itself with the Google account it will sign in with. Any Authority of that area, or of the whole city, approves it;
- * approval creates the Office and makes the registering email its one sign-in.
+ * Office registration: an Office (a city Department's office, a private business doing the same work, or an NGO)
+ * registers itself with the Google account it will sign in with. Any Authority of that area, or of the whole city,
+ * approves a government or private one; the Super Admin approves an NGO, after checking its registration number.
+ * Approval creates the Office and makes the registering email its one sign-in.
  */
 export interface OfficeRegistration {
   id: number;
@@ -17,6 +18,10 @@ export interface OfficeRegistration {
   department_id: number;
   sector: string;
   is_private: boolean;
+  is_ngo: boolean;
+  registration_number: string | null;
+  website: string | null;
+  about: string | null;
   workers: number;
   contact_name: string;
   email: string;
@@ -30,7 +35,7 @@ export interface OfficeRegistration {
   revoked_before: boolean;
 }
 
-const SELECT = `SELECT r.id, r.name, d.name AS department, r.department_id, r.sector, r.is_private, r.workers, r.contact_name,
+const SELECT = `SELECT r.id, r.name, d.name AS department, r.department_id, r.sector, r.is_private, r.is_ngo, r.registration_number, r.website, r.about, r.workers, r.contact_name,
        r.email, r.phone, r.decision, r.decided_by, r.office_id, r.created_at, r.decided_at,
        EXISTS (SELECT 1 FROM office_staff s JOIN offices o ON o.id = s.office_id
                WHERE lower(s.email) = lower(r.email) AND o.revoked_at IS NOT NULL) AS revoked_before
@@ -43,6 +48,10 @@ export type RegisterInput = {
   departmentId: unknown;
   sector: unknown;
   isPrivate: unknown;
+  isNgo?: unknown;
+  registrationNumber?: unknown;
+  website?: unknown;
+  about?: unknown;
   workers: unknown;
   contactName: unknown;
   phone: unknown;
@@ -65,7 +74,30 @@ export async function checkRegistration(b: RegisterInput) {
     ? await sql().query("SELECT 1 FROM departments WHERE id = $1", [departmentId])
     : [];
   if (!dept) return { error: "invalid_department" } as const;
-  return { value: { name, contactName, sector, departmentId, workers, phone, isPrivate: b.isPrivate === true } } as const;
+  // An NGO gives its legal registration number; its website and a line about its work are optional.
+  const isNgo = b.isNgo === true;
+  const registrationNumber = isNgo ? String(b.registrationNumber ?? "").trim().replace(/\s+/g, " ") : "";
+  const website = isNgo ? String(b.website ?? "").trim() : "";
+  const about = isNgo ? String(b.about ?? "").trim().replace(/\s+/g, " ") : "";
+  if (isNgo && (registrationNumber.length < 3 || registrationNumber.length > 60)) return { error: "invalid_registration_number" } as const;
+  if (website && (website.length > 200 || !/^(https?:\/\/)?[^\s/$.?#]+\.[^\s]+$/i.test(website))) return { error: "invalid_website" } as const;
+  if (about.length > 500) return { error: "invalid_about" } as const;
+  return {
+    value: {
+      name,
+      contactName,
+      sector,
+      departmentId,
+      workers,
+      phone,
+      // An NGO is neither a government office nor a private firm.
+      isPrivate: !isNgo && b.isPrivate === true,
+      isNgo,
+      registrationNumber: registrationNumber || null,
+      website: website ? (/^https?:\/\//i.test(website) ? website : `https://${website}`) : null,
+      about: about || null,
+    },
+  } as const;
 }
 
 export type RegisterOutcome = { ok: true; id: number } | { ok: false; error: "email_taken" | "already_requested" };
@@ -75,7 +107,19 @@ export type RegisterOutcome = { ok: true; id: number } | { ok: false; error: "em
  * the email of a revoked Office may register again.
  */
 export async function registerOffice(
-  v: { name: string; contactName: string; sector: string; departmentId: number; workers: number; phone: string; isPrivate: boolean },
+  v: {
+    name: string;
+    contactName: string;
+    sector: string;
+    departmentId: number;
+    workers: number;
+    phone: string;
+    isPrivate: boolean;
+    isNgo: boolean;
+    registrationNumber: string | null;
+    website: string | null;
+    about: string | null;
+  },
   email: string,
   demo: boolean,
 ): Promise<RegisterOutcome> {
@@ -91,9 +135,11 @@ export async function registerOffice(
   );
   if (pending) return { ok: false, error: "already_requested" };
   const [row] = await q.query<{ id: number }>(
-    `INSERT INTO office_registrations (name, department_id, sector, is_private, workers, contact_name, email, phone, is_demo, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-    [v.name, v.departmentId, v.sector, v.isPrivate, v.workers, v.contactName, email.toLowerCase(), v.phone, demo, nowIso()],
+    `INSERT INTO office_registrations (name, department_id, sector, is_private, workers, contact_name, email, phone, is_demo, created_at,
+                                       is_ngo, registration_number, website, about)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id`,
+    [v.name, v.departmentId, v.sector, v.isPrivate, v.workers, v.contactName, email.toLowerCase(), v.phone, demo, nowIso(),
+     v.isNgo, v.registrationNumber, v.website, v.about],
   );
   return { ok: true, id: row.id };
 }
@@ -107,10 +153,19 @@ export async function latestRegistration(email: string, demo: boolean) {
   return row ?? null;
 }
 
-/** Registrations an Authority may decide: their area's, or every area's for a whole-city Authority. Pending first. */
+/** NGO registrations, for the Super Admin of this world. Pending first. */
+export async function listNgoRegistrations(demo: boolean) {
+  return sql().query<OfficeRegistration>(
+    `${SELECT} WHERE r.is_demo = $1 AND r.is_ngo
+     ORDER BY (r.decision = 'pending') DESC, r.created_at DESC, r.id DESC LIMIT 100`,
+    [demo],
+  );
+}
+
+/** Registrations an Authority may decide: their area's, or every area's for a whole-city Authority. Pending first. NGOs are the Super Admin's. */
 export async function listRegistrations(demo: boolean, area: string | null) {
   return sql().query<OfficeRegistration>(
-    `${SELECT} WHERE r.is_demo = $1 AND ($2::text IS NULL OR r.sector = $2)
+    `${SELECT} WHERE r.is_demo = $1 AND NOT r.is_ngo AND ($2::text IS NULL OR r.sector = $2)
      ORDER BY (r.decision = 'pending') DESC, r.created_at DESC, r.id DESC LIMIT 100`,
     [demo, area],
   );
@@ -125,19 +180,22 @@ export type DecideOutcome = "approved" | "declined" | "not_found" | "conflict" |
 export async function decideRegistration(
   id: number,
   decision: "approved" | "declined",
-  by: { email: string | null; area: string | null },
+  by: { email: string | null; area: string | null; superAdmin?: boolean },
   demo: boolean,
 ): Promise<DecideOutcome> {
   const outcome = await sql().tx(async (q: Sql): Promise<DecideOutcome> => {
     const [r] = await q.query<OfficeRegistration>(`${SELECT} WHERE r.id = $1 AND r.is_demo = $2 FOR UPDATE OF r`, [id, demo]);
     if (!r) return "not_found";
-    if (by.area && r.sector !== by.area) return "out_of_area";
+    // Government and private Businesses are an Authority's to decide, NGOs the Super Admin's.
+    if (r.is_ngo !== !!by.superAdmin) return "not_found";
+    if (!by.superAdmin && by.area && r.sector !== by.area) return "out_of_area";
     if (r.decision !== "pending") return "conflict";
     let officeId: number | null = null;
     if (decision === "approved") {
       const hood = NEIGHBORHOODS.find((n) => n.name === r.sector)!;
       officeId = await addOffice(
-        { name: r.name, departmentId: r.department_id, sector: r.sector, lat: hood.lat, lng: hood.lng, workers: r.workers, isPrivate: r.is_private, phone: r.phone },
+        { name: r.name, departmentId: r.department_id, sector: r.sector, lat: hood.lat, lng: hood.lng, workers: r.workers, isPrivate: r.is_private, phone: r.phone,
+          isNgo: r.is_ngo, registrationNumber: r.registration_number, website: r.website },
         demo,
         q,
       );
@@ -164,18 +222,24 @@ export async function decideRegistration(
   });
 
   if (!demo && (outcome === "approved" || outcome === "declined")) {
-    const [r] = await sql().query<{ email: string; name: string }>("SELECT email, name FROM office_registrations WHERE id = $1", [id]);
+    const [r] = await sql().query<{ email: string; name: string; is_ngo: boolean }>(
+      "SELECT email, name, is_ngo FROM office_registrations WHERE id = $1",
+      [id],
+    );
+    const kind = r.is_ngo ? "NGO" : "Business";
     await sendQuietly(
       outcome === "approved"
         ? {
             to: [r.email],
-            subject: `${r.name} is now a Business on Civora`,
-            body: `Your Business registration was approved. Sign in to Civora with this Google account (${r.email}) to see the Issues assigned to ${r.name}.`,
+            subject: `${r.name} is now ${r.is_ngo ? "an NGO" : "a Business"} on Civora`,
+            body: `Your ${kind} registration was approved. Sign in to Civora with this Google account (${r.email}) to see the Issues assigned to ${r.name}.`,
           }
         : {
             to: [r.email],
-            subject: `Your Business registration for ${r.name}`,
-            body: `Your Business registration was not approved. You can contact the city Authority of your area, or register again with corrected details.`,
+            subject: `Your ${kind} registration for ${r.name}`,
+            body: r.is_ngo
+              ? `Your NGO registration was not approved. Check your registration number and details, and register again.`
+              : `Your Business registration was not approved. You can contact the city Authority of your area, or register again with corrected details.`,
           },
     );
   }

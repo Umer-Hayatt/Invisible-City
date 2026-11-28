@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, Empty, ListSkeleton, PageHeader, Segmented, Tag } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
+import { officeKind } from "@/lib/office-kind";
 
 interface Business {
   id: number;
@@ -23,6 +24,7 @@ interface Business {
   department: string;
   sector: string;
   is_private: boolean;
+  is_ngo: boolean;
   workers: number;
   phone: string | null;
   email: string | null;
@@ -32,7 +34,7 @@ interface Business {
 }
 
 type Show = "all" | "active" | "revoked";
-type Kind = "all" | "government" | "private";
+type Kind = "all" | "government" | "private" | "ngo";
 
 export default function BusinessesPage() {
   return (
@@ -81,7 +83,7 @@ function Businesses() {
       (rows ?? []).filter(
         (b) =>
           (show === "all" || (show === "active" ? !b.revoked_at : !!b.revoked_at)) &&
-          (kind === "all" || (kind === "private") === b.is_private) &&
+          (kind === "all" || kind === (b.is_ngo ? "ngo" : b.is_private ? "private" : "government")) &&
           matches(query, b.name, b.email, b.sector, b.department, b.phone),
       ),
     [rows, show, kind, query],
@@ -120,6 +122,7 @@ function Businesses() {
                   <SelectItem value="all">{t("data.allTypes")}</SelectItem>
                   <SelectItem value="government">{t("offices.government")}</SelectItem>
                   <SelectItem value="private">{t("offices.private")}</SelectItem>
+                  <SelectItem value="ngo">{t("offices.ngo")}</SelectItem>
                 </SelectContent>
               </Select>
               <SearchInput value={query} onChange={setQuery} placeholder={t("superadmin.searchBusinesses")} />
@@ -148,7 +151,7 @@ function Businesses() {
                     <TableCell className="max-w-[280px]">
                       <div className="flex items-center gap-2">
                         <span className="truncate font-medium text-ink">{b.name}</span>
-                        <Tag tone={b.is_private ? "teal" : "neutral"}>{b.is_private ? t("offices.private") : t("offices.government")}</Tag>
+                        <Tag tone={b.is_ngo ? "brand" : b.is_private ? "teal" : "neutral"}>{t(officeKind(b))}</Tag>
                       </div>
                       <div className="truncate text-xs text-muted" dir="auto">
                         {[b.email ?? t("superadmin.noEmail"), b.phone].filter(Boolean).join(" · ")}
