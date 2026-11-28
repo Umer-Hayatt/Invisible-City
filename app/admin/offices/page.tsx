@@ -10,6 +10,7 @@ import { Card, ListSkeleton, PageHeader, btn, field } from "@/components/ui";
 import { api, timeAgo } from "@/lib/client";
 import { NEIGHBORHOODS } from "@/lib/geo";
 import { errorText, t } from "@/lib/i18n";
+import { officeKind } from "@/lib/office-kind";
 
 interface OfficeRow {
   id: number;
@@ -18,6 +19,7 @@ interface OfficeRow {
   sector: string;
   workers: number;
   is_private: boolean;
+  is_ngo: boolean;
   staff: { id: number; email: string }[];
 }
 
@@ -131,7 +133,7 @@ function Offices() {
                     <td className="inline-block text-ink-2 lg:table-cell lg:py-3">
                       {o.sector}
                       <span className="block whitespace-nowrap text-xs text-muted">
-                        {[o.workers ? t("offices.workers", { n: o.workers }) : t("offices.noWorkers"), o.is_private ? t("offices.private") : null]
+                        {[o.workers ? t("offices.workers", { n: o.workers }) : t("offices.noWorkers"), o.is_private || o.is_ngo ? t(officeKind(o)) : null]
                           .filter(Boolean)
                           .join(" · ")}
                       </span>

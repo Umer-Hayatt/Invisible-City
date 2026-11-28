@@ -125,6 +125,7 @@ export interface JobRequestRow {
   office: string;
   department: string;
   is_private: boolean;
+  is_ngo: boolean;
   workers: number;
   active: number;
   phone: string | null;
@@ -140,7 +141,7 @@ export interface JobRequestRow {
 export async function listJobRequests(demo: boolean, area: string | null) {
   return sql().query<JobRequestRow>(
     `SELECT r.id, r.issue_id, i.title, i.category, i.severity, i.neighborhood, i.status AS issue_status,
-            o.id AS office_id, o.name AS office, d.name AS department, o.is_private, o.workers, o.phone,
+            o.id AS office_id, o.name AS office, d.name AS department, o.is_private, o.is_ngo, o.workers, o.phone,
             (SELECT s.email FROM office_staff s WHERE s.office_id = o.id ORDER BY s.id LIMIT 1) AS email,
             (SELECT COUNT(*) FROM issues x WHERE x.office_id = o.id AND x.deleted_at IS NULL
                AND x.status IN ('assigned', 'in_progress'))::int AS active,

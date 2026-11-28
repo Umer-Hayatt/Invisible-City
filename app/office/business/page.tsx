@@ -5,6 +5,7 @@ import Gate from "@/components/Gate";
 import { Card, PageHeader, PageSkeleton, btn, field } from "@/components/ui";
 import { api } from "@/lib/client";
 import { errorText, t } from "@/lib/i18n";
+import { officeKind } from "@/lib/office-kind";
 import { useMe } from "@/lib/me";
 
 interface Business {
@@ -13,6 +14,9 @@ interface Business {
   sector: string;
   workers: number;
   is_private: boolean;
+  is_ngo: boolean;
+  registration_number: string | null;
+  website: string | null;
   active: number;
   phone: string | null;
 }
@@ -64,7 +68,16 @@ function MyBusiness() {
         <dl className="divide-y divide-line text-base">
           {row(t("offices.department"), b.department)}
           {row(t("register.sector"), b.sector)}
-          {row(t("business.kind"), b.is_private ? t("offices.private") : t("offices.government"))}
+          {row(t("business.kind"), t(officeKind(b)))}
+          {b.is_ngo && b.registration_number && row(t("business.regNumber"), <span dir="ltr">{b.registration_number}</span>)}
+          {b.is_ngo &&
+            b.website &&
+            row(
+              t("business.website"),
+              <a href={b.website} target="_blank" rel="noreferrer" dir="ltr" className="break-all text-brand hover:underline">
+                {b.website}
+              </a>,
+            )}
           {row(
             t("business.email"),
             <span dir="ltr" className="break-all">

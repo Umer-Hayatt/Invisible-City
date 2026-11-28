@@ -15,6 +15,7 @@ interface SuggestedOffice {
   id: number;
   name: string;
   distance: number;
+  is_ngo?: boolean;
   /** Someone can sign in as this Business to answer a contract. */
   has_email: boolean;
 }
@@ -112,7 +113,8 @@ export default function AssignPanel({ issue, onChanged }: { issue: Issue; onChan
           >
             {offices.map((o) => (
               <option key={o.id} value={o.id} disabled={!canChoose(o)}>
-                {o.name} ({t("admin.distance", { km: (o.distance / 1000).toFixed(1) })})
+                {o.name}
+                {o.is_ngo ? ` · ${t("offices.ngo")}` : ""} ({t("admin.distance", { km: (o.distance / 1000).toFixed(1) })})
                 {canChoose(o) ? "" : ` · ${t("contract.noEmail")}`}
               </option>
             ))}

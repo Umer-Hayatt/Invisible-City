@@ -81,6 +81,9 @@ function SignIn() {
             <Link href="/register-office" className="text-base font-semibold text-brand hover:underline">
               {t("register.title")}
             </Link>
+            <Link href="/register-office?type=ngo" className="text-base font-semibold text-brand hover:underline">
+              {t("register.ngoLink")}
+            </Link>
             <Link href="/request-access" className="text-base font-semibold text-brand hover:underline">
               {t("nav.requestAccess")}
             </Link>

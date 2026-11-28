@@ -8,6 +8,7 @@ import JobChat from "@/components/JobChat";
 import { Card, CriticalTag, btn } from "@/components/ui";
 import { timeAgo } from "@/lib/client";
 import { t } from "@/lib/i18n";
+import { officeKind } from "@/lib/office-kind";
 import type { Category, Severity } from "@/lib/types";
 
 export interface JobRequest {
@@ -22,6 +23,7 @@ export interface JobRequest {
   office: string;
   department: string;
   is_private: boolean;
+  is_ngo: boolean;
   workers: number;
   active: number;
   phone: string | null;
@@ -62,7 +64,7 @@ export default function RequestCard({ r, onSent, onDecline, compact = false }: {
           <div className={compact ? "text-base" : "mt-2 text-base"}>
             <span className="font-semibold">{r.office}</span>
             <span className="ms-2 rounded-[4px] bg-sunken px-2 py-0.5 text-sm font-medium text-ink-2">
-              {r.is_private ? t("offices.private") : t("offices.government")}
+              {t(officeKind(r))}
             </span>
           </div>
           <div className="text-sm text-ink-2">

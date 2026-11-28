@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Briefcase, Building2, ClipboardList, FileSignature, Hand, Inbox, LayoutDashboard, ListChecks, SearchCheck, ShieldCheck } from "lucide-react";
+import { BarChart3, Briefcase, Building2, ClipboardList, FileSignature, Hand, HeartHandshake, Inbox, LayoutDashboard, ListChecks, SearchCheck, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { m } from "motion/react";
 import Link from "next/link";
@@ -39,6 +39,7 @@ export const WORKSPACE: Partial<Record<Role, Item[]>> = {
     { href: "/super-admin", label: "nav.superAdmin", icon: Inbox },
     { href: "/super-admin/authorities", label: "superadmin.authorities", icon: ShieldCheck },
     { href: "/super-admin/businesses", label: "nav.offices", icon: Building2 },
+    { href: "/super-admin/ngos", label: "nav.ngos", icon: HeartHandshake },
     { href: "/insights", label: "nav.insights", icon: BarChart3 },
   ],
 };

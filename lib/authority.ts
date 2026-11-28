@@ -38,8 +38,8 @@ export async function suggestedOffices(issueId: number, demo: boolean) {
     [issueId, demo],
   );
   if (!issue) return null;
-  const offices = await q.query<OfficeRow & { has_email: boolean }>(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng,
+  const offices = await q.query<OfficeRow & { has_email: boolean; is_ngo: boolean }>(
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.is_ngo,
             EXISTS (SELECT 1 FROM office_staff s WHERE s.office_id = o.id) AS has_email
      FROM offices o JOIN departments d ON d.id = o.department_id
      JOIN categories c ON c.department_id = d.id
@@ -93,8 +93,8 @@ export async function flagSpam(issueId: number, reportId: number, authorityId: s
 /** Offices of a world, with their one email. An Authority registered for one area sees only that area's Offices. */
 export async function listOffices(demo: boolean, area: string | null = null) {
   const q = sql();
-  const offices = await q.query<OfficeRow & { workers: number; is_private: boolean }>(
-    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.workers, o.is_private, o.phone
+  const offices = await q.query<OfficeRow & { workers: number; is_private: boolean; is_ngo: boolean }>(
+    `SELECT o.id, o.name, d.name AS department, o.sector, o.lat, o.lng, o.workers, o.is_private, o.is_ngo, o.phone
      FROM offices o JOIN departments d ON d.id = o.department_id
      WHERE o.is_demo = $1 AND o.revoked_at IS NULL AND ($2::text IS NULL OR o.sector = $2) ORDER BY d.name, o.name`,
     [demo, area],
@@ -111,15 +111,28 @@ export async function listDepartments() {
 }
 
 export async function addOffice(
-  o: { name: string; departmentId: number; sector: string; lat: number; lng: number; workers?: number; isPrivate?: boolean; phone?: string | null },
+  o: {
+    name: string;
+    departmentId: number;
+    sector: string;
+    lat: number;
+    lng: number;
+    workers?: number;
+    isPrivate?: boolean;
+    phone?: string | null;
+    isNgo?: boolean;
+    registrationNumber?: string | null;
+    website?: string | null;
+  },
   demo: boolean,
   q: Sql = sql(),
 ) {
   const [dept] = await q.query("SELECT 1 FROM departments WHERE id = $1", [o.departmentId]);
   if (!dept) return null;
   const [row] = await q.query<{ id: number }>(
-    "INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, is_private, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
-    [o.name, o.departmentId, o.sector, o.lat, o.lng, demo, o.workers ?? 0, o.isPrivate ?? false, o.phone ?? null],
+    `INSERT INTO offices (name, department_id, sector, lat, lng, is_demo, workers, is_private, phone, is_ngo, registration_number, website)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+    [o.name, o.departmentId, o.sector, o.lat, o.lng, demo, o.workers ?? 0, o.isPrivate ?? false, o.phone ?? null, o.isNgo ?? false, o.registrationNumber ?? null, o.website ?? null],
   );
   return row.id;
 }

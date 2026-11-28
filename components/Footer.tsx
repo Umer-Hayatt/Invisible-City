@@ -51,6 +51,7 @@ export default function Footer() {
         ])}
         {col(t("footer.officials"), [
           { href: "/register-office", label: t("register.title") },
+          { href: "/register-office?type=ngo", label: t("register.ngoLink") },
           { href: "/request-access", label: t("nav.requestAccess") },
           { href: "/signin", label: t("nav.signIn") },
         ])}
